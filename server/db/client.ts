@@ -6,5 +6,14 @@ if (!env.DATABASE_URL) {
   throw new Error('[db] DATABASE_URL is required for the DB client')
 }
 
-export const pool = new pg.Pool({ connectionString: env.DATABASE_URL })
+// Non-localhost connections (Railway public URL, prod) require SSL.
+// Railway's certs are valid but rejectUnauthorized:false sidesteps any
+// hop-specific cert quirks (e.g., proxy chains).
+const isLocalDb =
+  env.DATABASE_URL.includes('localhost') || env.DATABASE_URL.includes('127.0.0.1')
+
+export const pool = new pg.Pool({
+  connectionString: env.DATABASE_URL,
+  ssl: isLocalDb ? false : { rejectUnauthorized: false },
+})
 export const db = drizzle(pool)

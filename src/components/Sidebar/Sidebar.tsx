@@ -17,8 +17,12 @@ import SettingsIcon from '@mui/icons-material/Settings'
 import LogoutIcon from '@mui/icons-material/Logout'
 import MenuIcon from '@mui/icons-material/Menu'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import LightModeIcon from '@mui/icons-material/LightMode'
+import DarkModeIcon from '@mui/icons-material/DarkMode'
+import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness'
 import { styled } from '@mui/material/styles'
 import { useAuth } from '../../auth/AuthContext'
+import { useThemeMode, type ThemeMode } from '../../ThemeModeProvider'
 
 interface SidebarProps {
   collapsed: boolean
@@ -45,11 +49,24 @@ const ToggleHeader = styled(Box)`
   padding: ${({ theme }) => theme.spacing(1)};
 `
 
+const BottomRail = styled(Box)`
+  margin-top: auto;
+`
+
 const NAV_ITEMS = [
   { to: '/', label: 'Practice', Icon: HomeIcon },
   { to: '/history', label: 'History', Icon: HistoryIcon },
   { to: '/settings', label: 'Settings', Icon: SettingsIcon },
 ] as const
+
+const MODE_META: Record<
+  ThemeMode,
+  { label: string; Icon: typeof LightModeIcon }
+> = {
+  light: { label: 'Light mode (click to cycle)', Icon: LightModeIcon },
+  dark: { label: 'Dark mode (click to cycle)', Icon: DarkModeIcon },
+  system: { label: 'System mode (click to cycle)', Icon: SettingsBrightnessIcon },
+}
 
 export default function Sidebar({
   collapsed,
@@ -58,8 +75,11 @@ export default function Sidebar({
   widthCollapsed,
 }: SidebarProps) {
   const { user } = useAuth()
+  const { mode, cycleMode } = useThemeMode()
   const loc = useLocation()
   const width = collapsed ? widthCollapsed : widthExpanded
+  const ModeIcon = MODE_META[mode].Icon
+  const modeLabel = MODE_META[mode].label
 
   return (
     <StyledDrawer variant='permanent' $width={width}>
@@ -86,21 +106,38 @@ export default function Sidebar({
           </ListItem>
         ))}
       </List>
-      <Divider />
-      {user && (
+
+      <BottomRail>
+        <Divider />
         <List>
           <ListItem disablePadding>
-            <Tooltip title={collapsed ? 'Sign out' : ''} placement='right'>
-              <ListItemButton component='a' href='/api/auth/logout'>
+            <Tooltip title={modeLabel} placement='right'>
+              <ListItemButton onClick={cycleMode} aria-label={modeLabel}>
                 <ListItemIcon>
-                  <LogoutIcon />
+                  <ModeIcon />
                 </ListItemIcon>
-                {!collapsed && <ListItemText primary='Sign out' />}
+                {!collapsed && (
+                  <ListItemText
+                    primary={mode === 'system' ? 'System' : mode === 'dark' ? 'Dark' : 'Light'}
+                  />
+                )}
               </ListItemButton>
             </Tooltip>
           </ListItem>
+          {user && (
+            <ListItem disablePadding>
+              <Tooltip title={collapsed ? 'Sign out' : ''} placement='right'>
+                <ListItemButton component='a' href='/api/auth/logout'>
+                  <ListItemIcon>
+                    <LogoutIcon />
+                  </ListItemIcon>
+                  {!collapsed && <ListItemText primary='Sign out' />}
+                </ListItemButton>
+              </Tooltip>
+            </ListItem>
+          )}
         </List>
-      )}
+      </BottomRail>
     </StyledDrawer>
   )
 }

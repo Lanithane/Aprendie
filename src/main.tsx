@@ -1,9 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { CssBaseline, ThemeProvider } from '@mui/material'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
-import { theme } from './theme'
+import { ThemeModeProvider } from './ThemeModeProvider'
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
@@ -14,11 +13,10 @@ if (!rootEl) throw new Error('#root not found')
 
 ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <ThemeModeProvider>
       <BrowserRouter>
         <App />
       </BrowserRouter>
-    </ThemeProvider>
+    </ThemeModeProvider>
   </React.StrictMode>
 )
