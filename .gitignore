@@ -1,0 +1,26 @@
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# claude code local settings (project-shared settings.json may be committed)
+.claude/settings.local.json
+
+# drizzle
+drizzle/meta/_journal.json.lock
