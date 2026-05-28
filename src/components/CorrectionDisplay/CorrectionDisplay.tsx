@@ -26,36 +26,42 @@ interface CorrectionDisplayProps {
   onNext: () => void
 }
 
-const Diff = styled('div')`
-  font-size: 1.15rem;
+const DiffLine = styled('div')`
+  font-size: 1.1rem;
   line-height: 1.6;
-  padding: ${({ theme }) => theme.spacing(2)};
+  padding: ${({ theme }) => theme.spacing(1.25, 1.5)};
+  border-radius: 6px;
   background: ${({ theme }) => theme.palette.action.hover};
-  border-radius: 8px;
   white-space: pre-wrap;
 `
 
 const Added = styled('span')`
-  color: ${({ theme }) => theme.palette.success.dark};
-  background: ${({ theme }) => theme.palette.success.light}33;
-  font-weight: 600;
-  padding: 0 2px;
-  border-radius: 2px;
+  color: ${({ theme }) => theme.palette.success.main};
+  font-weight: 700;
 `
 
 const Removed = styled('span')`
-  color: ${({ theme }) => theme.palette.error.dark};
-  background: ${({ theme }) => theme.palette.error.light}33;
+  color: ${({ theme }) => theme.palette.error.main};
   text-decoration: line-through;
-  padding: 0 2px;
-  border-radius: 2px;
+  font-weight: 500;
+`
+
+const SpanishHeadline = styled('div')`
+  font-size: 1.7rem;
+  font-weight: 500;
+  line-height: 1.35;
+  font-style: italic;
+  padding: ${({ theme }) => theme.spacing(1, 0, 2)};
+  ${({ theme }) => theme.breakpoints.down('sm')} {
+    font-size: 1.35rem;
+  }
 `
 
 const MistakeRow = styled(Stack)`
-  padding: ${({ theme }) => theme.spacing(1.5)};
+  padding: ${({ theme }) => theme.spacing(1.25, 1.5)};
   border-left: 3px solid ${({ theme }) => theme.palette.warning.main};
   background: ${({ theme }) => theme.palette.action.hover};
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 6px 6px 0;
 `
 
 export default function CorrectionDisplay({
@@ -90,20 +96,34 @@ export default function CorrectionDisplay({
         <Typography variant='overline' color='text.secondary'>
           Spanish
         </Typography>
-        <Typography lang='es' sx={{ mb: 2, fontStyle: 'italic' }}>
-          {spanish}
-        </Typography>
+        <SpanishHeadline lang='es'>{spanish}</SpanishHeadline>
 
-        <Typography variant='overline' color='text.secondary'>
-          Your answer vs corrected
-        </Typography>
-        <Diff>
-          {parts.map((p, i) => {
-            if (p.added) return <Added key={i}>{p.value}</Added>
-            if (p.removed) return <Removed key={i}>{p.value}</Removed>
-            return <span key={i}>{p.value}</span>
-          })}
-        </Diff>
+        <Stack spacing={1}>
+          <Box>
+            <Typography variant='overline' color='text.secondary'>
+              Your answer
+            </Typography>
+            <DiffLine>
+              {parts.map((p, i) => {
+                if (p.added) return null
+                if (p.removed) return <Removed key={i}>{p.value}</Removed>
+                return <span key={i}>{p.value}</span>
+              })}
+            </DiffLine>
+          </Box>
+          <Box>
+            <Typography variant='overline' color='text.secondary'>
+              Corrected
+            </Typography>
+            <DiffLine>
+              {parts.map((p, i) => {
+                if (p.removed) return null
+                if (p.added) return <Added key={i}>{p.value}</Added>
+                return <span key={i}>{p.value}</span>
+              })}
+            </DiffLine>
+          </Box>
+        </Stack>
 
         {mistakes.length > 0 && (
           <>
@@ -111,13 +131,14 @@ export default function CorrectionDisplay({
             <Typography variant='overline' color='text.secondary'>
               Mistakes
             </Typography>
-            <Stack spacing={1.5} sx={{ mt: 1 }}>
+            <Stack spacing={1.25} sx={{ mt: 1 }}>
               {mistakes.map((m, i) => (
                 <MistakeRow key={i} spacing={0.5}>
-                  <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                  <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                     <Chip size='small' lang='es' label={m.spanishSource} color='primary' />
                     <Typography variant='body2'>
-                      <Removed>{m.userPhrase}</Removed> → <Added>{m.correctPhrase}</Added>
+                      <Removed>{m.userPhrase}</Removed>{' → '}
+                      <Added>{m.correctPhrase}</Added>
                     </Typography>
                   </Stack>
                   <Typography variant='body2' color='text.secondary'>

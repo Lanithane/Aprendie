@@ -12,28 +12,34 @@ const router = Router()
 const REFILL_THRESHOLD = 3
 
 const localeSchema = z.enum(['es-MX', 'es-ES', 'es-AR']).default('es-MX')
+const difficultySchema = z.coerce.number().int().min(1).max(5).optional()
 
 router.get('/', requireAuth, async (req, res, next) => {
   const user = req.user as User
   const localeParsed = localeSchema.safeParse(req.query.locale)
   const locale = localeParsed.success ? localeParsed.data : 'es-MX'
+  const difficultyParsed = difficultySchema.safeParse(req.query.difficulty)
+  const targetDifficulty = difficultyParsed.success ? difficultyParsed.data : undefined
 
   try {
-    // Count unused cached sentences for this user+locale; refill batch if too few.
+    const baseFilters = [
+      eq(sentenceCache.userId, user.id),
+      eq(sentenceCache.locale, locale),
+      isNull(sentenceCache.consumedAt),
+    ]
+    const filters =
+      targetDifficulty !== undefined
+        ? [...baseFilters, eq(sentenceCache.difficulty, targetDifficulty)]
+        : baseFilters
+
     const [{ count }] = await db
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(sentenceCache)
-      .where(
-        and(
-          eq(sentenceCache.userId, user.id),
-          eq(sentenceCache.locale, locale),
-          isNull(sentenceCache.consumedAt)
-        )
-      )
+      .where(and(...filters))
 
     if (count < REFILL_THRESHOLD) {
       const anthropic = clientForUser(user)
-      const batch = await generateSentenceBatch(anthropic, locale)
+      const batch = await generateSentenceBatch(anthropic, locale, targetDifficulty)
       await db.insert(sentenceCache).values(
         batch.map((s) => ({
           userId: user.id,
@@ -46,17 +52,10 @@ router.get('/', requireAuth, async (req, res, next) => {
       )
     }
 
-    // Pop the oldest unused sentence and mark it consumed.
     const candidates = await db
       .select()
       .from(sentenceCache)
-      .where(
-        and(
-          eq(sentenceCache.userId, user.id),
-          eq(sentenceCache.locale, locale),
-          isNull(sentenceCache.consumedAt)
-        )
-      )
+      .where(and(...filters))
       .orderBy(sentenceCache.createdAt)
       .limit(1)
 

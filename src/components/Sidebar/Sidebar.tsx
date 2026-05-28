@@ -25,6 +25,9 @@ import { useAuth } from '../../auth/AuthContext'
 import { useThemeMode, type ThemeMode } from '../../ThemeModeProvider'
 
 interface SidebarProps {
+  isMobile: boolean
+  mobileOpen: boolean
+  onCloseMobile: () => void
   collapsed: boolean
   onToggleCollapsed: () => void
   widthExpanded: number
@@ -32,10 +35,10 @@ interface SidebarProps {
 }
 
 const StyledDrawer = styled(Drawer, {
-  shouldForwardProp: (prop) => prop !== '$width',
-})<{ $width: number }>`
-  width: ${({ $width }) => $width}px;
-  flex-shrink: 0;
+  shouldForwardProp: (prop) => prop !== '$width' && prop !== '$reserveSpace',
+})<{ $width: number; $reserveSpace: boolean }>`
+  ${({ $reserveSpace, $width }) =>
+    $reserveSpace ? `width: ${$width}px; flex-shrink: 0;` : ''}
   & .MuiDrawer-paper {
     width: ${({ $width }) => $width}px;
     transition: ${({ theme }) => theme.transitions.create('width')};
@@ -43,7 +46,7 @@ const StyledDrawer = styled(Drawer, {
   }
 `
 
-const ToggleHeader = styled(Box)`
+const HeaderRow = styled(Box)`
   display: flex;
   justify-content: flex-end;
   padding: ${({ theme }) => theme.spacing(1)};
@@ -59,16 +62,16 @@ const NAV_ITEMS = [
   { to: '/settings', label: 'Settings', Icon: SettingsIcon },
 ] as const
 
-const MODE_META: Record<
-  ThemeMode,
-  { label: string; Icon: typeof LightModeIcon }
-> = {
-  light: { label: 'Light mode (click to cycle)', Icon: LightModeIcon },
-  dark: { label: 'Dark mode (click to cycle)', Icon: DarkModeIcon },
-  system: { label: 'System mode (click to cycle)', Icon: SettingsBrightnessIcon },
+const MODE_META: Record<ThemeMode, { label: string; Icon: typeof LightModeIcon; short: string }> = {
+  light: { label: 'Light mode (click to cycle)', Icon: LightModeIcon, short: 'Light' },
+  dark: { label: 'Dark mode (click to cycle)', Icon: DarkModeIcon, short: 'Dark' },
+  system: { label: 'System mode (click to cycle)', Icon: SettingsBrightnessIcon, short: 'System' },
 }
 
 export default function Sidebar({
+  isMobile,
+  mobileOpen,
+  onCloseMobile,
   collapsed,
   onToggleCollapsed,
   widthExpanded,
@@ -77,30 +80,55 @@ export default function Sidebar({
   const { user } = useAuth()
   const { mode, cycleMode } = useThemeMode()
   const loc = useLocation()
-  const width = collapsed ? widthCollapsed : widthExpanded
+
+  // Mobile: always full width when open. Desktop: collapsed or expanded.
+  const width = isMobile ? widthExpanded : collapsed ? widthCollapsed : widthExpanded
+  const showLabels = !collapsed || isMobile
   const ModeIcon = MODE_META[mode].Icon
   const modeLabel = MODE_META[mode].label
+  const variant = isMobile ? 'temporary' : 'permanent'
+
+  // Close mobile drawer when navigating
+  const handleNav = isMobile ? onCloseMobile : undefined
 
   return (
-    <StyledDrawer variant='permanent' $width={width}>
-      <ToggleHeader>
-        <IconButton
-          onClick={onToggleCollapsed}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <MenuIcon /> : <ChevronLeftIcon />}
-        </IconButton>
-      </ToggleHeader>
+    <StyledDrawer
+      variant={variant}
+      open={isMobile ? mobileOpen : true}
+      onClose={onCloseMobile}
+      ModalProps={{ keepMounted: true }}
+      $width={width}
+      $reserveSpace={!isMobile}
+    >
+      <HeaderRow>
+        {isMobile ? (
+          <IconButton onClick={onCloseMobile} aria-label='Close menu'>
+            <ChevronLeftIcon />
+          </IconButton>
+        ) : (
+          <IconButton
+            onClick={onToggleCollapsed}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <MenuIcon /> : <ChevronLeftIcon />}
+          </IconButton>
+        )}
+      </HeaderRow>
       <Divider />
       <List>
         {NAV_ITEMS.map(({ to, label, Icon }) => (
           <ListItem key={to} disablePadding>
-            <Tooltip title={collapsed ? label : ''} placement='right'>
-              <ListItemButton component={RouterLink} to={to} selected={loc.pathname === to}>
+            <Tooltip title={!showLabels ? label : ''} placement='right'>
+              <ListItemButton
+                component={RouterLink}
+                to={to}
+                selected={loc.pathname === to}
+                onClick={handleNav}
+              >
                 <ListItemIcon>
                   <Icon />
                 </ListItemIcon>
-                {!collapsed && <ListItemText primary={label} />}
+                {showLabels && <ListItemText primary={label} />}
               </ListItemButton>
             </Tooltip>
           </ListItem>
@@ -116,22 +144,18 @@ export default function Sidebar({
                 <ListItemIcon>
                   <ModeIcon />
                 </ListItemIcon>
-                {!collapsed && (
-                  <ListItemText
-                    primary={mode === 'system' ? 'System' : mode === 'dark' ? 'Dark' : 'Light'}
-                  />
-                )}
+                {showLabels && <ListItemText primary={MODE_META[mode].short} />}
               </ListItemButton>
             </Tooltip>
           </ListItem>
           {user && (
             <ListItem disablePadding>
-              <Tooltip title={collapsed ? 'Sign out' : ''} placement='right'>
+              <Tooltip title={!showLabels ? 'Sign out' : ''} placement='right'>
                 <ListItemButton component='a' href='/api/auth/logout'>
                   <ListItemIcon>
                     <LogoutIcon />
                   </ListItemIcon>
-                  {!collapsed && <ListItemText primary='Sign out' />}
+                  {showLabels && <ListItemText primary='Sign out' />}
                 </ListItemButton>
               </Tooltip>
             </ListItem>

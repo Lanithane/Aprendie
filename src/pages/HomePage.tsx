@@ -6,6 +6,7 @@ import ApiKeySetup from '../components/ApiKeySetup/ApiKeySetup'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
 import { useLocale } from '../locale/useLocale'
+import { useDifficultyPreference } from '../practice/useDifficultyPreference'
 import { appendHistory, type HistoryMistake } from '../history'
 
 interface Sentence {
@@ -32,6 +33,7 @@ interface Correction {
 export default function HomePage() {
   const { user } = useAuth()
   const { locale } = useLocale()
+  const { pref } = useDifficultyPreference()
   const [sentence, setSentence] = useState<Sentence | null>(null)
   const [correction, setCorrection] = useState<Correction | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -43,7 +45,9 @@ export default function HomePage() {
     setLoading(true)
     setError(null)
     try {
-      const s = await api<Sentence>(`/api/sentence?locale=${locale}`)
+      const params = new URLSearchParams({ locale })
+      if (pref !== null) params.set('difficulty', String(pref))
+      const s = await api<Sentence>(`/api/sentence?${params.toString()}`)
       setSentence(s)
       setCorrection(null)
     } catch (err) {
@@ -51,7 +55,7 @@ export default function HomePage() {
     } finally {
       setLoading(false)
     }
-  }, [user?.hasApiKey, locale])
+  }, [user?.hasApiKey, locale, pref])
 
   useEffect(() => {
     if (user?.hasApiKey && !sentence && !correction) {

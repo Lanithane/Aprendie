@@ -22,19 +22,13 @@ interface CorrectionInput {
   userEnglish: string
 }
 
-export async function correctTranslation(
-  anthropic: Anthropic,
-  input: CorrectionInput
-): Promise<CorrectionResult> {
-  const systemBlock = {
-    type: 'text' as const,
-    text: `You are a kind, precise Spanish-to-English translation tutor. A learner sees a Spanish sentence and types an English translation. Your job:
+const SYSTEM_PROMPT_TEXT = `You are a kind, precise Spanish-to-English translation tutor. A learner sees a Spanish sentence and types an English translation. Your job:
 
-1. Decide if the learner's translation is correct (semantic and grammatical equivalence; minor surface variations are OK).
+1. Decide if the learner's translation is correct (semantic + grammatical equivalence; minor surface variations are OK).
 2. Score it 0-100 where 100 = fully correct, natural English; lower scores reflect errors and how much the meaning shifted.
-3. Provide the "correctedEnglish": a natural English translation. This need not be identical to the expected answer — allow valid alternatives. If the learner was already correct, repeat their answer.
-4. List "mistakes": for each error the learner made, give the exact userPhrase from their answer, the correctPhrase, the spanishSource word(s) they misunderstood, and a short learner-friendly explanation (1-2 sentences max).
-5. Optional "notes": grammar/cultural tip if relevant.
+3. Provide "correctedEnglish": a natural English translation. This need not be identical to the expected answer — allow valid alternatives. If the learner was already correct, repeat their answer.
+4. List "mistakes": for each error the learner made, give the userPhrase, the correctPhrase, the spanishSource word(s) they misunderstood, and a TIGHT explanation: ONE sentence, ~12 words max, learner-friendly. No filler, no "this is because", just the fact.
+5. Optional "notes": ONE-sentence grammar or cultural tip if relevant — otherwise omit.
 
 Return ONLY valid JSON, no markdown, no commentary. JSON shape:
 {
@@ -43,10 +37,12 @@ Return ONLY valid JSON, no markdown, no commentary. JSON shape:
   "correctedEnglish": string,
   "mistakes": [{ "userPhrase": string, "correctPhrase": string, "spanishSource": string, "explanation": string }],
   "notes": string | null
-}`,
-    cache_control: { type: 'ephemeral' as const },
-  }
+}`
 
+export async function correctTranslation(
+  anthropic: Anthropic,
+  input: CorrectionInput
+): Promise<CorrectionResult> {
   const userText = `Locale: ${input.locale}
 Spanish source: "${input.spanish}"
 Expected English (reference): "${input.expectedEnglish}"
@@ -57,7 +53,13 @@ Score it now.`
   const resp = await anthropic.messages.create({
     model: CORRECTION_MODEL,
     max_tokens: 1500,
-    system: [systemBlock],
+    system: [
+      {
+        type: 'text',
+        text: SYSTEM_PROMPT_TEXT,
+        cache_control: { type: 'ephemeral' },
+      },
+    ],
     messages: [{ role: 'user', content: userText }],
   })
 
