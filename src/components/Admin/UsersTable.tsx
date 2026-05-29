@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import {
   Table,
   TableHead,
@@ -13,8 +13,12 @@ import {
   Button,
   Stack,
   Typography,
+  IconButton,
+  Collapse,
 } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { format } from 'date-fns'
+import UserHistoryPanel from './UserHistoryPanel'
 import type { AdminUser, RevalidateResult } from '../../api/adminApi'
 import type { UserRole } from '../../api/userApi'
 
@@ -36,6 +40,7 @@ export default function UsersTable({
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell padding='checkbox' />
             <TableCell>User</TableCell>
             <TableCell>Role</TableCell>
             <TableCell>API key</TableCell>
@@ -68,6 +73,7 @@ interface UserTableRowProps {
 function UserTableRow({ user, onSetRole, onRevokeKey, onRevalidateKey }: UserTableRowProps) {
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<RevalidateResult | null>(null)
+  const [open, setOpen] = useState(false)
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true)
@@ -96,52 +102,73 @@ function UserTableRow({ user, onSetRole, onRevokeKey, onRevalidateKey }: UserTab
     })
 
   return (
-    <TableRow>
-      <TableCell>
-        <Typography variant='body2'>{user.name}</Typography>
-        <Typography variant='caption' color='text.secondary'>
-          {user.email}
-        </Typography>
-      </TableCell>
-      <TableCell>
-        <Select
-          size='small'
-          value={user.role}
-          disabled={busy}
-          onChange={(e) => handleRole(e.target.value)}
-        >
-          <MenuItem value='user'>User</MenuItem>
-          <MenuItem value='admin'>Admin</MenuItem>
-        </Select>
-      </TableCell>
-      <TableCell>
-        {user.hasApiKey ? (
-          <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-            <Chip size='small' color='success' label='Key set' />
-            <Button size='small' onClick={handleRevalidate} disabled={busy}>
-              Re-validate
-            </Button>
-            <Button size='small' color='error' onClick={handleRevoke} disabled={busy}>
-              Revoke
-            </Button>
-            {result && (
-              <Chip
-                size='small'
-                variant='outlined'
-                color={result.ok ? 'success' : 'error'}
-                label={result.ok ? 'Valid' : (result.reason ?? 'Invalid')}
-              />
-            )}
-          </Stack>
-        ) : (
-          <Chip size='small' variant='outlined' label='No key' />
-        )}
-      </TableCell>
-      <TableCell>
-        <Typography variant='caption' color='text.secondary'>
-          {format(new Date(user.createdAt), 'MMM d, yyyy')}
-        </Typography>
-      </TableCell>
-    </TableRow>
+    <Fragment>
+      <TableRow>
+        <TableCell padding='checkbox'>
+          <IconButton
+            size='small'
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            aria-label='Show history'
+          >
+            <ExpandMoreIcon
+              sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }}
+            />
+          </IconButton>
+        </TableCell>
+        <TableCell>
+          <Typography variant='body2'>{user.name}</Typography>
+          <Typography variant='caption' color='text.secondary'>
+            {user.email}
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Select
+            size='small'
+            value={user.role}
+            disabled={busy}
+            onChange={(e) => handleRole(e.target.value)}
+          >
+            <MenuItem value='user'>User</MenuItem>
+            <MenuItem value='admin'>Admin</MenuItem>
+          </Select>
+        </TableCell>
+        <TableCell>
+          {user.hasApiKey ? (
+            <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+              <Chip size='small' color='success' label='Key set' />
+              <Button size='small' onClick={handleRevalidate} disabled={busy}>
+                Re-validate
+              </Button>
+              <Button size='small' color='error' onClick={handleRevoke} disabled={busy}>
+                Revoke
+              </Button>
+              {result && (
+                <Chip
+                  size='small'
+                  variant='outlined'
+                  color={result.ok ? 'success' : 'error'}
+                  label={result.ok ? 'Valid' : (result.reason ?? 'Invalid')}
+                />
+              )}
+            </Stack>
+          ) : (
+            <Chip size='small' variant='outlined' label='No key' />
+          )}
+        </TableCell>
+        <TableCell>
+          <Typography variant='caption' color='text.secondary'>
+            {format(new Date(user.createdAt), 'MMM d, yyyy')}
+          </Typography>
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell colSpan={5} sx={{ py: 0, border: 0 }}>
+          <Collapse in={open} unmountOnExit>
+            {open && <UserHistoryPanel userId={user.id} />}
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </Fragment>
   )
 }

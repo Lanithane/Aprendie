@@ -10,12 +10,29 @@ import {
   adminRevokeUserKey,
   adminRevalidateUserKey,
 } from '../application/adminUsers'
+import { adminGetUserHistory } from '../application/adminUserHistory'
 
 const router = Router()
 
 router.use(requireAuth, requireAdmin)
 
 const roleBodySchema = z.object({ role: z.enum(['admin', 'user']) })
+
+const historyQuerySchema = z
+  .object({
+    learnLanguage: z.string().optional(),
+    guessLanguage: z.string().optional(),
+    locale: z.string().optional(),
+    limit: z.coerce.number().int().positive().max(200).optional(),
+    cursor: z.string().optional(),
+  })
+  .refine(
+    (q) => {
+      const set = [q.learnLanguage, q.guessLanguage, q.locale].filter(Boolean).length
+      return set === 0 || set === 3
+    },
+    { message: 'learnLanguage, guessLanguage and locale must be provided together' }
+  )
 
 router.get(
   '/',
@@ -59,6 +76,27 @@ router.post(
   asyncHandler(async (req, res) => {
     try {
       res.json(await adminRevalidateUserKey(req.params.id))
+    } catch (err) {
+      if (err instanceof UserNotFoundError) return res.status(404).json({ error: err.message })
+      throw err
+    }
+  })
+)
+
+router.get(
+  '/:id/history',
+  asyncHandler(async (req, res) => {
+    const parsed = historyQuerySchema.safeParse(req.query)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const { learnLanguage, guessLanguage, locale, limit, cursor } = parsed.data
+    const pair =
+      learnLanguage && guessLanguage && locale
+        ? { learnLanguage, guessLanguage, locale }
+        : undefined
+    try {
+      res.json(await adminGetUserHistory(req.params.id, { pair, limit, cursor }))
     } catch (err) {
       if (err instanceof UserNotFoundError) return res.status(404).json({ error: err.message })
       throw err

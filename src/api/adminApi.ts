@@ -1,5 +1,6 @@
 import { api } from './client'
 import type { UserRole } from './userApi'
+import type { HistoryPageDto } from './historyApi'
 
 export interface AdminUser {
   id: string
@@ -32,4 +33,11 @@ export function revokeUserKey(id: string): Promise<void> {
 
 export function revalidateUserKey(id: string): Promise<RevalidateResult> {
   return api<RevalidateResult>(`/api/admin/users/${id}/key/revalidate`, { method: 'POST' })
+}
+
+export function fetchUserHistory(id: string, cursor?: string): Promise<HistoryPageDto> {
+  const search = new URLSearchParams()
+  if (cursor) search.set('cursor', cursor)
+  const qs = search.toString()
+  return api<HistoryPageDto>(`/api/admin/users/${id}/history${qs ? `?${qs}` : ''}`)
 }
