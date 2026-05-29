@@ -1,24 +1,32 @@
 import { api } from './client'
-import type { SpanishLocale } from '../../shared/types'
+import type { LanguageCode, LocaleCode, WordToken } from '../../shared/languages'
+import type { LevelCode } from '../../shared/levels'
 
 export interface SentenceDto {
   id: string
-  spanish: string
-  expectedEnglish: string
-  difficulty: number | null
+  learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
+  locale: LocaleCode
+  promptText: string
+  answerText: string
+  level: LevelCode | null
   grammarFocus: string | null
-  locale: string
+  wordBreakdown: WordToken[]
 }
 
 export interface FetchSentenceParams {
-  locale: SpanishLocale
-  difficulty?: number | null
+  learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
+  locale: LocaleCode
+  level?: LevelCode | null
 }
 
 export function fetchSentence(params: FetchSentenceParams): Promise<SentenceDto> {
-  const search = new URLSearchParams({ locale: params.locale })
-  if (params.difficulty !== null && params.difficulty !== undefined) {
-    search.set('difficulty', String(params.difficulty))
-  }
+  const search = new URLSearchParams({
+    learnLanguage: params.learnLanguage,
+    guessLanguage: params.guessLanguage,
+    locale: params.locale,
+  })
+  if (params.level) search.set('level', params.level)
   return api<SentenceDto>(`/api/sentence?${search.toString()}`)
 }

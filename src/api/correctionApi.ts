@@ -1,27 +1,33 @@
 import { api } from './client'
+import type { LanguageCode, LocaleCode } from '../../shared/languages'
+import type { LevelCode } from '../../shared/levels'
 
 export interface CorrectionMistakeDto {
   userPhrase: string
   correctPhrase: string
-  spanishSource: string
+  sourceText: string
   explanation: string
 }
 
 export interface CorrectionDto {
   sentenceId: string
-  spanish: string
-  expectedEnglish: string
-  userEnglish: string
+  learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
+  locale: LocaleCode
+  level: LevelCode | null
+  promptText: string
+  answerText: string
+  userAnswer: string
   isCorrect: boolean
   score: number
-  correctedEnglish: string
+  correctedAnswer: string
   mistakes: CorrectionMistakeDto[]
   notes?: string
 }
 
-export function submitCorrection(sentenceId: string, userEnglish: string): Promise<CorrectionDto> {
+export function submitCorrection(sentenceId: string, userAnswer: string): Promise<CorrectionDto> {
   return api<CorrectionDto>('/api/correct', {
     method: 'POST',
-    body: JSON.stringify({ sentenceId, userEnglish }),
+    body: JSON.stringify({ sentenceId, userAnswer }),
   })
 }

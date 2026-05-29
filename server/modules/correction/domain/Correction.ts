@@ -1,21 +1,28 @@
+import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
+import type { LevelCode } from '../../../../shared/levels'
+
 export interface CorrectionMistake {
   userPhrase: string
   correctPhrase: string
-  spanishSource: string
+  sourceText: string
   explanation: string
 }
 
 export interface CorrectionResult {
   isCorrect: boolean
   score: number
-  correctedEnglish: string
+  correctedAnswer: string
   mistakes: CorrectionMistake[]
   notes?: string
 }
 
 export interface CorrectionView extends CorrectionResult {
   sentenceId: string
-  spanish: string
-  expectedEnglish: string
-  userEnglish: string
+  learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
+  locale: LocaleCode
+  level: LevelCode | null
+  promptText: string
+  answerText: string
+  userAnswer: string
 }

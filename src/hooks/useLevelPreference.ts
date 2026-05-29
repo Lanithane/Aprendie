@@ -1,28 +1,27 @@
 import { useCallback, useEffect, useState } from 'react'
+import { isLevelCode, type LevelCode } from '../../shared/levels'
 
-const STORAGE_KEY = 'gac:difficulty'
+const STORAGE_KEY = 'gac:level'
 
-export type DifficultyPref = 1 | 2 | 3 | 4 | 5 | null
+export type LevelPref = LevelCode | null
 
-function read(): DifficultyPref {
+function read(): LevelPref {
   try {
     const v = localStorage.getItem(STORAGE_KEY)
-    if (v === null || v === '') return null
-    const n = parseInt(v, 10)
-    if (n >= 1 && n <= 5) return n as DifficultyPref
+    if (v && isLevelCode(v)) return v
   } catch {
     // ignore
   }
   return null
 }
 
-export function useDifficultyPreference() {
-  const [pref, setPrefState] = useState<DifficultyPref>(read())
+export function useLevelPreference() {
+  const [pref, setPrefState] = useState<LevelPref>(read())
 
-  const setPref = useCallback((next: DifficultyPref) => {
+  const setPref = useCallback((next: LevelPref) => {
     try {
       if (next === null) localStorage.removeItem(STORAGE_KEY)
-      else localStorage.setItem(STORAGE_KEY, String(next))
+      else localStorage.setItem(STORAGE_KEY, next)
     } catch {
       // ignore
     }

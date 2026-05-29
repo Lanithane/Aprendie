@@ -10,6 +10,7 @@ import userController from './modules/user/controllers/userController'
 import apiKeyController from './modules/apiKey/controllers/apiKeyController'
 import sentenceController from './modules/sentence/controllers/sentenceController'
 import correctionController from './modules/correction/controllers/correctionController'
+import languageController from './modules/language/controllers/languageController'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -30,6 +31,7 @@ app.use('/api/me', userController)
 app.use('/api/key', apiKeyController)
 app.use('/api/sentence', sentenceController)
 app.use('/api/correct', correctionController)
+app.use('/api/language', languageController)
 
 if (env.NODE_ENV === 'production') {
   const clientDist = path.resolve(__dirname, '..', 'dist')

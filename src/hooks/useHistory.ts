@@ -1,16 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { loadHistory, type HistoryEntry } from '../history'
+import type { LanguagePair } from '../../shared/languages'
 
-export function useHistory(userId: string | undefined, locale: string): HistoryEntry[] {
-  const [items, setItems] = useState<HistoryEntry[]>([])
-
-  useEffect(() => {
-    if (!userId) {
-      setItems([])
-      return
-    }
-    setItems(loadHistory(userId, locale))
-  }, [userId, locale])
-
-  return items
+export function useHistory(userId: string | undefined, pair: LanguagePair): HistoryEntry[] {
+  return useMemo(() => {
+    if (!userId) return []
+    return loadHistory(userId, pair)
+  }, [userId, pair])
 }

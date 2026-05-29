@@ -12,14 +12,15 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { format } from 'date-fns'
 import { useAuth } from '../auth/AuthContext'
-import { useLocale } from '../hooks/useLocale'
+import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useHistory } from '../hooks/useHistory'
+import { languageName } from '../../shared/languages'
 import type { HistoryEntry } from '../history'
 
 export default function HistoryPage() {
   const { user } = useAuth()
-  const { locale } = useLocale()
-  const items = useHistory(user?.id, locale)
+  const { pair } = useLanguagePair()
+  const items = useHistory(user?.id, pair)
   const [expanded, setExpanded] = useState<string | null>(null)
 
   if (!user) return null
@@ -30,7 +31,8 @@ export default function HistoryPage() {
         History
       </Typography>
       <Typography color='text.secondary' sx={{ mb: 3 }}>
-        Stored locally for <code>{locale}</code>. {items.length} attempt
+        Stored locally for {languageName(pair.learnLanguage)} → {languageName(pair.guessLanguage)} (
+        <code>{pair.locale}</code>). {items.length} attempt
         {items.length === 1 ? '' : 's'}.
       </Typography>
       <Stack spacing={1}>
@@ -66,13 +68,9 @@ function HistoryRow({ entry, open, onToggle }: HistoryRowProps) {
     <Card variant='outlined'>
       <CardContent sx={{ pb: '16px !important' }}>
         <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
-          <Chip
-            size='small'
-            label={entry.score}
-            color={entry.isCorrect ? 'success' : 'warning'}
-          />
-          <Typography lang='es' sx={{ flex: 1 }} noWrap>
-            {entry.spanish}
+          <Chip size='small' label={entry.score} color={entry.isCorrect ? 'success' : 'warning'} />
+          <Typography lang={entry.learnLanguage} sx={{ flex: 1 }} noWrap>
+            {entry.promptText}
           </Typography>
           <Typography variant='caption' color='text.secondary'>
             {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
@@ -93,11 +91,13 @@ function HistoryRow({ entry, open, onToggle }: HistoryRowProps) {
             <Typography variant='caption' color='text.secondary'>
               Your answer
             </Typography>
-            <Typography sx={{ mb: 1 }}>{entry.userEnglish}</Typography>
+            <Typography lang={entry.guessLanguage} sx={{ mb: 1 }}>
+              {entry.userAnswer}
+            </Typography>
             <Typography variant='caption' color='text.secondary'>
               Corrected
             </Typography>
-            <Typography>{entry.correctedEnglish}</Typography>
+            <Typography lang={entry.guessLanguage}>{entry.correctedAnswer}</Typography>
             {entry.mistakes.length > 0 && (
               <Box sx={{ mt: 1.5 }}>
                 <Typography variant='caption' color='text.secondary'>
@@ -105,7 +105,7 @@ function HistoryRow({ entry, open, onToggle }: HistoryRowProps) {
                 </Typography>
                 {entry.mistakes.map((m, i) => (
                   <Typography key={i} variant='body2' sx={{ mt: 0.5 }}>
-                    <strong lang='es'>{m.spanishSource}</strong>: {m.explanation}
+                    <strong lang={entry.learnLanguage}>{m.sourceText}</strong>: {m.explanation}
                   </Typography>
                 ))}
               </Box>

@@ -11,7 +11,9 @@ import {
   Divider,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { useDifficultyPreference, type DifficultyPref } from '../../hooks/useDifficultyPreference'
+import { languageName, type LanguageCode } from '../../../shared/languages'
+import { LEVELS, levelLabel } from '../../../shared/levels'
+import type { LevelPref } from '../../hooks/useLevelPreference'
 
 const SentenceCenter = styled('div')`
   text-align: center;
@@ -26,17 +28,23 @@ const SentenceCenter = styled('div')`
 `
 
 interface PracticeCardProps {
-  spanish: string
-  difficulty?: number | null
+  promptText: string
+  learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
+  level: LevelPref
+  onLevelChange: (level: LevelPref) => void
   grammarFocus?: string | null
-  onSubmit: (englishGuess: string) => void
+  onSubmit: (answer: string) => void
   submitting?: boolean
   disabled?: boolean
 }
 
 export default function PracticeCard({
-  spanish,
-  difficulty,
+  promptText,
+  learnLanguage,
+  guessLanguage,
+  level,
+  onLevelChange,
   grammarFocus,
   onSubmit,
   submitting,
@@ -44,13 +52,12 @@ export default function PracticeCard({
 }: PracticeCardProps) {
   const [guess, setGuess] = useState('')
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const { pref, setPref } = useDifficultyPreference()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const menuOpen = Boolean(anchorEl)
 
   useEffect(() => {
     inputRef.current?.focus()
-  }, [spanish])
+  }, [promptText])
 
   const submit = () => {
     const trimmed = guess.trim()
@@ -60,12 +67,13 @@ export default function PracticeCard({
 
   const openMenu = (e: MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget)
   const closeMenu = () => setAnchorEl(null)
-  const pick = (next: DifficultyPref) => {
-    setPref(next)
+  const pick = (next: LevelPref) => {
+    onLevelChange(next)
     closeMenu()
   }
 
-  const chipLabel = pref !== null ? `Difficulty ${pref}/5` : 'Difficulty: any'
+  const guessName = languageName(guessLanguage)
+  const chipLabel = level ? levelLabel(level) : 'Level: any'
 
   return (
     <Card>
@@ -82,25 +90,25 @@ export default function PracticeCard({
           {grammarFocus && <Chip size='small' label={grammarFocus} variant='outlined' />}
         </Stack>
         <Menu anchorEl={anchorEl} open={menuOpen} onClose={closeMenu}>
-          <MenuItem selected={pref === null} onClick={() => pick(null)}>
-            Any difficulty
+          <MenuItem selected={level === null} onClick={() => pick(null)}>
+            Any level
           </MenuItem>
           <Divider />
-          {([1, 2, 3, 4, 5] as const).map((n) => (
-            <MenuItem key={n} selected={pref === n} onClick={() => pick(n)}>
-              {n}/5
+          {LEVELS.map((l) => (
+            <MenuItem key={l.code} selected={level === l.code} onClick={() => pick(l.code)}>
+              {l.cefr ? `${l.name} (${l.cefr})` : l.name}
             </MenuItem>
           ))}
         </Menu>
 
-        <SentenceCenter lang='es'>{spanish}</SentenceCenter>
+        <SentenceCenter lang={learnLanguage}>{promptText}</SentenceCenter>
 
         <TextField
           inputRef={inputRef}
           fullWidth
           multiline
           maxRows={3}
-          placeholder='Translate to English…'
+          placeholder={`Translate to ${guessName}…`}
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
           onKeyDown={(e) => {
@@ -110,7 +118,7 @@ export default function PracticeCard({
             }
           }}
           disabled={disabled || submitting}
-          aria-label='Your English translation'
+          aria-label={`Your ${guessName} translation`}
         />
         <Stack direction='row' sx={{ mt: 2, justifyContent: 'flex-end' }}>
           <Button

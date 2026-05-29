@@ -5,7 +5,7 @@ interface UseCorrectionSubmissionResult {
   correction: CorrectionDto | null
   submitting: boolean
   error: string | null
-  submit: (sentenceId: string, userEnglish: string) => Promise<CorrectionDto | null>
+  submit: (sentenceId: string, userAnswer: string) => Promise<CorrectionDto | null>
   reset: () => void
 }
 
@@ -14,11 +14,11 @@ export function useCorrectionSubmission(): UseCorrectionSubmissionResult {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const submit = useCallback(async (sentenceId: string, userEnglish: string) => {
+  const submit = useCallback(async (sentenceId: string, userAnswer: string) => {
     setSubmitting(true)
     setError(null)
     try {
-      const result = await submitCorrection(sentenceId, userEnglish)
+      const result = await submitCorrection(sentenceId, userAnswer)
       setCorrection(result)
       return result
     } catch (err) {

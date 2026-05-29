@@ -1,4 +1,5 @@
-import { pgTable, uuid, text, timestamp, integer, varchar, json, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, varchar, json, index } from 'drizzle-orm/pg-core'
+import type { WordToken } from '../../../shared/languages'
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -6,7 +7,6 @@ export const users = pgTable('users', {
   name: text('name').notNull(),
   googleSub: text('google_sub').notNull().unique(),
   encryptedAnthropicKey: text('encrypted_anthropic_key'),
-  localePreference: text('locale_preference').notNull().default('es-MX'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
@@ -18,16 +18,24 @@ export const sentenceCache = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    learnLanguage: text('learn_language').notNull(),
+    guessLanguage: text('guess_language').notNull(),
     locale: text('locale').notNull(),
-    spanish: text('spanish').notNull(),
-    expectedEnglish: text('expected_english').notNull(),
-    difficulty: integer('difficulty'),
+    promptText: text('prompt_text').notNull(),
+    answerText: text('answer_text').notNull(),
+    level: text('level'),
     grammarFocus: text('grammar_focus'),
+    wordBreakdown: json('word_breakdown').$type<WordToken[]>(),
     consumedAt: timestamp('consumed_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    index('idx_sentence_cache_user_locale').on(table.userId, table.locale),
+    index('idx_sentence_cache_pool').on(
+      table.userId,
+      table.learnLanguage,
+      table.guessLanguage,
+      table.locale
+    ),
     index('idx_sentence_cache_consumed').on(table.consumedAt),
   ]
 )

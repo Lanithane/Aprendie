@@ -4,20 +4,25 @@ import CorrectionDisplay from '../components/CorrectionDisplay/CorrectionDisplay
 import ApiKeySetup from '../components/ApiKeySetup/ApiKeySetup'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAuth } from '../auth/AuthContext'
-import { useLocale } from '../hooks/useLocale'
-import { useDifficultyPreference } from '../hooks/useDifficultyPreference'
+import { useLanguagePair } from '../hooks/useLanguagePair'
+import { useLevelPreference } from '../hooks/useLevelPreference'
 import { useCurrentSentence } from '../hooks/useCurrentSentence'
 import { useCorrectionSubmission } from '../hooks/useCorrectionSubmission'
 import { appendHistory } from '../history'
 
 export default function HomePage() {
   const { user } = useAuth()
-  const { locale } = useLocale()
-  const { pref } = useDifficultyPreference()
-  const { sentence, loading, error: sentenceError, clear } = useCurrentSentence({
+  const { pair } = useLanguagePair()
+  const { pref: level, setPref: setLevel } = useLevelPreference()
+  const {
+    sentence,
+    loading,
+    error: sentenceError,
+    clear,
+  } = useCurrentSentence({
     enabled: Boolean(user?.hasApiKey),
-    locale,
-    difficulty: pref,
+    pair,
+    level,
   })
   const { correction, submitting, error: submitError, submit, reset } = useCorrectionSubmission()
 
@@ -29,9 +34,11 @@ export default function HomePage() {
   if (correction) {
     return (
       <CorrectionDisplay
-        spanish={correction.spanish}
-        userEnglish={correction.userEnglish}
-        correctedEnglish={correction.correctedEnglish}
+        learnLanguage={correction.learnLanguage}
+        guessLanguage={correction.guessLanguage}
+        promptText={correction.promptText}
+        userAnswer={correction.userAnswer}
+        correctedAnswer={correction.correctedAnswer}
         isCorrect={correction.isCorrect}
         score={correction.score}
         mistakes={correction.mistakes}
@@ -48,12 +55,15 @@ export default function HomePage() {
 
   return (
     <PracticeCard
-      spanish={sentence.spanish}
-      difficulty={sentence.difficulty}
+      promptText={sentence.promptText}
+      learnLanguage={sentence.learnLanguage}
+      guessLanguage={sentence.guessLanguage}
+      level={level}
+      onLevelChange={setLevel}
       grammarFocus={sentence.grammarFocus}
-      onSubmit={(userEnglish) => {
-        void submit(sentence.id, userEnglish).then((result) => {
-          if (result) appendHistory(user.id, locale, result)
+      onSubmit={(userAnswer) => {
+        void submit(sentence.id, userAnswer).then((result) => {
+          if (result) appendHistory(user.id, pair, result)
         })
       }}
       submitting={submitting}

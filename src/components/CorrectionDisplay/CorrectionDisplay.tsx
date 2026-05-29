@@ -13,15 +13,17 @@ import { styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import { diffWordsWithSpace } from 'diff'
+import { languageName, type LanguageCode } from '../../../shared/languages'
 import type { HistoryMistake } from '../../history'
 
-const normalizePunct = (s: string) =>
-  s.replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"')
+const normalizePunct = (s: string) => s.replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"')
 
 interface CorrectionDisplayProps {
-  spanish: string
-  userEnglish: string
-  correctedEnglish: string
+  learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
+  promptText: string
+  userAnswer: string
+  correctedAnswer: string
   isCorrect: boolean
   score: number
   mistakes: HistoryMistake[]
@@ -49,7 +51,7 @@ const Removed = styled('span')`
   font-weight: 500;
 `
 
-const SpanishHeadline = styled('div')`
+const PromptHeadline = styled('div')`
   font-size: 1.7rem;
   font-weight: 500;
   line-height: 1.35;
@@ -68,16 +70,18 @@ const MistakeRow = styled(Stack)`
 `
 
 export default function CorrectionDisplay({
-  spanish,
-  userEnglish,
-  correctedEnglish,
+  learnLanguage,
+  guessLanguage,
+  promptText,
+  userAnswer,
+  correctedAnswer,
   isCorrect,
   score,
   mistakes,
   notes,
   onNext,
 }: CorrectionDisplayProps) {
-  const parts = diffWordsWithSpace(normalizePunct(userEnglish), normalizePunct(correctedEnglish))
+  const parts = diffWordsWithSpace(normalizePunct(userAnswer), normalizePunct(correctedAnswer))
   const visibleMistakes = mistakes.filter(
     (m) => normalizePunct(m.userPhrase) !== normalizePunct(m.correctPhrase)
   )
@@ -87,9 +91,7 @@ export default function CorrectionDisplay({
       <CardContent>
         <Stack direction='row' spacing={1} sx={{ mb: 2, alignItems: 'center' }}>
           {isCorrect ? <CheckCircleIcon color='success' /> : <CancelIcon color='warning' />}
-          <Typography variant='h5'>
-            {isCorrect ? 'Nice!' : "Close — here's what to fix"}
-          </Typography>
+          <Typography variant='h5'>{isCorrect ? 'Nice!' : "Close — here's what to fix"}</Typography>
           <Chip label={`Score ${score}/100`} sx={{ ml: 'auto' }} />
         </Stack>
         <LinearProgress
@@ -100,16 +102,16 @@ export default function CorrectionDisplay({
         />
 
         <Typography variant='overline' color='text.secondary'>
-          Spanish
+          {languageName(learnLanguage)}
         </Typography>
-        <SpanishHeadline lang='es'>{spanish}</SpanishHeadline>
+        <PromptHeadline lang={learnLanguage}>{promptText}</PromptHeadline>
 
         <Stack spacing={1}>
           <Box>
             <Typography variant='overline' color='text.secondary'>
               Your answer
             </Typography>
-            <DiffLine>
+            <DiffLine lang={guessLanguage}>
               {parts.map((p, i) => {
                 if (p.added) return null
                 if (p.removed) return <Removed key={i}>{p.value}</Removed>
@@ -121,7 +123,7 @@ export default function CorrectionDisplay({
             <Typography variant='overline' color='text.secondary'>
               Corrected
             </Typography>
-            <DiffLine>
+            <DiffLine lang={guessLanguage}>
               {parts.map((p, i) => {
                 if (p.removed) return null
                 if (p.added) return <Added key={i}>{p.value}</Added>
@@ -140,10 +142,15 @@ export default function CorrectionDisplay({
             <Stack spacing={1.25} sx={{ mt: 1 }}>
               {visibleMistakes.map((m, i) => (
                 <MistakeRow key={i} spacing={0.5}>
-                  <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                    <Chip size='small' lang='es' label={m.spanishSource} color='primary' />
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+                  >
+                    <Chip size='small' lang={learnLanguage} label={m.sourceText} color='primary' />
                     <Typography variant='body2'>
-                      <Removed>{m.userPhrase}</Removed>{' → '}
+                      <Removed>{m.userPhrase}</Removed>
+                      {' → '}
                       <Added>{m.correctPhrase}</Added>
                     </Typography>
                   </Stack>

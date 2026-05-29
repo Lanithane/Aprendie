@@ -1,5 +1,6 @@
 import type { UserRow } from '../../../infrastructure/db/schema'
-import type { SpanishLocale } from '../../../../shared/types'
+import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
+import type { LevelCode } from '../../../../shared/levels'
 import { anthropicClientForUser } from '../../apiKey/application/anthropicClientForUser'
 import * as sentenceRepository from '../persistence/sentenceRepository'
 import { generateSentenceBatch } from './generateSentenceBatch'
@@ -9,25 +10,41 @@ const REFILL_THRESHOLD = 3
 
 interface GetNextSentenceInput {
   user: UserRow
-  locale: SpanishLocale
-  difficulty?: number
+  learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
+  locale: LocaleCode
+  level?: LevelCode
 }
 
 export async function getNextSentence(input: GetNextSentenceInput): Promise<SentenceView> {
-  const filter = { userId: input.user.id, locale: input.locale, difficulty: input.difficulty }
+  const filter = {
+    userId: input.user.id,
+    learnLanguage: input.learnLanguage,
+    guessLanguage: input.guessLanguage,
+    locale: input.locale,
+    level: input.level,
+  }
 
   const count = await sentenceRepository.countUnconsumed(filter)
   if (count < REFILL_THRESHOLD) {
     const anthropic = anthropicClientForUser(input.user)
-    const batch = await generateSentenceBatch(anthropic, input.locale, input.difficulty)
+    const batch = await generateSentenceBatch(anthropic, {
+      learnLanguage: input.learnLanguage,
+      guessLanguage: input.guessLanguage,
+      locale: input.locale,
+      level: input.level,
+    })
     await sentenceRepository.insertBatch(
       batch.map((s) => ({
         userId: input.user.id,
+        learnLanguage: input.learnLanguage,
+        guessLanguage: input.guessLanguage,
         locale: input.locale,
-        spanish: s.spanish,
-        expectedEnglish: s.expectedEnglish,
-        difficulty: s.difficulty,
+        promptText: s.promptText,
+        answerText: s.answerText,
+        level: s.level,
         grammarFocus: s.grammarFocus,
+        wordBreakdown: s.wordBreakdown,
       }))
     )
   }

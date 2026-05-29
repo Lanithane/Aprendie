@@ -1,23 +1,11 @@
-import {
-  Typography,
-  Box,
-  Stack,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-  Alert,
-} from '@mui/material'
+import { Typography, Box, Stack, Button, Alert } from '@mui/material'
 import SectionCard from '../components/shared/SectionCard'
+import LanguagePairPicker from '../components/LanguagePairPicker/LanguagePairPicker'
 import { useAuth } from '../auth/AuthContext'
-import { useLocale } from '../hooks/useLocale'
 import { useApiKey } from '../hooks/useApiKey'
-import { LOCALE_LABELS, type SpanishLocale } from '../../shared/types'
 
 export default function SettingsPage() {
   const { user } = useAuth()
-  const { locale, setLocale } = useLocale()
   const { remove, removing, error } = useApiKey()
 
   const onRemoveKey = () => {
@@ -32,24 +20,10 @@ export default function SettingsPage() {
       </Typography>
       <Stack spacing={3} sx={{ maxWidth: 540 }}>
         <SectionCard
-          title='Spanish locale'
-          description='Changes regional vocabulary and idioms in generated sentences.'
+          title='Languages'
+          description='Pick what to learn, its regional variant, and the language you answer in.'
         >
-          <FormControl fullWidth>
-            <InputLabel id='locale-label'>Locale</InputLabel>
-            <Select
-              labelId='locale-label'
-              value={locale}
-              label='Locale'
-              onChange={(e) => setLocale(e.target.value as SpanishLocale)}
-            >
-              {Object.keys(LOCALE_LABELS).map((k) => (
-                <MenuItem key={k} value={k}>
-                  {LOCALE_LABELS[k as SpanishLocale]}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <LanguagePairPicker />
         </SectionCard>
 
         <SectionCard

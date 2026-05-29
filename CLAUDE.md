@@ -24,7 +24,7 @@ server/
     └── controllers/                  # Express routers; validate input, call application, shape responses
 ```
 
-Current contexts: `auth`, `user`, `apiKey`, `sentence`, `correction`.
+Current contexts: `auth`, `user`, `apiKey`, `sentence`, `correction`, `language` (stateless — `application/` + `controllers/` only, no persistence/domain).
 
 **Layer rules — do not break:**
 
@@ -61,7 +61,7 @@ src/
 
 - **Don't reach for `useEffect` first.** Prefer derived state, event handlers, and `useMemo`.
 - **When `useEffect` is genuinely required** (data fetching on mount, subscribing to external state like `storage` events / `matchMedia`, focusing a DOM node on prop change), extract it into a custom hook in `src/hooks/`. Pages and components should not own `useEffect` calls directly.
-- Naming: `use<Noun>` for data hooks (`useCurrentSentence`, `useHistory`), `use<NounPref>` for persisted preferences (`useLocale`, `useDifficultyPreference`).
+- Naming: `use<Noun>` for data hooks (`useCurrentSentence`, `useHistory`), `use<NounPref>` for persisted preferences (`useLanguagePair`, `useLevelPreference`).
 - Provider components (`AuthProvider`, `ThemeModeProvider`) are the one exception — they may hold an effect for the global subscription they own.
 
 ### API layer
@@ -71,7 +71,7 @@ src/
 
 ## Shared types
 
-`shared/types.ts` is imported by both `src/` and `server/`. Keep it small — only types that genuinely cross the wire (e.g. `SpanishLocale`). Don't put domain logic here.
+`shared/` holds types imported by both `src/` and `server/`. Keep it small — only what genuinely crosses the wire or is a shared registry: `shared/languages.ts` (the language/locale registry, `LanguagePair`, `WordToken`) and `shared/levels.ts` (the CEFR-aligned `LEVELS` ladder). Don't put domain logic here.
 
 ## Lint / format
 

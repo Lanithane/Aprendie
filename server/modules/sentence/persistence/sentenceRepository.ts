@@ -5,22 +5,27 @@ import {
   type SentenceRow,
   type NewSentenceRow,
 } from '../../../infrastructure/db/schema'
-import type { SpanishLocale } from '../../../../shared/types'
+import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
+import type { LevelCode } from '../../../../shared/levels'
 
 interface PoolFilter {
   userId: string
-  locale: SpanishLocale
-  difficulty?: number
+  learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
+  locale: LocaleCode
+  level?: LevelCode
 }
 
 function poolFilters(filter: PoolFilter): SQL[] {
   const base: SQL[] = [
     eq(sentenceCache.userId, filter.userId),
+    eq(sentenceCache.learnLanguage, filter.learnLanguage),
+    eq(sentenceCache.guessLanguage, filter.guessLanguage),
     eq(sentenceCache.locale, filter.locale),
     isNull(sentenceCache.consumedAt),
   ]
-  if (filter.difficulty !== undefined) {
-    base.push(eq(sentenceCache.difficulty, filter.difficulty))
+  if (filter.level !== undefined) {
+    base.push(eq(sentenceCache.level, filter.level))
   }
   return base
 }
@@ -54,10 +59,7 @@ export async function insertBatch(rows: NewSentenceRow[]): Promise<void> {
   await db.insert(sentenceCache).values(rows)
 }
 
-export async function findForUser(
-  userId: string,
-  sentenceId: string
-): Promise<SentenceRow | null> {
+export async function findForUser(userId: string, sentenceId: string): Promise<SentenceRow | null> {
   const rows = await db
     .select()
     .from(sentenceCache)

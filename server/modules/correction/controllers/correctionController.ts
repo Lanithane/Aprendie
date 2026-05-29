@@ -8,7 +8,7 @@ const router = Router()
 
 const bodySchema = z.object({
   sentenceId: z.string().uuid(),
-  userEnglish: z.string().min(1),
+  userAnswer: z.string().min(1),
 })
 
 router.post('/', requireAuth, async (req, res, next) => {
@@ -20,7 +20,7 @@ router.post('/', requireAuth, async (req, res, next) => {
     const view = await correctTranslation({
       user: req.user as UserRow,
       sentenceId: parsed.data.sentenceId,
-      userEnglish: parsed.data.userEnglish,
+      userAnswer: parsed.data.userAnswer,
     })
     res.json(view)
   } catch (err) {

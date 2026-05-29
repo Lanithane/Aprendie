@@ -1,5 +1,6 @@
 import type { UserRow, SentenceRow } from '../../../infrastructure/db/schema'
-import type { SpanishLocale } from '../../../../shared/types'
+import type { LanguageCode } from '../../../../shared/languages'
+import type { LevelCode } from '../../../../shared/levels'
 import { anthropicClientForUser } from '../../apiKey/application/anthropicClientForUser'
 import * as sentenceRepository from '../../sentence/persistence/sentenceRepository'
 import { scoreTranslation } from './scoreTranslation'
@@ -8,7 +9,7 @@ import type { CorrectionView } from '../domain/Correction'
 interface CorrectInput {
   user: UserRow
   sentenceId: string
-  userEnglish: string
+  userAnswer: string
 }
 
 export class SentenceNotFoundError extends Error {
@@ -25,19 +26,30 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
   )
   if (!sentence) throw new SentenceNotFoundError()
 
+  const learnLanguage = sentence.learnLanguage as LanguageCode
+  const guessLanguage = sentence.guessLanguage as LanguageCode
+  const locale = sentence.locale
+  const level = (sentence.level as LevelCode | null) ?? null
+
   const anthropic = anthropicClientForUser(input.user)
   const result = await scoreTranslation(anthropic, {
-    locale: sentence.locale as SpanishLocale,
-    spanish: sentence.spanish,
-    expectedEnglish: sentence.expectedEnglish,
-    userEnglish: input.userEnglish,
+    learnLanguage,
+    guessLanguage,
+    locale,
+    promptText: sentence.promptText,
+    answerText: sentence.answerText,
+    userAnswer: input.userAnswer,
   })
 
   return {
     sentenceId: sentence.id,
-    spanish: sentence.spanish,
-    expectedEnglish: sentence.expectedEnglish,
-    userEnglish: input.userEnglish,
+    learnLanguage,
+    guessLanguage,
+    locale,
+    level,
+    promptText: sentence.promptText,
+    answerText: sentence.answerText,
+    userAnswer: input.userAnswer,
     ...result,
   }
 }
