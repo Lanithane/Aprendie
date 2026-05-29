@@ -22,6 +22,8 @@ npm-debug.log*
 
 # claude code local settings (project-shared settings.json may be committed)
 .claude/settings.local.json
+# claude code transient runtime state (session locks, etc.)
+.claude/scheduled_tasks.lock
 
 # drizzle
 drizzle/meta/_journal.json.lock
