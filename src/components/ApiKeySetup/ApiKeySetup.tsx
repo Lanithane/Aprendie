@@ -39,7 +39,7 @@ export default function ApiKeySetup() {
           {error && <Alert severity='error'>{error}</Alert>}
           <Button
             variant='contained'
-            onClick={() => save(key.trim())}
+            onClick={() => void save(key.trim())}
             disabled={!key.trim() || saving}
             size='large'
           >

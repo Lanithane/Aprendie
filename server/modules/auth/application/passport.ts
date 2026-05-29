@@ -15,19 +15,23 @@ passport.use(
       clientSecret: env.GOOGLE_CLIENT_SECRET ?? '',
       callbackURL: `${env.BASE_URL}/api/auth/google/callback`,
     },
-    async (_accessToken, _refreshToken, profile, done) => {
-      try {
-        const email = profile.emails?.[0]?.value
-        if (!email) return done(new Error('Google profile missing email'))
-        const user = await findOrCreateGoogleUser({
-          googleSub: profile.id,
-          email,
-          name: profile.displayName ?? email,
-        })
-        return done(null, user)
-      } catch (err) {
-        return done(err)
-      }
+    (_accessToken, _refreshToken, profile, done) => {
+      // passport's verify callback is void-typed; run the async work in a
+      // self-contained promise that signals back through `done`.
+      void (async () => {
+        try {
+          const email = profile.emails?.[0]?.value
+          if (!email) return done(new Error('Google profile missing email'))
+          const user = await findOrCreateGoogleUser({
+            googleSub: profile.id,
+            email,
+            name: profile.displayName ?? email,
+          })
+          done(null, user)
+        } catch (err) {
+          done(err)
+        }
+      })()
     }
   )
 )
@@ -36,14 +40,16 @@ passport.serializeUser((user, done) => {
   done(null, (user as { id: string }).id)
 })
 
-passport.deserializeUser(async (id: string, done) => {
-  try {
-    const user = await userRepository.findById(id)
-    if (!user) return done(null, false)
-    done(null, user)
-  } catch (err) {
-    done(err)
-  }
+passport.deserializeUser((id: string, done) => {
+  void (async () => {
+    try {
+      const user = await userRepository.findById(id)
+      if (!user) return done(null, false)
+      done(null, user)
+    } catch (err) {
+      done(err)
+    }
+  })()
 })
 
 export { passport }

@@ -65,15 +65,6 @@ export default [
 
     rules: {
       semi: ['error', 'never'],
-
-      // Express 4 route handlers and passport callbacks are async by convention
-      // (they own their try/catch + next(err)); passing them where a void-returning
-      // handler is expected is safe here, not a bug. Same for async React event
-      // handlers (onClick). We keep the rest of no-misused-promises active.
-      '@typescript-eslint/no-misused-promises': [
-        'error',
-        { checksVoidReturn: { arguments: false, attributes: false } },
-      ],
       indent: ['error', 2, { SwitchCase: 1 }],
       quotes: ['error', 'single', { avoidEscape: true }],
       'no-tabs': 'error',
