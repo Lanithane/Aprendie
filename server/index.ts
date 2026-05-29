@@ -5,6 +5,7 @@ import { env } from './env'
 import { sessionMiddleware } from './infrastructure/session/sessionMiddleware'
 import { passport } from './modules/auth/application/passport'
 import { errorHandler } from './infrastructure/http/errorHandler'
+import { securityHeaders } from './infrastructure/http/securityHeaders'
 import authController from './modules/auth/controllers/authController'
 import userController from './modules/user/controllers/userController'
 import adminUserController from './modules/user/controllers/adminUserController'
@@ -19,6 +20,7 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 app.set('trust proxy', 1)
+app.use(securityHeaders)
 app.use(express.json())
 
 app.use(sessionMiddleware)
