@@ -86,7 +86,6 @@ export default function HomePage() {
   const handleNext = () => {
     setCorrection(null)
     setSentence(null)
-    void loadSentence()
   }
 
   if (error) {
