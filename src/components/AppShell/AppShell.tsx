@@ -31,11 +31,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       {isMobile && (
         <AppBar position='fixed' color='default' elevation={1}>
           <Toolbar>
-            <IconButton
-              edge='start'
-              onClick={() => setMobileOpen(true)}
-              aria-label='Open menu'
-            >
+            <IconButton edge='start' onClick={() => setMobileOpen(true)} aria-label='Open menu'>
               <MenuIcon />
             </IconButton>
             <Typography variant='h6' sx={{ ml: 1 }}>

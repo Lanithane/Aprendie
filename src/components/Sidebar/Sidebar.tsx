@@ -38,8 +38,7 @@ interface SidebarProps {
 const StyledDrawer = styled(Drawer, {
   shouldForwardProp: (prop) => prop !== '$width' && prop !== '$reserveSpace',
 })<{ $width: number; $reserveSpace: boolean }>`
-  ${({ $reserveSpace, $width }) =>
-    $reserveSpace ? `width: ${$width}px; flex-shrink: 0;` : ''}
+  ${({ $reserveSpace, $width }) => ($reserveSpace ? `width: ${$width}px; flex-shrink: 0;` : '')}
   & .MuiDrawer-paper {
     width: ${({ $width }) => $width}px;
     transition: ${({ theme }) => theme.transitions.create('width')};

@@ -33,6 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    // Fetch the current user once on mount; refresh() owns its own loading state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh()
   }, [])
 

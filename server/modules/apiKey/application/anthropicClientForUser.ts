@@ -1,4 +1,7 @@
-import { buildAnthropicClient, type Anthropic } from '../../../infrastructure/claude/anthropicClient'
+import {
+  buildAnthropicClient,
+  type Anthropic,
+} from '../../../infrastructure/claude/anthropicClient'
 import { decrypt } from '../../../infrastructure/crypto/encryption'
 import type { UserRow } from '../../../infrastructure/db/schema'
 import { MissingApiKeyError } from '../domain/errors'

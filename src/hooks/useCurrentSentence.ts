@@ -46,6 +46,8 @@ export function useCurrentSentence({
 
   // Load on mount and whenever the sentence is cleared (e.g. pressing "Next").
   useEffect(() => {
+    // reload() owns its own loading state; this is a deliberate data fetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (enabled && !sentence) void reload()
   }, [enabled, sentence, reload])
 

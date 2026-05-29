@@ -38,6 +38,8 @@ export function useAdminUsers(): UseAdminUsersResult {
   }, [])
 
   useEffect(() => {
+    // Load the user list once on mount; reload() owns its own loading state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void reload()
   }, [reload])
 

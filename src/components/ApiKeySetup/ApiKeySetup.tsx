@@ -1,14 +1,5 @@
 import { useState } from 'react'
-import {
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  Alert,
-  Stack,
-  Link,
-} from '@mui/material'
+import { Card, CardContent, Typography, TextField, Button, Alert, Stack, Link } from '@mui/material'
 import { useApiKey } from '../../hooks/useApiKey'
 
 export default function ApiKeySetup() {
@@ -26,7 +17,7 @@ export default function ApiKeySetup() {
             Settings.
           </Typography>
           <Typography color='text.secondary' variant='body2'>
-            Don't have one?{' '}
+            Don&apos;t have one?{' '}
             <Link
               href='https://console.anthropic.com/settings/keys'
               target='_blank'
