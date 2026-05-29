@@ -10,18 +10,18 @@ change here.
 
 ## Status at a glance
 
-| Epic | Scope | Status |
-| ---- | ----- | ------ |
-| 0 | Tab title → "Conjecter" | ✅ Done (merged) |
-| 1 | Language generalization + CEFR levels + word-breakdown data + location→locale | ✅ Done (merged + deployed) |
-| 2 | Word-root-on-click UI | ✅ Done |
-| 3 | Text-to-speech + rate slider | ⬜ Not started |
-| 4 | RBAC + admin console (roles, users CRUD, key support) | ⬜ Not started |
-| 5 | History → Postgres, per user account | ⬜ Not started |
-| 6 | Usage-cost showback + contribute CTAs | ⬜ Not started |
-| 7 | API-key security hardening | ⬜ Not started |
-| 8 | Word "Pokédex" (seen roots + variants) | ⬜ Not started |
-| 9 | Full MD3 overhaul + centered "Google homepage" layout | ⬜ Not started (last) |
+| Epic | Scope                                                                         | Status                      |
+| ---- | ----------------------------------------------------------------------------- | --------------------------- |
+| 0    | Tab title → "Conjecter"                                                       | ✅ Done (merged)            |
+| 1    | Language generalization + CEFR levels + word-breakdown data + location→locale | ✅ Done (merged + deployed) |
+| 2    | Word-root-on-click UI                                                         | ✅ Done                     |
+| 3    | Text-to-speech + rate slider                                                  | ⬜ Not started              |
+| 4    | RBAC + admin console (roles, users CRUD, key support)                         | ⬜ Not started              |
+| 5    | History → Postgres, per user account                                          | ⬜ Not started              |
+| 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started              |
+| 7    | API-key security hardening                                                    | ⬜ Not started              |
+| 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started              |
+| 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ⬜ Not started (last)       |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -39,28 +39,24 @@ change here.
   new accounts are users.
 - **Admin over user keys (Epic 4):** **revoke + re-validate, never view** — an admin can clear a
   user's key or re-test it against Anthropic, but plaintext is never decrypted to the admin.
-- **Contribute CTAs (Epic 6):** compute showback now. "Support the developer" links to **GitHub
-  Sponsors**; "Offset carbon/water" shows a **rough, clearly-labeled estimate** (configurable
-  Wh/token → CO₂ g + water mL) and links to an offset provider. Both destination URLs are
-  config-driven (set later) — no payment/offset-API wiring this epic.
+- **Contribute CTAs (Epic 6):** compute showback now; the two sidebar buttons are **config-link
+  CTAs** (offset-provider URL + tip/sponsor URL set via config later) — no vendor wiring this epic.
 - **Pokédex counts (Epic 8):** correct/incorrect are **derived from correction
   `mistakes[].sourceText`** (a lemma is "incorrect" for an attempt when it appears in that attempt's
   mistakes, else "correct"; every appearance counts "seen"). Its sole data source is the Epic 5
   Postgres history — **Epic 8 builds only after Epic 5.**
-- **History migration (Epic 5):** on first post-deploy login, do a **one-time import** of a user's
-  existing localStorage history into Postgres, then read server-side. The import path is throwaway
-  — flag it for removal once users have migrated.
-- **Master key (Epic 7):** keep the AES master key in the `ENCRYPTION_KEY` env var (Railway sealed
-  secret) and harden around it (rotation + HKDF + AAD); a cloud KMS / secrets manager was
-  considered and **deferred**.
 - **Numbering:** numeric order = build order. The MD3 overhaul stays **last** (now Epic 9); the
   five new backend-heavy epics are 4–8. They are otherwise independent and reprioritizable, except
   Epic 8 → after 5 and Epic 7 → after 4.
 
-### Config values to fill in later (not blockers)
+### Open questions (unresolved — decide before the relevant epic)
 
-- **Epic 6:** the GitHub Sponsors URL (`VITE_SUPPORT_URL`) and the carbon-offset provider URL
-  (`VITE_OFFSET_URL`); the Wh/token → CO₂/water factor constants in the sustainability module.
+- **Epic 6:** the offset-provider URL + tip/sponsor URL, and the carbon/water estimate
+  factor/methodology.
+- **Epic 7:** keep the master key in the `ENCRYPTION_KEY` env var vs. move it to a KMS / managed
+  secret.
+- **Epic 5:** whether to import each user's existing localStorage history into Postgres on their
+  next login (one-time), or start fresh server-side.
 
 ---
 
@@ -75,35 +71,35 @@ with named CEFR levels, plumbed the upfront word-breakdown data, and added locat
 resolution.
 
 - [x] **[shared/languages.ts](shared/languages.ts)** — `LANGUAGES` registry, `LanguagePair`,
-  `DEFAULT_PAIR`, `WordToken`, locale helpers.
+      `DEFAULT_PAIR`, `WordToken`, locale helpers.
 - [x] **[shared/levels.ts](shared/levels.ts)** — ordered `LEVELS` ladder (starter → foundation
-  → a1…c2), `levelByCode`, `DEFAULT_LEVEL`.
+      → a1…c2), `levelByCode`, `DEFAULT_LEVEL`.
 - [x] DB migration `0001`: `sentence_cache` renamed/added columns (`prompt_text`, `answer_text`,
-  `learn_language`, `guess_language`, `word_breakdown`, `level`), reindexed; dropped
-  `users.locale_preference`. Applied to **both local and Railway prod** (verified 2026-05-29).
+      `learn_language`, `guess_language`, `word_breakdown`, `level`), reindexed; dropped
+      `users.locale_preference`. Applied to **both local and Railway prod** (verified 2026-05-29).
 - [x] Backend `sentence` + `correction` modules made language-agnostic; system blocks kept
-  byte-static for prompt caching, variable parts moved to the user turn.
+      byte-static for prompt caching, variable parts moved to the user turn.
 - [x] New stateless `language` module: `POST /api/language/resolve-locale`.
 - [x] Frontend: `useLanguagePair`, `useLevelPreference`, `useLocaleResolver`, level chip+menu,
-  `LanguagePairPicker`, DTO renames, history keying.
+      `LanguagePairPicker`, DTO renames, history keying.
 
 ## ✅ Epic 2 — Word-root-on-click UI
 
 Consumes the `wordBreakdown` produced by Epic 1 (no new backend).
 
 - [x] **[src/components/SentenceTokens/](src/components/SentenceTokens/)** — `tokenize.ts`
-  aligns `promptText` to `wordBreakdown` by surface (case-insensitive, keeps
-  punctuation/whitespace inert); `SentenceTokens.tsx` renders each matched word as a clickable,
-  underdotted button (Duolingo style) and owns the popover state.
+      aligns `promptText` to `wordBreakdown` by surface (case-insensitive, keeps
+      punctuation/whitespace inert); `SentenceTokens.tsx` renders each matched word as a clickable,
+      underdotted button (Duolingo style) and owns the popover state.
 - [x] **[src/components/WordPopover/WordPopover.tsx](src/components/WordPopover/WordPopover.tsx)**
-  — MUI `Popover` anchored to the clicked token, showing `lemma` (root), `partOfSpeech`, and
-  `gloss` (meaning in the guess language).
+      — MUI `Popover` anchored to the clicked token, showing `lemma` (root), `partOfSpeech`, and
+      `gloss` (meaning in the guess language).
 - [x] Wired into [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx) /
-  [HomePage.tsx](src/pages/HomePage.tsx) (passes `wordBreakdown` through).
+      [HomePage.tsx](src/pages/HomePage.tsx) (passes `wordBreakdown` through).
 - [ ] _Deferred:_ reuse the tokenized renderer in
-  [CorrectionDisplay.tsx](src/components/CorrectionDisplay/CorrectionDisplay.tsx) — skipped
-  because `CorrectionDto` doesn't carry `wordBreakdown`; would need a backend change, out of
-  Epic 2's "no new backend" scope.
+      [CorrectionDisplay.tsx](src/components/CorrectionDisplay/CorrectionDisplay.tsx) — skipped
+      because `CorrectionDto` doesn't carry `wordBreakdown`; would need a backend change, out of
+      Epic 2's "no new backend" scope.
 
 ## ⬜ Epic 3 — Text-to-speech + rate slider
 
@@ -111,13 +107,13 @@ Pure frontend (Web Speech API `SpeechSynthesis`); uses the learn-language locale
 selection. No backend.
 
 - [ ] **src/hooks/useSpeech.ts** (new) — wrap `speechSynthesis` + `SpeechSynthesisUtterance`;
-  pick a voice for the sentence's `locale` (fall back to base language); expose
-  `speak(text, locale)`, `cancel()`, `speaking`, `supported`. Subscribe to `voiceschanged`
-  (voices load async — the external-subscription case the hooks rule allows).
+      pick a voice for the sentence's `locale` (fall back to base language); expose
+      `speak(text, locale)`, `cancel()`, `speaking`, `supported`. Subscribe to `voiceschanged`
+      (voices load async — the external-subscription case the hooks rule allows).
 - [ ] **src/hooks/useSpeechRate.ts** (new) — persisted pref (`gac:speechRate`, default 1.0),
-  same pattern as `useLevelPreference`.
+      same pattern as `useLevelPreference`.
 - [ ] **PracticeCard** — speaker/play `IconButton` near the sentence + a rate `Slider`
-  (~0.5–1.5×). Gracefully hide if `!supported`.
+      (~0.5–1.5×). Gracefully hide if `!supported`.
 
 ## ⬜ Epic 4 — RBAC + admin console
 
@@ -130,33 +126,33 @@ dedicated `/admin` section.
 a user's key but **never view** plaintext.
 
 - [ ] **DB migration `0002`** — add `users.role` (`text not null default 'user'`, typed
-  `$type<'admin' | 'user'>()` to match the loose-typed `level` column; avoids pg-enum alter
-  friction). Apply to **local + Railway prod**.
+      `$type<'admin' | 'user'>()` to match the loose-typed `level` column; avoids pg-enum alter
+      friction). Apply to **local + Railway prod**.
 - [ ] **[server/env.ts](server/env.ts)** — add `ADMIN_EMAIL` (zod email, optional).
 - [ ] **[findOrCreateGoogleUser.ts](server/modules/user/application/findOrCreateGoogleUser.ts)** —
-  default new users to `'user'`; promote to `'admin'` when `email === env.ADMIN_EMAIL` (promotes
-  the existing admin row on next login; manual `UPDATE` as fallback).
+      default new users to `'user'`; promote to `'admin'` when `email === env.ADMIN_EMAIL` (promotes
+      the existing admin row on next login; manual `UPDATE` as fallback).
 - [ ] **server/infrastructure/http/requireAdmin.ts** (new) — 403 unless `req.user.role === 'admin'`;
-  composes after [requireAuth.ts](server/infrastructure/http/requireAuth.ts).
+      composes after [requireAuth.ts](server/infrastructure/http/requireAuth.ts).
 - [ ] **[User.ts](server/modules/user/domain/User.ts)** — add `role` to `UserView`; add
-  `AdminUserView` (id, email, name, role, hasApiKey, createdAt; `totalCostUsd` once Epic 6 lands).
-  Never expose `encryptedAnthropicKey`.
+      `AdminUserView` (id, email, name, role, hasApiKey, createdAt; `totalCostUsd` once Epic 6 lands).
+      Never expose `encryptedAnthropicKey`.
 - [ ] **[userRepository.ts](server/modules/user/persistence/userRepository.ts)** — `listAll()`,
-  `updateRole(id, role)`; reuse `updateEncryptedApiKey(id, null)` for revoke.
+      `updateRole(id, role)`; reuse `updateEncryptedApiKey(id, null)` for revoke.
 - [ ] **user application** — `listUsers`, `setUserRole` (guard against demoting the last admin),
-  `adminRevokeUserKey`, `adminRevalidateUserKey` (decrypt server-side → ping Anthropic → return
-  ok/fail, **never the key**). Re-validate reuses a `validateApiKey` exported from the apiKey
-  module's application (refactor the private fn in
-  [saveApiKey.ts](server/modules/apiKey/application/saveApiKey.ts); cross-module
-  application→application is allowed).
+      `adminRevokeUserKey`, `adminRevalidateUserKey` (decrypt server-side → ping Anthropic → return
+      ok/fail, **never the key**). Re-validate reuses a `validateApiKey` exported from the apiKey
+      module's application (refactor the private fn in
+      [saveApiKey.ts](server/modules/apiKey/application/saveApiKey.ts); cross-module
+      application→application is allowed).
 - [ ] **server/modules/user/controllers/adminUserController.ts** (new) — mounted `/api/admin/users`
-  in [server/index.ts](server/index.ts), guarded `requireAuth` + `requireAdmin`: `GET /`,
-  `PATCH /:id/role`, `DELETE /:id/key`, `POST /:id/key/revalidate`.
+      in [server/index.ts](server/index.ts), guarded `requireAuth` + `requireAdmin`: `GET /`,
+      `PATCH /:id/role`, `DELETE /:id/key`, `POST /:id/key/revalidate`.
 - [ ] **Frontend** — `CurrentUserDto` gains `role` in [userApi.ts](src/api/userApi.ts); new
-  `src/api/adminApi.ts`; `isAdmin` from [AuthContext.tsx](src/auth/AuthContext.tsx); `RequireAdmin`
-  guard + `/admin` route in [routes.tsx](src/routes.tsx); admin-only nav item in
-  [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx); `src/pages/AdminPage.tsx` (thin) +
-  `src/components/Admin/UsersTable.tsx` + `src/hooks/useAdminUsers.ts`.
+      `src/api/adminApi.ts`; `isAdmin` from [AuthContext.tsx](src/auth/AuthContext.tsx); `RequireAdmin`
+      guard + `/admin` route in [routes.tsx](src/routes.tsx); admin-only nav item in
+      [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx); `src/pages/AdminPage.tsx` (thin) +
+      `src/components/Admin/UsersTable.tsx` + `src/hooks/useAdminUsers.ts`.
 
 ## ⬜ Epic 5 — History → Postgres (per user account)
 
@@ -165,30 +161,28 @@ full snapshot per attempt) so history survives `sentence_cache` pruning — and 
 **single aggregation source for the Epic 8 Pokédex.**
 
 - [ ] **DB migration `0003`** — new `attempts`: id, `userId` FK→users (cascade), nullable
-  `sentenceId`, plus a denormalized snapshot mirroring the current
-  [HistoryEntry](src/history/index.ts): promptText, answerText, learn/guessLanguage, locale, level,
-  userAnswer, correctedAnswer, score, isCorrect, `mistakes` (json), notes, `wordBreakdown` (json —
-  kept for Epic 8 + the deferred tokenized correction view), createdAt. Indexes
-  `(userId, createdAt desc)` and `(userId, learnLanguage, guessLanguage, locale)`. Apply to
-  **local + Railway prod**.
+      `sentenceId`, plus a denormalized snapshot mirroring the current
+      [HistoryEntry](src/history/index.ts): promptText, answerText, learn/guessLanguage, locale, level,
+      userAnswer, correctedAnswer, score, isCorrect, `mistakes` (json), notes, `wordBreakdown` (json —
+      kept for Epic 8 + the deferred tokenized correction view), createdAt. Indexes
+      `(userId, createdAt desc)` and `(userId, learnLanguage, guessLanguage, locale)`. Apply to
+      **local + Railway prod**.
 - [ ] **New `modules/history/`** (full DDD) — domain `Attempt.ts` (`AttemptView`, reusing the
-  correction `Mistake` shape); persistence `historyRepository.ts` (`insert`,
-  `listForUser(userId, pair?, limit, cursor)`, `getById`); application `recordAttempt`,
-  `listHistory`, `getHistoryEntry`; controllers `/api/history` (`GET /` paginated + optional pair
-  filter, `GET /:id`), requireAuth.
+      correction `Mistake` shape); persistence `historyRepository.ts` (`insert`,
+      `listForUser(userId, pair?, limit, cursor)`, `getById`); application `recordAttempt`,
+      `listHistory`, `getHistoryEntry`; controllers `/api/history` (`GET /` paginated + optional pair
+      filter, `GET /:id`), requireAuth.
 - [ ] **Wire recording** —
-  [correctTranslation.ts](server/modules/correction/application/correctTranslation.ts) already
-  loads the sentence (with `wordBreakdown`) and produces the result; after grading it calls
-  `history.recordAttempt(...)` (cross-module correction→history application).
+      [correctTranslation.ts](server/modules/correction/application/correctTranslation.ts) already
+      loads the sentence (with `wordBreakdown`) and produces the result; after grading it calls
+      `history.recordAttempt(...)` (cross-module correction→history application).
 - [ ] **Frontend** — new `src/api/historyApi.ts`; rewrite [useHistory.ts](src/hooks/useHistory.ts)
-  to read from the server (same hook shape so [HistoryPage.tsx](src/pages/HistoryPage.tsx) barely
-  changes); drop the client write path (remove `appendHistory` + gut
-  [src/history/index.ts](src/history/index.ts); remove its call, likely in `useCorrectionSubmission`).
-- [ ] **One-time localStorage import** — on first post-deploy login, push any existing localStorage
-  history up to Postgres, then read server-side. Mark this import path as **throwaway** and leave a
-  `TODO(cleanup)` so it's easy to find and delete once users have migrated.
-- [ ] _Optional:_ admin view of a user's history via `/api/admin/users/:id/history` reusing
-  `listForUser`.
+      to read from the server (same hook shape so [HistoryPage.tsx](src/pages/HistoryPage.tsx) barely
+      changes); drop the client write path (remove `appendHistory` + gut
+      [src/history/index.ts](src/history/index.ts); remove its call, likely in `useCorrectionSubmission`).
+- [ ] _Optional:_ one-time import of a user's existing localStorage history into Postgres on next
+      login. _Optional:_ admin view of a user's history via `/api/admin/users/:id/history` reusing
+      `listForUser`.
 
 ## ⬜ Epic 6 — Usage-cost showback + contribute CTAs
 
@@ -196,35 +190,32 @@ Captures Claude token usage per user (a showback table keyed by `userId`), surfa
 cost, and adds two sidebar "contribute" options sized by that cost. Showback is **informational** —
 users run on their own key (per BLUEPRINT), so this is visibility, not billing.
 
-**Decided:** showback math now; **Support the developer** → GitHub Sponsors, **Offset carbon/water**
-→ rough labeled estimate + offset link; both destination URLs are config-driven.
+**Decided:** showback math now; the two sidebar buttons are **config-link CTAs** (URLs set later).
 
 - [ ] **Capture usage** — both call sites currently discard `resp.usage`:
-  [scoreTranslation.ts](server/modules/correction/application/scoreTranslation.ts) and
-  [generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts). Return
-  `usage` from both up to their application callers.
+      [scoreTranslation.ts](server/modules/correction/application/scoreTranslation.ts) and
+      [generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts). Return
+      `usage` from both up to their application callers.
 - [ ] **DB migration `0004`** — new `usage_events` (the showback table): id, `userId` FK→users
-  (cascade), `operation` (`'correction' | 'sentence_batch'`), model, inputTokens, outputTokens,
-  cacheCreationInputTokens, cacheReadInputTokens, `costUsd numeric(12,6)` (snapshot — prices drift),
-  createdAt. Index `(userId, createdAt)`. Apply to **local + Railway prod**.
+      (cascade), `operation` (`'correction' | 'sentence_batch'`), model, inputTokens, outputTokens,
+      cacheCreationInputTokens, cacheReadInputTokens, `costUsd numeric(12,6)` (snapshot — prices drift),
+      createdAt. Index `(userId, createdAt)`. Apply to **local + Railway prod**.
 - [ ] **server/infrastructure/claude/pricing.ts** (new) — per-model USD rates + `costUsd(model, usage)`.
 - [ ] **New `modules/usage/`** (full DDD) — persistence `usageRepository.ts` (insert + sum
-  aggregations); application `recordUsage` (computes `costUsd`, inserts), `getUserShowback(userId)`
-  (total + by-operation + token totals + carbon/water estimate), `getShowbackForAllUsers()` (admin);
-  controllers `/api/usage` (`GET /me`). Admin per-user totals fold into Epic 4's `AdminUserView`
-  (`totalCostUsd`).
+      aggregations); application `recordUsage` (computes `costUsd`, inserts), `getUserShowback(userId)`
+      (total + by-operation + token totals + carbon/water estimate), `getShowbackForAllUsers()` (admin);
+      controllers `/api/usage` (`GET /me`). Admin per-user totals fold into Epic 4's `AdminUserView`
+      (`totalCostUsd`).
 - [ ] **Wire** — `correctTranslation` → `recordUsage(op:'correction')`; the sentence-batch trigger
-  → `recordUsage(op:'sentence_batch')` (cross-module application→usage application).
+      → `recordUsage(op:'sentence_batch')` (cross-module application→usage application).
 - [ ] **server/infrastructure/claude/sustainability.ts** (new) — configurable Wh/token → CO₂ g +
-  water mL factors; **clearly labeled an estimate.**
+      water mL factors; **clearly labeled an estimate.**
 - [ ] **Frontend** — new `src/api/usageApi.ts` + `src/hooks/useShowback.ts`; a new
-  `src/components/Sidebar/ContributeSection.tsx` in the
-  [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx) BottomRail with two items — **Support the
-  developer** (links to **GitHub Sponsors**, `VITE_SUPPORT_URL`) and **Offset carbon/water** (shows
-  the rough estimate + links to an offset provider, `VITE_OFFSET_URL`); hide a button if its URL is
-  unset.
-- [ ] _Config later:_ the `VITE_SUPPORT_URL` (GitHub Sponsors) + `VITE_OFFSET_URL` values and the
-  Wh/token → CO₂/water factor constants.
+      `src/components/Sidebar/ContributeSection.tsx` in the
+      [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx) BottomRail with two items — **Offset
+      carbon/water** and **Support the developer** — each showing the estimate and linking to a config
+      URL (`VITE_OFFSET_URL` / `VITE_SUPPORT_URL`; hide if unset).
+- [ ] _Open:_ the two CTA URLs + the carbon/water factor methodology.
 
 ## ⬜ Epic 7 — API-key security hardening ("super doubly secure")
 
@@ -233,26 +224,25 @@ Hardens the already-solid AES-256-GCM scheme in
 **Sequenced after Epic 4** so it also covers the new admin key-access path.
 
 - [ ] **AAD-bind to userId** — pass `user.id` as GCM additional authenticated data in
-  encrypt/decrypt so a ciphertext can't be transplanted between rows. Callers:
-  [saveApiKey.ts](server/modules/apiKey/application/saveApiKey.ts),
-  [anthropicClientForUser.ts](server/modules/apiKey/application/anthropicClientForUser.ts).
+      encrypt/decrypt so a ciphertext can't be transplanted between rows. Callers:
+      [saveApiKey.ts](server/modules/apiKey/application/saveApiKey.ts),
+      [anthropicClientForUser.ts](server/modules/apiKey/application/anthropicClientForUser.ts).
 - [ ] **HKDF per-record subkey** — derive a per-user subkey `HKDF(master, salt=userId)` so the
-  master key is never used to encrypt directly (the "doubly" layer).
+      master key is never used to encrypt directly (the "doubly" layer).
 - [ ] **Key versioning / rotation** — prefix the blob with a keyId (`v2$…`); accept current +
-  previous master (`ENCRYPTION_KEY` + `ENCRYPTION_KEY_PREVIOUS` in [server/env.ts](server/env.ts));
-  decrypt tries both; re-encrypt-on-read upgrades old blobs. This is also the **migration path** for
-  adding AAD/HKDF without downtime.
+      previous master (`ENCRYPTION_KEY` + `ENCRYPTION_KEY_PREVIOUS` in [server/env.ts](server/env.ts));
+      decrypt tries both; re-encrypt-on-read upgrades old blobs. This is also the **migration path** for
+      adding AAD/HKDF without downtime.
 - [ ] **Scrub plaintext** — never attach the decrypted key to `req`; build the client and drop the
-  reference; prefer Buffers (note: JS strings can't be zeroed — document the limit).
+      reference; prefer Buffers (note: JS strings can't be zeroed — document the limit).
 - [ ] **Leak/redaction test** — assert the key never appears in logs/errors/JSON; confirm `UserView`
-  + all `users` responses omit `encryptedAnthropicKey`;
-  [errorHandler](server/infrastructure/http/errorHandler.ts) never echoes it.
+  - all `users` responses omit `encryptedAnthropicKey`;
+    [errorHandler](server/infrastructure/http/errorHandler.ts) never echoes it.
 - [ ] **Admin boundary test** — admin paths only revoke / re-validate (decrypt→ping→discard), never
-  return plaintext (enforces Epic 4's decision).
-- [ ] **Decided:** keep the master key in `ENCRYPTION_KEY` (Railway sealed secret) — a KMS /
-  secrets manager was considered and deferred. _Still consider:_ ciphertext in a dedicated table;
-  rate-limit key endpoints + a small `key_audit` log of admin key ops (recommended now that admins
-  touch keys).
+      return plaintext (enforces Epic 4's decision).
+- [ ] _Consider:_ master key in a KMS / managed secret vs. env; ciphertext in a dedicated table;
+      rate-limit key endpoints + a small `key_audit` log of admin key ops (recommended now that admins
+      touch keys).
 
 ## ⬜ Epic 8 — Word "Pokédex"
 
@@ -268,24 +258,24 @@ table.
 attempt when it appears in that attempt's mistakes, else "correct"; every appearance counts "seen".
 
 - [ ] **DB migration `0005`** — two grains, both per user + learnLanguage. `lexeme_stats` (root):
-  id, userId FK, learnLanguage, lemma, partOfSpeech, seenCount, correctCount, incorrectCount,
-  firstSeenAt, lastSeenAt, unique `(userId, learnLanguage, lemma)`. `lexeme_variant_stats`
-  (variant): id, userId FK, learnLanguage, lemma, surface, seenCount, lastSeenAt, unique
-  `(userId, learnLanguage, lemma, surface)`. Apply to **local + Railway prod**.
+      id, userId FK, learnLanguage, lemma, partOfSpeech, seenCount, correctCount, incorrectCount,
+      firstSeenAt, lastSeenAt, unique `(userId, learnLanguage, lemma)`. `lexeme_variant_stats`
+      (variant): id, userId FK, learnLanguage, lemma, surface, seenCount, lastSeenAt, unique
+      `(userId, learnLanguage, lemma, surface)`. Apply to **local + Railway prod**.
 - [ ] **New `modules/pokedex/`** (full DDD) — application
-  `recordSeenWords(userId, learnLanguage, wordBreakdown, mistakes)` called from Epic 5's
-  `recordAttempt` (cross-module history→pokedex): per `WordToken`, upsert root + variant seenCount;
-  a lemma/surface appearing (case-insensitive, word-boundary) in any `mistakes[].sourceText` →
-  incorrectCount, else correctCount (reuse the surface-matching idea from
-  [tokenize.ts](src/components/SentenceTokens/tokenize.ts); document the heuristic). Persistence
-  `pokedexRepository.ts` (upsertLexeme / upsertVariant / listLexemes(sort) / getLexemeWithVariants);
-  read application `listPokedex`, `getRootDetail`; controllers `/api/pokedex` (`GET /` by
-  learnLanguage + sortable, `GET /:lemma`), requireAuth.
+      `recordSeenWords(userId, learnLanguage, wordBreakdown, mistakes)` called from Epic 5's
+      `recordAttempt` (cross-module history→pokedex): per `WordToken`, upsert root + variant seenCount;
+      a lemma/surface appearing (case-insensitive, word-boundary) in any `mistakes[].sourceText` →
+      incorrectCount, else correctCount (reuse the surface-matching idea from
+      [tokenize.ts](src/components/SentenceTokens/tokenize.ts); document the heuristic). Persistence
+      `pokedexRepository.ts` (upsertLexeme / upsertVariant / listLexemes(sort) / getLexemeWithVariants);
+      read application `listPokedex`, `getRootDetail`; controllers `/api/pokedex` (`GET /` by
+      learnLanguage + sortable, `GET /:lemma`), requireAuth.
 - [ ] **Backfill** existing `attempts` (one-off script) to seed the Pokédex from prior history.
 - [ ] **Frontend** — new `src/api/pokedexApi.ts`; `src/hooks/usePokedex.ts` +
-  `src/hooks/usePokedexEntry.ts`; `src/pages/PokedexPage.tsx` (thin) + `src/components/Pokedex/`
-  (RootList, RootCard, VariantList) reusing `components/shared/`; `/pokedex` route + Sidebar nav
-  item.
+      `src/hooks/usePokedexEntry.ts`; `src/pages/PokedexPage.tsx` (thin) + `src/components/Pokedex/`
+      (RootList, RootCard, VariantList) reusing `components/shared/`; `/pokedex` route + Sidebar nav
+      item.
 
 ## ⬜ Epic 9 — Full MD3 overhaul + centered layout (last)
 
@@ -293,16 +283,16 @@ Done last so it styles the final component set (including Epics 2–8 UI) once. 
 homepage" centering folds in here.
 
 - [ ] **[src/theme.ts](src/theme.ts)** — expand into an MD3 token set: color roles
-  (primary/secondary/tertiary, surface tones, outline, on-\* pairs) for light + dark, MD3 type
-  scale, shape (corner radii), state-layer/elevation. Keep the light/dark/system mechanism in
-  [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx).
+      (primary/secondary/tertiary, surface tones, outline, on-\* pairs) for light + dark, MD3 type
+      scale, shape (corner radii), state-layer/elevation. Keep the light/dark/system mechanism in
+      [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx).
 - [ ] **Centered home** — in [AppShell.tsx](src/components/AppShell/AppShell.tsx) /
-  [HomePage.tsx](src/pages/HomePage.tsx), wrap content in a centered max-width container and
-  vertically center the practice card.
-- [ ] **Restyle screens** to MD3 — Sidebar (nav rail/drawer + mobile drawer + contribute rail),
-  PracticeCard, CorrectionDisplay, SettingsPage, WordPopover/LanguagePairPicker, AdminPage,
-  PokedexPage, server-backed HistoryPage, and `components/shared/`. Keep the `@emotion/styled`
-  template-literal convention; route colors/shape through the new theme tokens (no hardcoded hex).
+      [HomePage.tsx](src/pages/HomePage.tsx), wrap content in a centered max-width container and
+      vertically center the practice card.
+- [ ] **Restyle screens** to MD3 — Sidebar (nav rail/drawer + mobile drawer), PracticeCard,
+      CorrectionDisplay, SettingsPage, WordPopover/LanguagePairPicker, and `components/shared/`.
+      Keep the `@emotion/styled` template-literal convention; route colors/shape through the new
+      theme tokens (no hardcoded hex).
 
 ---
 
@@ -314,17 +304,7 @@ Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
   punctuation isn't clickable.
 - **Epic 3** — play a sentence; confirm correct-language voice and that the rate slider changes
   speed and persists across reload.
-- **Epic 4** — sign in as `ADMIN_EMAIL` → `/admin` lists users; a non-admin gets 403 on
-  `/api/admin/*` and sees no admin nav; revoke + re-validate work and never return a key.
-- **Epic 5** — complete an attempt → it shows in `/history` from a fresh browser (no localStorage);
-  the list paginates; `curl /api/history` unauthenticated → 401.
-- **Epic 6** — after some attempts, `usage_events` rows exist with sane `costUsd`; the sidebar shows
-  cost + carbon/water and the two config links.
-- **Epic 7** — transplanting a ciphertext into another user's row fails to decrypt (AAD); rotation
-  decrypts old + new blobs; the redaction test passes; admin paths never return plaintext.
-- **Epic 8** — practice and miss some words → roots show correct/incorrect/seen; drilling a root
-  lists variants with seen counts; backfill totals match history.
-- **Epic 9** — visually QA every screen in light/dark/system and at mobile width (drawer);
+- **Epic 4** — visually QA every screen in light/dark/system and at mobile width (drawer);
   confirm centered home; grep for stray hardcoded colors.
 
 Use the `/verify` skill for end-to-end confirmation and `/code-review` before declaring an epic
