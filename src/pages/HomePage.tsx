@@ -56,6 +56,7 @@ export default function HomePage() {
   return (
     <PracticeCard
       promptText={sentence.promptText}
+      wordBreakdown={sentence.wordBreakdown}
       learnLanguage={sentence.learnLanguage}
       guessLanguage={sentence.guessLanguage}
       level={level}

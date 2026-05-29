@@ -11,9 +11,10 @@ import {
   Divider,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { languageName, type LanguageCode } from '../../../shared/languages'
+import { languageName, type LanguageCode, type WordToken } from '../../../shared/languages'
 import { LEVELS, levelLabel } from '../../../shared/levels'
 import type { LevelPref } from '../../hooks/useLevelPreference'
+import SentenceTokens from '../SentenceTokens/SentenceTokens'
 
 const SentenceCenter = styled('div')`
   text-align: center;
@@ -29,6 +30,7 @@ const SentenceCenter = styled('div')`
 
 interface PracticeCardProps {
   promptText: string
+  wordBreakdown: WordToken[]
   learnLanguage: LanguageCode
   guessLanguage: LanguageCode
   level: LevelPref
@@ -41,6 +43,7 @@ interface PracticeCardProps {
 
 export default function PracticeCard({
   promptText,
+  wordBreakdown,
   learnLanguage,
   guessLanguage,
   level,
@@ -101,7 +104,14 @@ export default function PracticeCard({
           ))}
         </Menu>
 
-        <SentenceCenter lang={learnLanguage}>{promptText}</SentenceCenter>
+        <SentenceCenter>
+          <SentenceTokens
+            text={promptText}
+            breakdown={wordBreakdown}
+            learnLanguage={learnLanguage}
+            guessLanguage={guessLanguage}
+          />
+        </SentenceCenter>
 
         <TextField
           inputRef={inputRef}
