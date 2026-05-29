@@ -20,7 +20,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx --env-file=.env server/db/migrate.ts",
+    "db:migrate": "tsx --env-file=.env server/infrastructure/db/migrate.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

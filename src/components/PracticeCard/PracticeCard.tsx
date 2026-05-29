@@ -11,7 +11,7 @@ import {
   Divider,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { useDifficultyPreference, type DifficultyPref } from '../../practice/useDifficultyPreference'
+import { useDifficultyPreference, type DifficultyPref } from '../../hooks/useDifficultyPreference'
 
 const SentenceCenter = styled('div')`
   text-align: center;

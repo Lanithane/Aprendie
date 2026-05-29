@@ -9,31 +9,11 @@ import {
   Stack,
   Link,
 } from '@mui/material'
-import { api, ApiError } from '../../api/client'
-import { useAuth } from '../../auth/AuthContext'
+import { useApiKey } from '../../hooks/useApiKey'
 
 export default function ApiKeySetup() {
-  const { refresh } = useAuth()
   const [key, setKey] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-
-  const submit = async () => {
-    setError(null)
-    setSaving(true)
-    try {
-      await api('/api/key', {
-        method: 'POST',
-        body: JSON.stringify({ apiKey: key.trim() }),
-      })
-      await refresh()
-    } catch (err) {
-      if (err instanceof ApiError) setError(err.message)
-      else setError('Failed to save API key')
-    } finally {
-      setSaving(false)
-    }
-  }
+  const { save, saving, error } = useApiKey()
 
   return (
     <Card sx={{ maxWidth: 540, mx: 'auto', mt: 6 }}>
@@ -68,7 +48,7 @@ export default function ApiKeySetup() {
           {error && <Alert severity='error'>{error}</Alert>}
           <Button
             variant='contained'
-            onClick={submit}
+            onClick={() => save(key.trim())}
             disabled={!key.trim() || saving}
             size='large'
           >

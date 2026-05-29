@@ -1,12 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { api, ApiError } from '../api/client'
+import { ApiError } from '../api/client'
+import { fetchCurrentUser, type CurrentUserDto } from '../api/userApi'
 
-export interface CurrentUser {
-  id: string
-  email: string
-  name: string
-  hasApiKey: boolean
-}
+export type CurrentUser = CurrentUserDto
 
 interface AuthState {
   user: CurrentUser | null
@@ -23,8 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = async () => {
     setLoading(true)
     try {
-      const me = await api<CurrentUser>('/api/me')
-      setUser(me)
+      setUser(await fetchCurrentUser())
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setUser(null)

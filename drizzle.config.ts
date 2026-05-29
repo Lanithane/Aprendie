@@ -5,7 +5,7 @@ const url =
 const isLocalDb = url.includes('localhost') || url.includes('127.0.0.1')
 
 export default defineConfig({
-  schema: './server/db/schema.ts',
+  schema: './server/infrastructure/db/schema.ts',
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
