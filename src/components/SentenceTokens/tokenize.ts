@@ -23,7 +23,7 @@ export function tokenizeSentence(text: string, breakdown: WordToken[]): Sentence
   const bySurface = new Map<string, WordToken>()
   for (const token of breakdown) {
     const key = normalize(token.surface)
-    // First occurrence wins, so a repeated surface keeps its earliest gloss.
+    // First occurrence wins, so a repeated surface keeps its earliest breakdown entry.
     if (key && !bySurface.has(key)) bySurface.set(key, token)
   }
 

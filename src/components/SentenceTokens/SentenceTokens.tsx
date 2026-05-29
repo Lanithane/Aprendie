@@ -40,9 +40,10 @@ interface SentenceTokensProps {
   guessLanguage: LanguageCode
 }
 
-// Renders a learn-language sentence with each meaningful word clickable; clicking opens
-// a WordPopover with the word's root, part of speech, and meaning. Punctuation and
-// whitespace render verbatim. Reusable wherever a sentence + its breakdown are available.
+// Renders a learn-language sentence with each meaningful word clickable; clicking opens a
+// WordPopover with the word's dictionary form, part of speech, and morphology breakdown.
+// Punctuation and whitespace render verbatim. Reusable wherever a sentence + its breakdown
+// are available.
 export default function SentenceTokens({
   text,
   breakdown,
@@ -67,7 +68,7 @@ export default function SentenceTokens({
             key={i}
             type='button'
             onClick={(e) => open(e, seg.token as WordToken)}
-            aria-label={`Show the root and meaning of ${seg.text}`}
+            aria-label={`Show the dictionary form and grammar of ${seg.text}`}
           >
             {seg.text}
           </TokenButton>

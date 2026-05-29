@@ -90,13 +90,37 @@ export const DEFAULT_PAIR: LanguagePair = {
   locale: 'es-MX',
 }
 
-// One meaningful token of a learn-language sentence, with its dictionary form and a
-// meaning expressed in the guess language. Generated upfront with each sentence.
+// One morphological change that derives an inflected surface word from its lemma — a suffix,
+// prefix, or stem change. `segment` is the changed letters as they appear (in the learn
+// language); `note` explains the grammatical function of that change and is written in the
+// GUESS language so the learner can read the grammar — but it never translates the word.
+export interface WordModifier {
+  segment: string // the affix or changed letters as they appear, e.g. "-es", "ie"
+  note: string // grammatical function in the guess language, e.g. "2nd person singular, present"
+}
+
+// One meaningful token of a learn-language sentence. The vocabulary stays immersive — the
+// dictionary form (lemma) is in the LEARN language and the word's meaning is never translated.
+// Grammatical metadata (part of speech, modifier notes) is in the GUESS language so the
+// learner can read the grammar. When the surface word is inflected, `modifiers` decomposes the
+// change; an empty array means it's already the base form. Generated upfront with each sentence.
 export interface WordToken {
   surface: string
   lemma: string
-  gloss: string
-  partOfSpeech: string
+  partOfSpeech: string // a common part-of-speech label in the guess language, e.g. "noun"
+  modifiers: WordModifier[] // empty => surface is the base form
+}
+
+// UI label shown in place of the lemma when a surface word is already its own dictionary
+// form — repeating the word adds nothing, so we mark it as the root instead. Grammatical
+// metadata, so it's keyed by the guess language (like the part of speech).
+export const ROOT_LABEL: Record<LanguageCode, string> = {
+  en: 'root',
+  es: 'raíz',
+  fr: 'racine',
+  de: 'Grundform',
+  it: 'radice',
+  pt: 'raiz',
 }
 
 export function isSupportedLanguage(code: string): code is LanguageCode {

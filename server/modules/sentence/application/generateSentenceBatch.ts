@@ -5,6 +5,7 @@ import {
   languageName,
   type LanguageCode,
   type LocaleCode,
+  type WordModifier,
   type WordToken,
 } from '../../../../shared/languages'
 import { LEVELS, isLevelCode, levelByCode, type LevelCode } from '../../../../shared/levels'
@@ -31,11 +32,14 @@ Output requirements:
 - Match the requested difficulty level, or vary across levels if asked to mix. Set "level" to the matching code.
 - Make each sentence natural and idiomatic for the given regional locale.
 - "grammarFocus": a short tag in the GUESS language for the main grammar point; choose points that matter pedagogically for the LEARN language.
-- "wordBreakdown": one entry per meaningful word in promptText (skip pure punctuation), each with:
-    "surface" = the word exactly as it appears,
-    "lemma" = its dictionary / root form,
-    "gloss" = its meaning in the GUESS language,
-    "partOfSpeech" = a short part-of-speech label in the GUESS language.
+- "wordBreakdown": one entry per meaningful word in promptText (skip pure punctuation). Decompose EVERY inflected word into the changes that derive it from its dictionary form. Each entry has:
+    "surface" = the word exactly as it appears in promptText,
+    "lemma" = its dictionary / base form, in the LEARN language,
+    "partOfSpeech" = a short, common part-of-speech label in the GUESS language (e.g. "noun", "verb", "adjective", "adverb", "pronoun", "preposition", "article", "conjunction"). Use everyday grammar terms — avoid fine-grained technical subcategories like "proper noun" or "clitic pronoun",
+    "modifiers" = an array describing how the surface word differs from the lemma. If the surface word IS the dictionary/base form (identical to the lemma apart from capitalization), use an empty array []. Otherwise include one entry per morphological change — suffixes, prefixes, AND stem changes (e.g. the e→ie diphthong that turns "tener" into "tienes"). Each entry:
+        "segment" = the affix or changed letters as they appear (e.g. "-es", "-as", "ie"),
+        "note" = a brief explanation of that change's grammatical function, written in the GUESS language (e.g. "2nd person singular, present tense", "stem change e→ie", "feminine plural").
+- CRITICAL: never give the meaning or translation of any word. The learner must recall meanings unaided. The GUESS language appears ONLY as grammatical metadata — the "partOfSpeech" label and modifier "note" fields — never as a gloss. "lemma" and modifier "segment" stay in the LEARN language.
 - Return ONLY valid JSON, no markdown, no commentary.
 
 JSON shape:
@@ -46,7 +50,7 @@ JSON shape:
       "answerText": string,
       "level": string,
       "grammarFocus": string,
-      "wordBreakdown": [ { "surface": string, "lemma": string, "gloss": string, "partOfSpeech": string } ]
+      "wordBreakdown": [ { "surface": string, "lemma": string, "partOfSpeech": string, "modifiers": [ { "segment": string, "note": string } ] } ]
     }
   ]
 }`
@@ -66,6 +70,21 @@ interface RawSentence {
   wordBreakdown?: WordToken[]
 }
 
+// Coerce a model-supplied token into the WordToken shape, guarding the `modifiers` array
+// (the model may omit it for base-form words or hand back malformed entries).
+function normalizeToken(raw: Partial<WordToken>): WordToken {
+  const rawModifiers = Array.isArray(raw.modifiers) ? raw.modifiers : []
+  const modifiers: WordModifier[] = rawModifiers
+    .filter((m): m is WordModifier => Boolean(m?.segment))
+    .map((m) => ({ segment: m.segment, note: m.note ?? '' }))
+  return {
+    surface: raw.surface ?? '',
+    lemma: raw.lemma ?? '',
+    partOfSpeech: raw.partOfSpeech ?? '',
+    modifiers,
+  }
+}
+
 function normalize(raw: RawSentence, requestedLevel?: LevelCode): GeneratedSentence {
   const level = raw.level && isLevelCode(raw.level) ? raw.level : (requestedLevel ?? 'b1')
   return {
@@ -73,7 +92,9 @@ function normalize(raw: RawSentence, requestedLevel?: LevelCode): GeneratedSente
     answerText: (raw.answerText ?? '').trim(),
     level,
     grammarFocus: raw.grammarFocus ?? '',
-    wordBreakdown: Array.isArray(raw.wordBreakdown) ? raw.wordBreakdown : [],
+    wordBreakdown: Array.isArray(raw.wordBreakdown)
+      ? raw.wordBreakdown.filter((t) => t?.surface).map(normalizeToken)
+      : [],
   }
 }
 
