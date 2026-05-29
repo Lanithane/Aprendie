@@ -6,6 +6,7 @@ export type CurrentUser = CurrentUserDto
 
 interface AuthState {
   user: CurrentUser | null
+  isAdmin: boolean
   loading: boolean
   refresh: () => Promise<void>
 }
@@ -36,7 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, refresh }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, isAdmin: user?.role === 'admin', loading, refresh }}>
+      {children}
+    </AuthContext.Provider>
   )
 }
 

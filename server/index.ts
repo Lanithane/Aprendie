@@ -7,6 +7,7 @@ import { passport } from './modules/auth/application/passport'
 import { errorHandler } from './infrastructure/http/errorHandler'
 import authController from './modules/auth/controllers/authController'
 import userController from './modules/user/controllers/userController'
+import adminUserController from './modules/user/controllers/adminUserController'
 import apiKeyController from './modules/apiKey/controllers/apiKeyController'
 import sentenceController from './modules/sentence/controllers/sentenceController'
 import correctionController from './modules/correction/controllers/correctionController'
@@ -28,6 +29,7 @@ app.get('/api/health', (_req, res) => {
 })
 app.use('/api/auth', authController)
 app.use('/api/me', userController)
+app.use('/api/admin/users', adminUserController)
 app.use('/api/key', apiKeyController)
 app.use('/api/sentence', sentenceController)
 app.use('/api/correct', correctionController)

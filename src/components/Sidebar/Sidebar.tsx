@@ -14,6 +14,7 @@ import {
 import HomeIcon from '@mui/icons-material/Home'
 import HistoryIcon from '@mui/icons-material/History'
 import SettingsIcon from '@mui/icons-material/Settings'
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import LogoutIcon from '@mui/icons-material/Logout'
 import MenuIcon from '@mui/icons-material/Menu'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
@@ -62,6 +63,8 @@ const NAV_ITEMS = [
   { to: '/settings', label: 'Settings', Icon: SettingsIcon },
 ] as const
 
+const ADMIN_NAV_ITEM = { to: '/admin', label: 'Admin', Icon: AdminPanelSettingsIcon } as const
+
 const MODE_META: Record<ThemeMode, { label: string; Icon: typeof LightModeIcon; short: string }> = {
   light: { label: 'Light mode (click to cycle)', Icon: LightModeIcon, short: 'Light' },
   dark: { label: 'Dark mode (click to cycle)', Icon: DarkModeIcon, short: 'Dark' },
@@ -77,9 +80,11 @@ export default function Sidebar({
   widthExpanded,
   widthCollapsed,
 }: SidebarProps) {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const { mode, cycleMode } = useThemeMode()
   const loc = useLocation()
+
+  const navItems = isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS
 
   // Mobile: always full width when open. Desktop: collapsed or expanded.
   const width = isMobile ? widthExpanded : collapsed ? widthCollapsed : widthExpanded
@@ -116,7 +121,7 @@ export default function Sidebar({
       </HeaderRow>
       <Divider />
       <List>
-        {NAV_ITEMS.map(({ to, label, Icon }) => (
+        {navItems.map(({ to, label, Icon }) => (
           <ListItem key={to} disablePadding>
             <Tooltip title={!showLabels ? label : ''} placement='right'>
               <ListItemButton

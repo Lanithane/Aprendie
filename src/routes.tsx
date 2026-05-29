@@ -6,12 +6,20 @@ import LoadingSpinner from './components/shared/LoadingSpinner'
 import HomePage from './pages/HomePage'
 import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
+import AdminPage from './pages/AdminPage'
 import LoginPage from './pages/LoginPage'
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return <LoadingSpinner />
   if (!user) return <Navigate to='/login' replace />
+  return <>{children}</>
+}
+
+function RequireAdmin({ children }: { children: ReactNode }) {
+  const { isAdmin, loading } = useAuth()
+  if (loading) return <LoadingSpinner />
+  if (!isAdmin) return <Navigate to='/' replace />
   return <>{children}</>
 }
 
@@ -31,6 +39,14 @@ export default function AppRoutes() {
         <Route path='/' element={<HomePage />} />
         <Route path='/history' element={<HistoryPage />} />
         <Route path='/settings' element={<SettingsPage />} />
+        <Route
+          path='/admin'
+          element={
+            <RequireAdmin>
+              <AdminPage />
+            </RequireAdmin>
+          }
+        />
       </Route>
       <Route path='*' element={<Navigate to='/' replace />} />
     </Routes>

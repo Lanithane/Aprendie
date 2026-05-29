@@ -1,10 +1,24 @@
 import type { UserRow } from '../../../infrastructure/db/schema'
 
+export type UserRole = 'admin' | 'user'
+
 export interface UserView {
   id: string
   email: string
   name: string
+  role: UserRole
   hasApiKey: boolean
+}
+
+// Admin-facing projection of another user. Never exposes encryptedAnthropicKey.
+// `totalCostUsd` is added once Epic 6 (usage showback) lands.
+export interface AdminUserView {
+  id: string
+  email: string
+  name: string
+  role: UserRole
+  hasApiKey: boolean
+  createdAt: string
 }
 
 export function toUserView(row: UserRow): UserView {
@@ -12,6 +26,18 @@ export function toUserView(row: UserRow): UserView {
     id: row.id,
     email: row.email,
     name: row.name,
+    role: row.role,
     hasApiKey: Boolean(row.encryptedAnthropicKey),
+  }
+}
+
+export function toAdminUserView(row: UserRow): AdminUserView {
+  return {
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    role: row.role,
+    hasApiKey: Boolean(row.encryptedAnthropicKey),
+    createdAt: row.createdAt.toISOString(),
   }
 }

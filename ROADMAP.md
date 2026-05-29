@@ -16,7 +16,7 @@ change here.
 | 1    | Language generalization + CEFR levels + word-breakdown data + location→locale | ✅ Done (merged + deployed) |
 | 2    | Word-root-on-click UI                                                         | ✅ Done                     |
 | 3    | Text-to-speech + rate slider                                                  | ⬜ Not started              |
-| 4    | RBAC + admin console (roles, users CRUD, key support)                         | ⬜ Not started              |
+| 4    | RBAC + admin console (roles, users CRUD, key support)                         | ✅ Done (migration on prod) |
 | 5    | History → Postgres, per user account                                          | ⬜ Not started              |
 | 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started              |
 | 7    | API-key security hardening                                                    | ⬜ Not started              |
@@ -115,7 +115,7 @@ selection. No backend.
 - [ ] **PracticeCard** — speaker/play `IconButton` near the sentence + a rate `Slider`
       (~0.5–1.5×). Gracefully hide if `!supported`.
 
-## ⬜ Epic 4 — RBAC + admin console
+## ✅ Epic 4 — RBAC + admin console
 
 Adds roles and an admin-only console so the site admin can manage the user list and do API-key
 support. The work extends the `user` module, adds a `requireAdmin` guard, and surfaces a
@@ -125,34 +125,42 @@ dedicated `/admin` section.
 `ADMIN_EMAIL`, everyone else (and every new account) is a user; admins may **revoke + re-validate**
 a user's key but **never view** plaintext.
 
-- [ ] **DB migration `0002`** — add `users.role` (`text not null default 'user'`, typed
-      `$type<'admin' | 'user'>()` to match the loose-typed `level` column; avoids pg-enum alter
-      friction). Apply to **local + Railway prod**.
-- [ ] **[server/env.ts](server/env.ts)** — add `ADMIN_EMAIL` (zod email, optional).
-- [ ] **[findOrCreateGoogleUser.ts](server/modules/user/application/findOrCreateGoogleUser.ts)** —
-      default new users to `'user'`; promote to `'admin'` when `email === env.ADMIN_EMAIL` (promotes
-      the existing admin row on next login; manual `UPDATE` as fallback).
-- [ ] **server/infrastructure/http/requireAdmin.ts** (new) — 403 unless `req.user.role === 'admin'`;
-      composes after [requireAuth.ts](server/infrastructure/http/requireAuth.ts).
-- [ ] **[User.ts](server/modules/user/domain/User.ts)** — add `role` to `UserView`; add
+- [x] **DB migration `0002`** ([drizzle/0002_rbac_roles.sql](drizzle/0002_rbac_roles.sql)) — add
+      `users.role` (`text not null default 'user'`, typed `$type<'admin' | 'user'>()` to match the
+      loose-typed `level` column; avoids pg-enum alter friction). Applied to **Railway prod**
+      (verified 2026-05-29: column present, 3 existing rows defaulted to `user`). _Local skipped —
+      no local Postgres running; `.env` points at prod._
+- [x] **[server/env.ts](server/env.ts)** — added `ADMIN_EMAIL` (zod email, optional).
+- [x] **[findOrCreateGoogleUser.ts](server/modules/user/application/findOrCreateGoogleUser.ts)** —
+      defaults new users to `'user'`; promotes to `'admin'` when `email === env.ADMIN_EMAIL`
+      (case-insensitive; promotes the existing admin row on next login; manual `UPDATE` as fallback).
+- [x] **[server/infrastructure/http/requireAdmin.ts](server/infrastructure/http/requireAdmin.ts)**
+      (new) — 403 unless `req.user.role === 'admin'`; composes after
+      [requireAuth.ts](server/infrastructure/http/requireAuth.ts).
+- [x] **[User.ts](server/modules/user/domain/User.ts)** — added `role` to `UserView`; added
       `AdminUserView` (id, email, name, role, hasApiKey, createdAt; `totalCostUsd` once Epic 6 lands).
-      Never expose `encryptedAnthropicKey`.
-- [ ] **[userRepository.ts](server/modules/user/persistence/userRepository.ts)** — `listAll()`,
-      `updateRole(id, role)`; reuse `updateEncryptedApiKey(id, null)` for revoke.
-- [ ] **user application** — `listUsers`, `setUserRole` (guard against demoting the last admin),
-      `adminRevokeUserKey`, `adminRevalidateUserKey` (decrypt server-side → ping Anthropic → return
-      ok/fail, **never the key**). Re-validate reuses a `validateApiKey` exported from the apiKey
-      module's application (refactor the private fn in
-      [saveApiKey.ts](server/modules/apiKey/application/saveApiKey.ts); cross-module
-      application→application is allowed).
-- [ ] **server/modules/user/controllers/adminUserController.ts** (new) — mounted `/api/admin/users`
-      in [server/index.ts](server/index.ts), guarded `requireAuth` + `requireAdmin`: `GET /`,
-      `PATCH /:id/role`, `DELETE /:id/key`, `POST /:id/key/revalidate`.
-- [ ] **Frontend** — `CurrentUserDto` gains `role` in [userApi.ts](src/api/userApi.ts); new
-      `src/api/adminApi.ts`; `isAdmin` from [AuthContext.tsx](src/auth/AuthContext.tsx); `RequireAdmin`
-      guard + `/admin` route in [routes.tsx](src/routes.tsx); admin-only nav item in
-      [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx); `src/pages/AdminPage.tsx` (thin) +
-      `src/components/Admin/UsersTable.tsx` + `src/hooks/useAdminUsers.ts`.
+      Never exposes `encryptedAnthropicKey`.
+- [x] **[userRepository.ts](server/modules/user/persistence/userRepository.ts)** — `listAll()`,
+      `updateRole(id, role)`, `countAdmins()`; reuses `updateEncryptedApiKey(id, null)` for revoke.
+- [x] **user application** ([adminUsers.ts](server/modules/user/application/adminUsers.ts)) —
+      `listUsers`, `setUserRole` (guards against demoting the last admin), `adminRevokeUserKey`,
+      `adminRevalidateUserKey` (decrypt server-side → ping Anthropic → return ok/fail, **never the
+      key**). Re-validate reuses `validateApiKey`, extracted from
+      [saveApiKey.ts](server/modules/apiKey/application/saveApiKey.ts) into
+      [validateApiKey.ts](server/modules/apiKey/application/validateApiKey.ts) (cross-module
+      application→application).
+- [x] **[adminUserController.ts](server/modules/user/controllers/adminUserController.ts)** (new) —
+      mounted `/api/admin/users` in [server/index.ts](server/index.ts), guarded `requireAuth` +
+      `requireAdmin`: `GET /`, `PATCH /:id/role`, `DELETE /:id/key`, `POST /:id/key/revalidate`.
+- [x] **Frontend** — `CurrentUserDto` gained `role` in [userApi.ts](src/api/userApi.ts); new
+      [adminApi.ts](src/api/adminApi.ts); `isAdmin` from [AuthContext.tsx](src/auth/AuthContext.tsx);
+      `RequireAdmin` guard + `/admin` route in [routes.tsx](src/routes.tsx); admin-only nav item in
+      [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx); [AdminPage.tsx](src/pages/AdminPage.tsx)
+      (thin) + [UsersTable.tsx](src/components/Admin/UsersTable.tsx) +
+      [useAdminUsers.ts](src/hooks/useAdminUsers.ts).
+
+_To activate your admin account:_ set `ADMIN_EMAIL` (local `.env` + Railway service var) and sign in
+again, or run `UPDATE users SET role='admin' WHERE email='…'` once.
 
 ## ⬜ Epic 5 — History → Postgres (per user account)
 

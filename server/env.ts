@@ -13,6 +13,9 @@ const envSchema = z.object({
   // Required when auth is wired; left optional now to allow early local boot.
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+  // The account whose email matches this is promoted to `admin` on login.
+  // Optional: when unset, no account is auto-promoted.
+  ADMIN_EMAIL: z.string().email().optional(),
 })
 
 const parsed = envSchema.safeParse(process.env)

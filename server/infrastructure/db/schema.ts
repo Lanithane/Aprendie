@@ -7,6 +7,8 @@ export const users = pgTable('users', {
   name: text('name').notNull(),
   googleSub: text('google_sub').notNull().unique(),
   encryptedAnthropicKey: text('encrypted_anthropic_key'),
+  // Loose-typed like `level` on sentence_cache to avoid pg-enum alter friction.
+  role: text('role').$type<'admin' | 'user'>().notNull().default('user'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
