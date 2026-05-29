@@ -55,8 +55,8 @@ change here.
   factor/methodology.
 - **Epic 7:** keep the master key in the `ENCRYPTION_KEY` env var vs. move it to a KMS / managed
   secret.
-- **Epic 5:** whether to import each user's existing localStorage history into Postgres on their
-  next login (one-time), or start fresh server-side.
+- **Epic 5:** ~~import existing localStorage history vs. start fresh~~ — **resolved: start fresh
+  server-side, no one-time import.**
 
 ---
 
@@ -188,8 +188,8 @@ full snapshot per attempt) so history survives `sentence_cache` pruning — and 
       to read from the server (same hook shape so [HistoryPage.tsx](src/pages/HistoryPage.tsx) barely
       changes); drop the client write path (remove `appendHistory` + gut
       [src/history/index.ts](src/history/index.ts); remove its call, likely in `useCorrectionSubmission`).
-- [ ] _Optional:_ one-time import of a user's existing localStorage history into Postgres on next
-      login. _Optional:_ admin view of a user's history via `/api/admin/users/:id/history` reusing
+      **History starts fresh server-side — no one-time import of existing localStorage history.**
+- [ ] _Optional:_ admin view of a user's history via `/api/admin/users/:id/history` reusing
       `listForUser`.
 
 ## ⬜ Epic 6 — Usage-cost showback + contribute CTAs
