@@ -15,6 +15,9 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import { diffWordsWithSpace } from 'diff'
 import type { HistoryMistake } from '../../history'
 
+const normalizePunct = (s: string) =>
+  s.replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"')
+
 interface CorrectionDisplayProps {
   spanish: string
   userEnglish: string
@@ -74,7 +77,10 @@ export default function CorrectionDisplay({
   notes,
   onNext,
 }: CorrectionDisplayProps) {
-  const parts = diffWordsWithSpace(userEnglish, correctedEnglish)
+  const parts = diffWordsWithSpace(normalizePunct(userEnglish), normalizePunct(correctedEnglish))
+  const visibleMistakes = mistakes.filter(
+    (m) => normalizePunct(m.userPhrase) !== normalizePunct(m.correctPhrase)
+  )
 
   return (
     <Card aria-live='polite'>
@@ -125,14 +131,14 @@ export default function CorrectionDisplay({
           </Box>
         </Stack>
 
-        {mistakes.length > 0 && (
+        {visibleMistakes.length > 0 && (
           <>
             <Divider sx={{ my: 2 }} />
             <Typography variant='overline' color='text.secondary'>
               Mistakes
             </Typography>
             <Stack spacing={1.25} sx={{ mt: 1 }}>
-              {mistakes.map((m, i) => (
+              {visibleMistakes.map((m, i) => (
                 <MistakeRow key={i} spacing={0.5}>
                   <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                     <Chip size='small' lang='es' label={m.spanishSource} color='primary' />
