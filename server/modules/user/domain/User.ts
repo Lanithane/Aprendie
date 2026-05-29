@@ -1,4 +1,5 @@
 import type { UserRow } from '../../../infrastructure/db/schema'
+import type { LevelCode } from '../../../../shared/levels'
 
 export type UserRole = 'admin' | 'user'
 
@@ -8,6 +9,7 @@ export interface UserView {
   name: string
   role: UserRole
   hasApiKey: boolean
+  level: LevelCode | null
 }
 
 // Admin-facing projection of another user. Never exposes encryptedAnthropicKey.
@@ -28,6 +30,7 @@ export function toUserView(row: UserRow): UserView {
     name: row.name,
     role: row.role,
     hasApiKey: Boolean(row.encryptedAnthropicKey),
+    level: row.level ?? null,
   }
 }
 

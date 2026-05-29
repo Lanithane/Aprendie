@@ -2,6 +2,7 @@ import { eq, count, desc } from 'drizzle-orm'
 import { db } from '../../../infrastructure/db/client'
 import { users, type UserRow, type NewUserRow } from '../../../infrastructure/db/schema'
 import type { UserRole } from '../domain/User'
+import type { LevelCode } from '../../../../shared/levels'
 
 export async function findById(id: string): Promise<UserRow | null> {
   const rows = await db.select().from(users).where(eq(users.id, id))
@@ -44,4 +45,13 @@ export async function updateEncryptedApiKey(
     .update(users)
     .set({ encryptedAnthropicKey: encryptedKey, updatedAt: new Date() })
     .where(eq(users.id, id))
+}
+
+export async function updateLevel(id: string, level: LevelCode | null): Promise<UserRow> {
+  const updated = await db
+    .update(users)
+    .set({ level, updatedAt: new Date() })
+    .where(eq(users.id, id))
+    .returning()
+  return updated[0]
 }

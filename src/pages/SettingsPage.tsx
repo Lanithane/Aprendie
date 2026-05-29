@@ -1,12 +1,25 @@
-import { Typography, Box, Stack, Button, Alert } from '@mui/material'
+import {
+  Typography,
+  Box,
+  Stack,
+  Button,
+  Alert,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from '@mui/material'
 import SectionCard from '../components/shared/SectionCard'
 import LanguagePairPicker from '../components/LanguagePairPicker/LanguagePairPicker'
 import { useAuth } from '../auth/AuthContext'
 import { useApiKey } from '../hooks/useApiKey'
+import { useLevelPreference } from '../hooks/useLevelPreference'
+import { LEVELS, levelLabel } from '../../shared/levels'
 
 export default function SettingsPage() {
   const { user } = useAuth()
   const { remove, removing, error } = useApiKey()
+  const { pref, setPref } = useLevelPreference()
 
   const onRemoveKey = () => {
     if (!confirm("Remove your API key? You'll need to re-enter it to keep practicing.")) return
@@ -24,6 +37,28 @@ export default function SettingsPage() {
           description='Pick what to learn, its regional variant, and the language you answer in.'
         >
           <LanguagePairPicker />
+        </SectionCard>
+
+        <SectionCard
+          title='Difficulty level'
+          description='Controls the complexity of sentences. You can also change this on the practice card.'
+        >
+          <FormControl size='small' sx={{ minWidth: 240 }}>
+            <InputLabel id='settings-level-label'>Level</InputLabel>
+            <Select
+              labelId='settings-level-label'
+              label='Level'
+              value={pref ?? ''}
+              onChange={(e) => setPref(e.target.value || null)}
+            >
+              <MenuItem value=''>Any level</MenuItem>
+              {LEVELS.map((l) => (
+                <MenuItem key={l.code} value={l.code}>
+                  {levelLabel(l.code)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </SectionCard>
 
         <SectionCard

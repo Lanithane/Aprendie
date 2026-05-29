@@ -28,5 +28,6 @@ export async function findOrCreateGoogleUser(profile: GoogleProfileInput): Promi
     name: profile.name,
     googleSub: profile.googleSub,
     role: desiredRole,
+    level: 'starter',
   })
 }

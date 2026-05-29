@@ -10,6 +10,7 @@ import {
   index,
 } from 'drizzle-orm/pg-core'
 import type { WordToken } from '../../../shared/languages'
+import type { LevelCode } from '../../../shared/levels'
 
 // Denormalized snapshot of a graded attempt. Mirrors the correction `Mistake`
 // shape structurally so the DB layer stays free of module imports.
@@ -28,6 +29,7 @@ export const users = pgTable('users', {
   encryptedAnthropicKey: text('encrypted_anthropic_key'),
   // Loose-typed like `level` on sentence_cache to avoid pg-enum alter friction.
   role: text('role').$type<'admin' | 'user'>().notNull().default('user'),
+  level: text('level').$type<LevelCode | null>(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
