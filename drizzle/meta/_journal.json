@@ -29,6 +29,13 @@
       "when": 1780091096053,
       "tag": "0003_attempts_history",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780200000000,
+      "tag": "0004_user_level",
+      "breakpoints": true
     }
   ]
 }
