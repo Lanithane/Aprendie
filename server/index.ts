@@ -11,6 +11,7 @@ import adminUserController from './modules/user/controllers/adminUserController'
 import apiKeyController from './modules/apiKey/controllers/apiKeyController'
 import sentenceController from './modules/sentence/controllers/sentenceController'
 import correctionController from './modules/correction/controllers/correctionController'
+import historyController from './modules/history/controllers/historyController'
 import languageController from './modules/language/controllers/languageController'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -33,6 +34,7 @@ app.use('/api/admin/users', adminUserController)
 app.use('/api/key', apiKeyController)
 app.use('/api/sentence', sentenceController)
 app.use('/api/correct', correctionController)
+app.use('/api/history', historyController)
 app.use('/api/language', languageController)
 
 if (env.NODE_ENV === 'production') {

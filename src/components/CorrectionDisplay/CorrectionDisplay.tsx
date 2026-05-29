@@ -14,7 +14,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import { diffWordsWithSpace } from 'diff'
 import { languageName, type LanguageCode } from '../../../shared/languages'
-import type { HistoryMistake } from '../../history'
+import type { CorrectionMistakeDto } from '../../api/correctionApi'
 
 const normalizePunct = (s: string) => s.replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"')
 
@@ -26,7 +26,7 @@ interface CorrectionDisplayProps {
   correctedAnswer: string
   isCorrect: boolean
   score: number
-  mistakes: HistoryMistake[]
+  mistakes: CorrectionMistakeDto[]
   notes?: string
   onNext: () => void
 }

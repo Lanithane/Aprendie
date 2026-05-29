@@ -8,7 +8,6 @@ import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useLevelPreference } from '../hooks/useLevelPreference'
 import { useCurrentSentence } from '../hooks/useCurrentSentence'
 import { useCorrectionSubmission } from '../hooks/useCorrectionSubmission'
-import { appendHistory } from '../history'
 
 export default function HomePage() {
   const { user } = useAuth()
@@ -63,9 +62,7 @@ export default function HomePage() {
       onLevelChange={setLevel}
       grammarFocus={sentence.grammarFocus}
       onSubmit={(userAnswer) => {
-        void submit(sentence.id, userAnswer).then((result) => {
-          if (result) appendHistory(user.id, pair, result)
-        })
+        void submit(sentence.id, userAnswer)
       }}
       submitting={submitting}
     />

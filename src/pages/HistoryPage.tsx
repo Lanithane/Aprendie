@@ -8,19 +8,22 @@ import {
   Chip,
   IconButton,
   Collapse,
+  Button,
+  Alert,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { format } from 'date-fns'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useHistory } from '../hooks/useHistory'
+import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { languageName } from '../../shared/languages'
-import type { HistoryEntry } from '../history'
+import type { AttemptDto } from '../api/historyApi'
 
 export default function HistoryPage() {
   const { user } = useAuth()
   const { pair } = useLanguagePair()
-  const items = useHistory(user?.id, pair)
+  const { items, loading, loadingMore, error, hasMore, loadMore } = useHistory(user?.id, pair)
   const [expanded, setExpanded] = useState<string | null>(null)
 
   if (!user) return null
@@ -31,34 +34,49 @@ export default function HistoryPage() {
         History
       </Typography>
       <Typography color='text.secondary' sx={{ mb: 3 }}>
-        Stored locally for {languageName(pair.learnLanguage)} → {languageName(pair.guessLanguage)} (
+        {languageName(pair.learnLanguage)} → {languageName(pair.guessLanguage)} (
         <code>{pair.locale}</code>). {items.length} attempt
-        {items.length === 1 ? '' : 's'}.
+        {items.length === 1 ? '' : 's'} loaded.
       </Typography>
-      <Stack spacing={1}>
-        {items.length === 0 && (
-          <Typography color='text.secondary'>
-            No history yet — finish a sentence to see it here.
-          </Typography>
-        )}
-        {items.map((it, idx) => (
-          <HistoryRow
-            key={`${it.id}-${it.createdAt}-${idx}`}
-            entry={it}
-            open={expanded === `${it.id}-${it.createdAt}-${idx}`}
-            onToggle={() => {
-              const key = `${it.id}-${it.createdAt}-${idx}`
-              setExpanded((cur) => (cur === key ? null : key))
-            }}
-          />
-        ))}
-      </Stack>
+      {error && (
+        <Alert severity='error' sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+      {loading ? (
+        <LoadingSpinner />
+      ) : (
+        <Stack spacing={1}>
+          {items.length === 0 && (
+            <Typography color='text.secondary'>
+              No history yet — finish a sentence to see it here.
+            </Typography>
+          )}
+          {items.map((it) => (
+            <HistoryRow
+              key={it.id}
+              entry={it}
+              open={expanded === it.id}
+              onToggle={() => setExpanded((cur) => (cur === it.id ? null : it.id))}
+            />
+          ))}
+          {hasMore && (
+            <Button
+              onClick={() => void loadMore()}
+              disabled={loadingMore}
+              sx={{ alignSelf: 'center', mt: 1 }}
+            >
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </Button>
+          )}
+        </Stack>
+      )}
     </Box>
   )
 }
 
 interface HistoryRowProps {
-  entry: HistoryEntry
+  entry: AttemptDto
   open: boolean
   onToggle: () => void
 }

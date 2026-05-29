@@ -22,6 +22,13 @@
       "when": 1780074938403,
       "tag": "0002_rbac_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780091096053,
+      "tag": "0003_attempts_history",
+      "breakpoints": true
     }
   ]
 }

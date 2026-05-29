@@ -17,7 +17,7 @@ change here.
 | 2    | Word-root-on-click UI                                                         | ✅ Done                     |
 | 3    | Text-to-speech + rate slider                                                  | ⬜ Not started              |
 | 4    | RBAC + admin console (roles, users CRUD, key support)                         | ✅ Done (migration on prod) |
-| 5    | History → Postgres, per user account                                          | ⬜ Not started              |
+| 5    | History → Postgres, per user account                                          | ✅ Done (local migrated)    |
 | 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started              |
 | 7    | API-key security hardening                                                    | ⬜ Not started              |
 | 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started              |
@@ -56,7 +56,7 @@ change here.
 - **Epic 7:** keep the master key in the `ENCRYPTION_KEY` env var vs. move it to a KMS / managed
   secret.
 - **Epic 5:** ~~import existing localStorage history vs. start fresh~~ — **resolved: start fresh
-  server-side, no one-time import.**
+  server-side, no one-time import.** _(Epic 5 shipped: cursor pagination, denormalized `attempts`.)_
 
 ---
 
@@ -162,35 +162,43 @@ a user's key but **never view** plaintext.
 _To activate your admin account:_ set `ADMIN_EMAIL` (local `.env` + Railway service var) and sign in
 again, or run `UPDATE users SET role='admin' WHERE email='…'` once.
 
-## ⬜ Epic 5 — History → Postgres (per user account)
+## ✅ Epic 5 — History → Postgres (per user account)
 
 Moves history off `localStorage` into a per-user `attempts` table. The table is denormalized (a
 full snapshot per attempt) so history survives `sentence_cache` pruning — and it becomes the
 **single aggregation source for the Epic 8 Pokédex.**
 
-- [ ] **DB migration `0003`** — new `attempts`: id, `userId` FK→users (cascade), nullable
-      `sentenceId`, plus a denormalized snapshot mirroring the current
-      [HistoryEntry](src/history/index.ts): promptText, answerText, learn/guessLanguage, locale, level,
-      userAnswer, correctedAnswer, score, isCorrect, `mistakes` (json), notes, `wordBreakdown` (json —
-      kept for Epic 8 + the deferred tokenized correction view), createdAt. Indexes
-      `(userId, createdAt desc)` and `(userId, learnLanguage, guessLanguage, locale)`. Apply to
-      **local + Railway prod**.
-- [ ] **New `modules/history/`** (full DDD) — domain `Attempt.ts` (`AttemptView`, reusing the
-      correction `Mistake` shape); persistence `historyRepository.ts` (`insert`,
-      `listForUser(userId, pair?, limit, cursor)`, `getById`); application `recordAttempt`,
-      `listHistory`, `getHistoryEntry`; controllers `/api/history` (`GET /` paginated + optional pair
-      filter, `GET /:id`), requireAuth.
-- [ ] **Wire recording** —
-      [correctTranslation.ts](server/modules/correction/application/correctTranslation.ts) already
-      loads the sentence (with `wordBreakdown`) and produces the result; after grading it calls
-      `history.recordAttempt(...)` (cross-module correction→history application).
-- [ ] **Frontend** — new `src/api/historyApi.ts`; rewrite [useHistory.ts](src/hooks/useHistory.ts)
-      to read from the server (same hook shape so [HistoryPage.tsx](src/pages/HistoryPage.tsx) barely
-      changes); drop the client write path (remove `appendHistory` + gut
-      [src/history/index.ts](src/history/index.ts); remove its call, likely in `useCorrectionSubmission`).
-      **History starts fresh server-side — no one-time import of existing localStorage history.**
-- [ ] _Optional:_ admin view of a user's history via `/api/admin/users/:id/history` reusing
-      `listForUser`.
+- [x] **DB migration `0003`** ([drizzle/0003_attempts_history.sql](drizzle/0003_attempts_history.sql))
+      — new `attempts`: id, `userId` FK→users (cascade), nullable `sentenceId` (soft ref, no FK, so
+      pruning the source sentence doesn't orphan the row), plus a denormalized snapshot: promptText,
+      answerText, learn/guessLanguage, locale, level, userAnswer, correctedAnswer, score, isCorrect,
+      `mistakes` (json), notes, `wordBreakdown` (json — kept for Epic 8 + the deferred tokenized
+      correction view), createdAt. Indexes `(userId, createdAt desc)` and
+      `(userId, learnLanguage, guessLanguage, locale)`. **Applied to local** (dev `.env` now points at
+      local Postgres, not prod). _Railway prod: apply with `npm run db:migrate` against the prod URL._
+- [x] **New `modules/history/`** (full DDD) —
+      [domain/Attempt.ts](server/modules/history/domain/Attempt.ts) (`AttemptView` + `toAttemptView`,
+      local `AttemptMistake` mirroring the correction `Mistake` shape);
+      [persistence/historyRepository.ts](server/modules/history/persistence/historyRepository.ts)
+      (`insert`, `listForUser(userId, {pair?, limit, cursor})` keyset-paginated, `getByIdForUser`);
+      application [recordAttempt.ts](server/modules/history/application/recordAttempt.ts) +
+      [listHistory.ts](server/modules/history/application/listHistory.ts) (`listHistory` with opaque
+      base64 `createdAt|id` cursor, `getHistoryEntry`);
+      [controllers/historyController.ts](server/modules/history/controllers/historyController.ts)
+      (`GET /` paginated + all-or-nothing pair filter, `GET /:id`), requireAuth.
+- [x] **Wire recording** —
+      [correctTranslation.ts](server/modules/correction/application/correctTranslation.ts) calls
+      `recordAttempt(...)` after grading, passing the sentence's `wordBreakdown`
+      (cross-module correction→history application).
+- [x] **Frontend** — new [src/api/historyApi.ts](src/api/historyApi.ts);
+      [useHistory.ts](src/hooks/useHistory.ts) rewritten to read from the server with
+      `loadMore`/`hasMore` cursor pagination; [HistoryPage.tsx](src/pages/HistoryPage.tsx) reads the
+      server hook (+ "Load more" button); client write path removed (`src/history/index.ts` deleted,
+      `appendHistory` call dropped from [HomePage.tsx](src/pages/HomePage.tsx),
+      [CorrectionDisplay.tsx](src/components/CorrectionDisplay/CorrectionDisplay.tsx) now imports its
+      mistake type from `correctionApi`). **History starts fresh server-side — no localStorage import.**
+- [ ] _Optional (deferred):_ admin view of a user's history via `/api/admin/users/:id/history`
+      reusing `listForUser`.
 
 ## ⬜ Epic 6 — Usage-cost showback + contribute CTAs
 

@@ -3,6 +3,7 @@ import type { LanguageCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
 import { anthropicClientForUser } from '../../apiKey/application/anthropicClientForUser'
 import * as sentenceRepository from '../../sentence/persistence/sentenceRepository'
+import { recordAttempt } from '../../history/application/recordAttempt'
 import { scoreTranslation } from './scoreTranslation'
 import type { CorrectionView } from '../domain/Correction'
 
@@ -39,6 +40,26 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
     promptText: sentence.promptText,
     answerText: sentence.answerText,
     userAnswer: input.userAnswer,
+  })
+
+  // Persist a denormalized snapshot of this attempt (the single source for the
+  // History view and the Epic 8 Pokédex).
+  await recordAttempt({
+    userId: input.user.id,
+    sentenceId: sentence.id,
+    learnLanguage,
+    guessLanguage,
+    locale,
+    level,
+    promptText: sentence.promptText,
+    answerText: sentence.answerText,
+    userAnswer: input.userAnswer,
+    correctedAnswer: result.correctedAnswer,
+    score: result.score,
+    isCorrect: result.isCorrect,
+    mistakes: result.mistakes,
+    notes: result.notes,
+    wordBreakdown: sentence.wordBreakdown ?? [],
   })
 
   return {
