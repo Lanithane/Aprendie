@@ -15,6 +15,9 @@ function fakeRow(): UserRow {
     level: null,
     themeId: null,
     themeMode: null,
+    learnLanguage: null,
+    guessLanguage: null,
+    locale: null,
     createdAt: new Date('2026-01-01T00:00:00Z'),
     updatedAt: new Date('2026-01-01T00:00:00Z'),
   }

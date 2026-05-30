@@ -145,3 +145,21 @@ export function isValidLocaleFor(language: LanguageCode, locale: string): boolea
   if (locales.length === 0) return locale === language
   return locales.some((l) => l.code === locale)
 }
+
+// A pair is valid when both sides are supported, distinct, and the locale belongs to the
+// learn language. Used to validate the persisted account pair on both client and server.
+export function isValidLanguagePair(
+  learnLanguage: string | null | undefined,
+  guessLanguage: string | null | undefined,
+  locale: string | null | undefined
+): boolean {
+  return (
+    typeof learnLanguage === 'string' &&
+    typeof guessLanguage === 'string' &&
+    typeof locale === 'string' &&
+    isSupportedLanguage(learnLanguage) &&
+    isSupportedLanguage(guessLanguage) &&
+    learnLanguage !== guessLanguage &&
+    isValidLocaleFor(learnLanguage, locale)
+  )
+}

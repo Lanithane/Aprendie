@@ -1,40 +1,40 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   DEFAULT_PAIR,
   defaultLocaleFor,
-  isSupportedLanguage,
-  isValidLocaleFor,
+  isValidLanguagePair,
   type LanguageCode,
   type LanguagePair,
   type LocaleCode,
 } from '../../shared/languages'
+import { useAuth } from '../auth/AuthContext'
+import { updateUserLanguagePair } from '../api/userApi'
 
+// The language pair is owned by the account (server truth, Epic 11). We keep a
+// localStorage cache so a cold load paints the last-known pair instantly, before
+// `/api/me` resolves; the server value wins once it arrives.
 const STORAGE_KEY = 'gac:languagePair'
 
-function read(): LanguagePair {
+function readCache(): LanguagePair | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const p = JSON.parse(raw) as Partial<LanguagePair>
-      if (
-        typeof p.learnLanguage === 'string' &&
-        isSupportedLanguage(p.learnLanguage) &&
-        typeof p.guessLanguage === 'string' &&
-        isSupportedLanguage(p.guessLanguage) &&
-        p.learnLanguage !== p.guessLanguage &&
-        typeof p.locale === 'string' &&
-        isValidLocaleFor(p.learnLanguage, p.locale)
-      ) {
-        return { learnLanguage: p.learnLanguage, guessLanguage: p.guessLanguage, locale: p.locale }
-      }
+    if (!raw) return null
+    const p = JSON.parse(raw) as Partial<LanguagePair>
+    if (
+      typeof p.learnLanguage === 'string' &&
+      typeof p.guessLanguage === 'string' &&
+      typeof p.locale === 'string' &&
+      isValidLanguagePair(p.learnLanguage, p.guessLanguage, p.locale)
+    ) {
+      return { learnLanguage: p.learnLanguage, guessLanguage: p.guessLanguage, locale: p.locale }
     }
   } catch {
     // ignore
   }
-  return DEFAULT_PAIR
+  return null
 }
 
-function write(pair: LanguagePair) {
+function writeCache(pair: LanguagePair) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(pair))
   } catch {
@@ -43,52 +43,62 @@ function write(pair: LanguagePair) {
 }
 
 export function useLanguagePair() {
-  const [pair, setPairState] = useState<LanguagePair>(read())
+  const { user, refresh } = useAuth()
+  // Optimistic override held only while a server write is in flight (mirrors
+  // useLevelPreference): undefined = no pending change, fall through to server/cache.
+  const [override, setOverride] = useState<LanguagePair | undefined>(undefined)
 
-  const commit = useCallback((next: LanguagePair) => {
-    write(next)
-    setPairState(next)
-  }, [])
+  let serverPair: LanguagePair | null = null
+  if (user && isValidLanguagePair(user.learnLanguage, user.guessLanguage, user.locale)) {
+    serverPair = {
+      learnLanguage: user.learnLanguage as LanguageCode,
+      guessLanguage: user.guessLanguage as LanguageCode,
+      locale: user.locale as LocaleCode,
+    }
+  }
+
+  const pair = override ?? serverPair ?? readCache() ?? DEFAULT_PAIR
+
+  const commit = useCallback(
+    (next: LanguagePair) => {
+      writeCache(next)
+      setOverride(next)
+      void (async () => {
+        try {
+          await updateUserLanguagePair(next)
+          await refresh()
+        } finally {
+          setOverride(undefined)
+        }
+      })()
+    },
+    [refresh]
+  )
 
   // Changing the learn language resets the locale to that language's default and
   // swaps the guess language if it would otherwise collide.
-  const setLearnLanguage = useCallback((learn: LanguageCode) => {
-    setPairState((prev) => {
-      const guessLanguage = prev.guessLanguage === learn ? prev.learnLanguage : prev.guessLanguage
-      const next: LanguagePair = {
-        learnLanguage: learn,
-        guessLanguage,
-        locale: defaultLocaleFor(learn),
-      }
-      write(next)
-      return next
-    })
-  }, [])
+  const setLearnLanguage = useCallback(
+    (learn: LanguageCode) => {
+      const guessLanguage = pair.guessLanguage === learn ? pair.learnLanguage : pair.guessLanguage
+      commit({ learnLanguage: learn, guessLanguage, locale: defaultLocaleFor(learn) })
+    },
+    [pair, commit]
+  )
 
-  const setGuessLanguage = useCallback((guess: LanguageCode) => {
-    setPairState((prev) => {
-      if (guess === prev.learnLanguage) return prev
-      const next: LanguagePair = { ...prev, guessLanguage: guess }
-      write(next)
-      return next
-    })
-  }, [])
+  const setGuessLanguage = useCallback(
+    (guess: LanguageCode) => {
+      if (guess === pair.learnLanguage) return
+      commit({ ...pair, guessLanguage: guess })
+    },
+    [pair, commit]
+  )
 
-  const setLocale = useCallback((locale: LocaleCode) => {
-    setPairState((prev) => {
-      const next: LanguagePair = { ...prev, locale }
-      write(next)
-      return next
-    })
-  }, [])
-
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) setPairState(read())
-    }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
-  }, [])
+  const setLocale = useCallback(
+    (locale: LocaleCode) => {
+      commit({ ...pair, locale })
+    },
+    [pair, commit]
+  )
 
   return { pair, commit, setLearnLanguage, setGuessLanguage, setLocale }
 }

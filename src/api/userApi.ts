@@ -1,6 +1,7 @@
 import { api } from './client'
 import type { LevelCode } from '../../shared/levels'
 import type { ThemeMode } from '../../shared/appearance'
+import type { LanguagePair } from '../../shared/languages'
 
 export type UserRole = 'admin' | 'user'
 
@@ -13,6 +14,9 @@ export interface CurrentUserDto {
   level: LevelCode | null
   themeId: string | null
   themeMode: ThemeMode | null
+  learnLanguage: string | null
+  guessLanguage: string | null
+  locale: string | null
 }
 
 export function fetchCurrentUser(): Promise<CurrentUserDto> {
@@ -24,6 +28,14 @@ export function updateUserLevel(level: LevelCode | null): Promise<CurrentUserDto
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ level }),
+  })
+}
+
+export function updateUserLanguagePair(pair: LanguagePair): Promise<CurrentUserDto> {
+  return api<CurrentUserDto>('/api/me/language-pair', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pair),
   })
 }
 

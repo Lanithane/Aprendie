@@ -6,8 +6,10 @@ import { asyncHandler } from '../../../infrastructure/http/asyncHandler'
 import { toUserView } from '../domain/User'
 import { setUserLevel } from '../application/setUserLevel'
 import { setUserAppearance } from '../application/setUserAppearance'
+import { setUserLanguagePair } from '../application/setUserLanguagePair'
 import { LEVEL_CODES, type LevelCode } from '../../../../shared/levels'
 import { THEME_MODES } from '../../../../shared/appearance'
+import { isValidLanguagePair } from '../../../../shared/languages'
 
 const router = Router()
 
@@ -25,6 +27,26 @@ router.patch(
   asyncHandler(async (req, res) => {
     const { level } = levelBodySchema.parse(req.body)
     const view = await setUserLevel((req.user as UserRow).id, level)
+    res.json(view)
+  })
+)
+
+const languagePairBodySchema = z
+  .object({
+    learnLanguage: z.string(),
+    guessLanguage: z.string(),
+    locale: z.string(),
+  })
+  .refine((b) => isValidLanguagePair(b.learnLanguage, b.guessLanguage, b.locale), {
+    message: 'Invalid language pair',
+  })
+
+router.patch(
+  '/language-pair',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const pair = languagePairBodySchema.parse(req.body)
+    const view = await setUserLanguagePair((req.user as UserRow).id, pair)
     res.json(view)
   })
 )

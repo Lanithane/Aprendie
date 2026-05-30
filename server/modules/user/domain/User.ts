@@ -13,6 +13,9 @@ export interface UserView {
   level: LevelCode | null
   themeId: string | null
   themeMode: ThemeMode | null
+  learnLanguage: string | null
+  guessLanguage: string | null
+  locale: string | null
 }
 
 // Admin-facing projection of another user. Never exposes encryptedAnthropicKey.
@@ -36,6 +39,9 @@ export function toUserView(row: UserRow): UserView {
     level: row.level ?? null,
     themeId: row.themeId ?? null,
     themeMode: row.themeMode ?? null,
+    learnLanguage: row.learnLanguage ?? null,
+    guessLanguage: row.guessLanguage ?? null,
+    locale: row.locale ?? null,
   }
 }
 

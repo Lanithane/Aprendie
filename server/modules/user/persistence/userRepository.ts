@@ -64,6 +64,21 @@ export async function updateLevel(id: string, level: LevelCode | null): Promise<
   return updated[0]
 }
 
+export interface LanguagePairPatch {
+  learnLanguage: string
+  guessLanguage: string
+  locale: string
+}
+
+export async function updateLanguagePair(id: string, pair: LanguagePairPatch): Promise<UserRow> {
+  const updated = await db
+    .update(users)
+    .set({ ...pair, updatedAt: new Date() })
+    .where(eq(users.id, id))
+    .returning()
+  return updated[0]
+}
+
 export interface AppearancePatch {
   themeId?: string | null
   themeMode?: ThemeMode | null

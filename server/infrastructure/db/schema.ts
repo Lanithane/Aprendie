@@ -35,6 +35,12 @@ export const users = pgTable('users', {
   // pg-enum friction; `theme_id` is an opaque registry id (unknown -> client falls back).
   themeId: text('theme_id'),
   themeMode: text('theme_mode').$type<ThemeMode | null>(),
+  // Language pair + locale, persisted per account (Epic 11). Loose-typed text like
+  // `level`/`role`; nullable until the user picks during onboarding (the client falls
+  // back to DEFAULT_PAIR), and so the server can prewarm the chosen pool.
+  learnLanguage: text('learn_language'),
+  guessLanguage: text('guess_language'),
+  locale: text('locale'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })

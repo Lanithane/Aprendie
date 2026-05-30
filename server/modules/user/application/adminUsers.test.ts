@@ -31,6 +31,9 @@ function userWithKey(): UserRow {
     level: null,
     themeId: null,
     themeMode: null,
+    learnLanguage: null,
+    guessLanguage: null,
+    locale: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   }
