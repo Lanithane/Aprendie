@@ -86,6 +86,7 @@ export default function HomePage() {
         wordBreakdown={sentence.wordBreakdown}
         learnLanguage={sentence.learnLanguage}
         guessLanguage={sentence.guessLanguage}
+        locale={sentence.locale}
         level={level}
         onLevelChange={setLevel}
         onSubmit={(userAnswer) => {

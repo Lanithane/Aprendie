@@ -147,19 +147,24 @@ keyboard/screen-reader behavior rather than bolting it on after. Pure frontend, 
   [SentenceTokens.tsx](src/components/SentenceTokens/SentenceTokens.tsx); `lang` attributes on
   learn/guess-language text.
 
-## ⬜ Epic 3 — Text-to-speech + rate slider
+## ✅ Epic 3 — Text-to-speech + rate slider
 
 Pure frontend (Web Speech API `SpeechSynthesis`); uses the learn-language locale for voice
 selection. No backend.
 
-- [ ] **src/hooks/useSpeech.ts** (new) — wrap `speechSynthesis` + `SpeechSynthesisUtterance`;
-      pick a voice for the sentence's `locale` (fall back to base language); expose
-      `speak(text, locale)`, `cancel()`, `speaking`, `supported`. Subscribe to `voiceschanged`
-      (voices load async — the external-subscription case the hooks rule allows).
-- [ ] **src/hooks/useSpeechRate.ts** (new) — persisted pref (`gac:speechRate`, default 1.0),
+- [x] **src/hooks/useSpeech.ts** (new) — wrap `speechSynthesis` + `SpeechSynthesisUtterance`;
+      pick a voice for the sentence's `locale` (fall back to base language; honour the user's
+      saved preferred voice when it matches the language); expose `speak(text, locale, rate)`,
+      `cancel()`, `speaking`, `supported`, `voices`. Subscribe to `voiceschanged` (voices load
+      async — the external-subscription case the hooks rule allows).
+- [x] **src/hooks/useSpeechRate.ts** (new) — persisted pref (`gac:speechRate`, default 1.0),
       same pattern as `useLevelPreference`.
-- [ ] **PracticeCard** — speaker/play `IconButton` near the sentence + a rate `Slider`
-      (~0.5–1.5×). Gracefully hide if `!supported`.
+- [x] **src/hooks/useSpeechVoice.ts** (new) — persisted preferred-voice pref
+      (`gac:speechVoiceURI`, stores the voice's `voiceURI`; `null` = automatic).
+- [x] **PracticeCard** — speaker/play `IconButton` in the card's top-right + a "1.0×" affordance
+      that opens an on-demand rate `Popover` (slider ~0.5–1.5×). Gracefully hidden if `!supported`.
+- [x] **Settings → Pronunciation** — `VoicePicker` lists the device voices for the active learn
+      language (with a preview play button); selection persists via `useSpeechVoice`.
 
 ## ✅ Epic 4 — RBAC + admin console
 
