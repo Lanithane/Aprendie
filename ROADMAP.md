@@ -288,7 +288,9 @@ runner in this epic (`npm test`).
       the master key); `ENCRYPTION_KEY` + optional `ENCRYPTION_KEY_PREVIOUS`
       ([server/env.ts](server/env.ts)) are both accepted on read. `isCurrentEncoding()` drives
       **re-encrypt-on-read**, which upgrades legacy/rotated blobs in place — the zero-downtime
-      migration path for AAD/HKDF. Legacy 3-part blobs still decrypt.
+      migration path for AAD/HKDF. Legacy 3-part blobs still decrypt. Operational steps to rotate
+      the master key (incl. retiring the previous key) live in the
+      [key-rotation runbook](docs/key-rotation-runbook.md).
 - [x] **Scrub plaintext** — the decrypted key is never attached to `req`/`user`; it lives only as a
       local in `anthropicClientForUser`, is handed to the SDK, and drops on return. (JS strings can't
       be zeroed — documented in the file.)
