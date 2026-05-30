@@ -729,4 +729,4 @@ export const THEME_META: ReadonlyArray<{ id: ThemeId; name: string; swatches: st
   },
 ]
 
-export const DEFAULT_THEME_ID: ThemeId = 'cerezo'
+export const DEFAULT_THEME_ID: ThemeId = 'mercado'

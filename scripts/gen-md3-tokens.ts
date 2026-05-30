@@ -30,8 +30,8 @@ interface ThemeSpec {
 
 const STD_ERROR = '#BA1A1A'
 
-// Alphabetical by name; the first entry is the default theme. Each comment lists the source
-// palette; every one of its five swatches is mapped to a role below.
+// Alphabetical by name (picker order). The default theme is set explicitly via DEFAULT_ID below.
+// Each comment lists the source palette; every one of its five swatches is mapped to a role below.
 const THEME_SPECS: ThemeSpec[] = [
   // Cerezo (cherry blossom) — Baby Pink / Cotton Rose / Frosted Mint / Lemon Chiffon / Mauve.
   { id: 'cerezo', name: 'Cerezo', primary: '#FF99C8', secondary: '#D0F4DE', tertiary: '#E4C1F9', lightSurface: '#FCF6BD', darkSurface: '#FEC8C3' },
@@ -149,6 +149,7 @@ ${fmt(dark, '      ')}
 }).join('\n')
 
 const ids = THEME_SPECS.map((t) => t.id)
+const DEFAULT_ID = 'mercado'
 
 // Raw 5-colour palette per theme (primary, secondary, tertiary, light surface, dark surface) —
 // shown as swatch dots in the picker so all five supplied colours are visible.
@@ -182,7 +183,7 @@ export const THEME_META: ReadonlyArray<{ id: ThemeId; name: string; swatches: st
 ${metaBlock}
 ]
 
-export const DEFAULT_THEME_ID: ThemeId = '${ids[0]}'
+export const DEFAULT_THEME_ID: ThemeId = '${DEFAULT_ID}'
 `
 
 const out = join(process.cwd(), 'src/theme/tokens.ts')
