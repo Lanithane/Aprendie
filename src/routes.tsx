@@ -1,15 +1,19 @@
-import type { ReactNode } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import AppShell from './components/AppShell/AppShell'
 import LoadingSpinner from './components/shared/LoadingSpinner'
-import HomePage from './pages/HomePage'
-import HistoryPage from './pages/HistoryPage'
-import SettingsPage from './pages/SettingsPage'
-import AdminPage from './pages/AdminPage'
-import AdminUserDetailPage from './pages/AdminUserDetailPage'
-import AdminLayout from './components/Admin/AdminLayout'
 import LoginPage from './pages/LoginPage'
+
+// Lazy-load the authed pages so the practice path's first paint doesn't ship
+// History, Settings, and the whole Admin section. LoginPage stays eager — it's
+// the unauthenticated entry point.
+const HomePage = lazy(() => import('./pages/HomePage'))
+const HistoryPage = lazy(() => import('./pages/HistoryPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const AdminPage = lazy(() => import('./pages/AdminPage'))
+const AdminUserDetailPage = lazy(() => import('./pages/AdminUserDetailPage'))
+const AdminLayout = lazy(() => import('./components/Admin/AdminLayout'))
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -33,7 +37,9 @@ export default function AppRoutes() {
         element={
           <RequireAuth>
             <AppShell>
-              <Outlet />
+              <Suspense fallback={<LoadingSpinner />}>
+                <Outlet />
+              </Suspense>
             </AppShell>
           </RequireAuth>
         }
