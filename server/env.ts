@@ -10,6 +10,11 @@ const envSchema = z.object({
   //   - DATABASE_URL_LOCAL: local dev/test DB; preferred when NODE_ENV !== 'production'.
   DATABASE_URL: z.string().optional(),
   DATABASE_URL_LOCAL: z.string().optional(),
+  // Which DB the effective DATABASE_URL points at, independent of NODE_ENV. Lets
+  // `npm run prod` target the prod DB while staying a local dev runtime (NODE_ENV
+  // stays 'development', so cookies aren't secure-only and HSTS isn't sent). On
+  // Railway this is unset and NODE_ENV=production selects prod (see below).
+  DB_TARGET: z.enum(['local', 'prod']).optional(),
   // Required: server cannot operate securely without these.
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be 32+ chars'),
   ENCRYPTION_KEY: z.string().min(32, 'ENCRYPTION_KEY must be 32+ chars (base64 of 32 bytes)'),
@@ -29,11 +34,12 @@ if (!parsed.success) {
 }
 
 // Resolve the effective DB URL once, so the rest of the app keeps reading `env.DATABASE_URL`.
-// In production use DATABASE_URL; otherwise prefer DATABASE_URL_LOCAL, falling back to
+// Target prod when DB_TARGET=prod (e.g. `npm run prod` / `db:migrate:prod`) or when actually
+// running in production (Railway). Otherwise prefer DATABASE_URL_LOCAL, falling back to
 // DATABASE_URL if no local URL is configured.
-const resolvedDatabaseUrl =
-  parsed.data.NODE_ENV === 'production'
-    ? parsed.data.DATABASE_URL
-    : (parsed.data.DATABASE_URL_LOCAL ?? parsed.data.DATABASE_URL)
+const useProdDb = parsed.data.DB_TARGET === 'prod' || parsed.data.NODE_ENV === 'production'
+const resolvedDatabaseUrl = useProdDb
+  ? parsed.data.DATABASE_URL
+  : (parsed.data.DATABASE_URL_LOCAL ?? parsed.data.DATABASE_URL)
 
 export const env = { ...parsed.data, DATABASE_URL: resolvedDatabaseUrl }

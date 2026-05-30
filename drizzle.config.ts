@@ -1,9 +1,10 @@
 import { defineConfig } from 'drizzle-kit'
 
-// Mirror server/env.ts: production → DATABASE_URL, otherwise prefer DATABASE_URL_LOCAL.
-// Drives `db:generate` / `db:studio`, so locally they target the local DB.
+// Mirror server/env.ts: target prod when DB_TARGET=prod or NODE_ENV=production, else prefer
+// DATABASE_URL_LOCAL. Drives `db:generate` / `db:studio`, so locally they target the local DB.
+const useProdDb = process.env.DB_TARGET === 'prod' || process.env.NODE_ENV === 'production'
 const url =
-  (process.env.NODE_ENV === 'production'
+  (useProdDb
     ? process.env.DATABASE_URL
     : (process.env.DATABASE_URL_LOCAL ?? process.env.DATABASE_URL)) ??
   'postgresql://postgres:postgres@localhost:5432/guess_and_correct'
