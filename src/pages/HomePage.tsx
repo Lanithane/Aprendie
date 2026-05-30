@@ -1,4 +1,5 @@
 import { Alert } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import PracticeCard from '../components/PracticeCard/PracticeCard'
 import CorrectionDisplay from '../components/CorrectionDisplay/CorrectionDisplay'
 import ApiKeySetup from '../components/ApiKeySetup/ApiKeySetup'
@@ -8,6 +9,14 @@ import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useLevelPreference } from '../hooks/useLevelPreference'
 import { useCurrentSentence } from '../hooks/useCurrentSentence'
 import { useCorrectionSubmission } from '../hooks/useCorrectionSubmission'
+
+// Floats the practice flow in the vertical center of the content column (auto block margins
+// absorb the slack above/below), giving the calm, centered "homepage" feel.
+const Stage = styled('div')`
+  margin-block: auto;
+  width: 100%;
+  padding-block: ${({ theme }) => theme.spacing(2)};
+`
 
 export default function HomePage() {
   const { user } = useAuth()
@@ -28,42 +37,51 @@ export default function HomePage() {
   if (!user?.hasApiKey) return <ApiKeySetup />
 
   const error = sentenceError ?? submitError
-  if (error) return <Alert severity='error'>{error}</Alert>
+  if (error)
+    return (
+      <Stage>
+        <Alert severity='error'>{error}</Alert>
+      </Stage>
+    )
 
   if (correction) {
     return (
-      <CorrectionDisplay
-        learnLanguage={correction.learnLanguage}
-        guessLanguage={correction.guessLanguage}
-        promptText={correction.promptText}
-        userAnswer={correction.userAnswer}
-        correctedAnswer={correction.correctedAnswer}
-        isCorrect={correction.isCorrect}
-        score={correction.score}
-        mistakes={correction.mistakes}
-        notes={correction.notes}
-        onNext={() => {
-          reset()
-          clear()
-        }}
-      />
+      <Stage>
+        <CorrectionDisplay
+          learnLanguage={correction.learnLanguage}
+          guessLanguage={correction.guessLanguage}
+          promptText={correction.promptText}
+          userAnswer={correction.userAnswer}
+          correctedAnswer={correction.correctedAnswer}
+          isCorrect={correction.isCorrect}
+          score={correction.score}
+          mistakes={correction.mistakes}
+          notes={correction.notes}
+          onNext={() => {
+            reset()
+            clear()
+          }}
+        />
+      </Stage>
     )
   }
 
   if (loading || !sentence) return <LoadingSpinner />
 
   return (
-    <PracticeCard
-      promptText={sentence.promptText}
-      wordBreakdown={sentence.wordBreakdown}
-      learnLanguage={sentence.learnLanguage}
-      guessLanguage={sentence.guessLanguage}
-      level={level}
-      onLevelChange={setLevel}
-      onSubmit={(userAnswer) => {
-        void submit(sentence.id, userAnswer)
-      }}
-      submitting={submitting}
-    />
+    <Stage>
+      <PracticeCard
+        promptText={sentence.promptText}
+        wordBreakdown={sentence.wordBreakdown}
+        learnLanguage={sentence.learnLanguage}
+        guessLanguage={sentence.guessLanguage}
+        level={level}
+        onLevelChange={setLevel}
+        onSubmit={(userAnswer) => {
+          void submit(sentence.id, userAnswer)
+        }}
+        submitting={submitting}
+      />
+    </Stage>
   )
 }

@@ -118,6 +118,7 @@ export default [
       '.vite/',
       'coverage/',
       'drizzle/',
+      'scripts/',
       'eslint.config.js',
       'prettier.config.*',
       'vite.config.*',

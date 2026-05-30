@@ -57,6 +57,36 @@ src/
 - **Reach for `components/shared/` first.** Loading states, section cards, etc. — extend the shared component or add a new one rather than inlining MUI again.
 - **Styling:** prefer `@emotion/styled` template literals (`styled.div`...`) over `sx` for non-trivial styles. See [feedback in memory] / BLUEPRINT.md.
 
+### Material Design 3 (the design system — authoritative)
+
+The UI follows **Material Design 3** (https://m3.material.io). The MD3 system was established in Epic 9
+and every new screen/component must be built in it — do **not** restyle later. Rules:
+
+- **Color comes only from theme tokens — never hardcode a hex.** `src/theme/tokens.ts` is the single
+  source of color truth (light + dark MD3 schemes) and is **generated** — do not hand-edit it. To change
+  the palette, edit the seeds in [scripts/gen-md3-tokens.ts](scripts/gen-md3-tokens.ts) and run
+  `npm run gen:tokens` (build-time only; `@material/material-color-utilities` is a devDependency, never
+  imported at runtime). Seeds: **primary = teal `#00696E`**, **secondary = Payne's grey `#536878`**
+  (its lighter tones read as silvery-blue; captions use it), **tertiary = amber-yellow** (hue ~80).
+- **Read roles off the theme** in styled components: `theme.palette.primary/secondary/error` plus the
+  MD3 roles added in [src/theme/theme.d.ts](src/theme/theme.d.ts) —
+  `tertiary`, `surfaceContainer{Lowest…Highest}`, `surfaceVariant`, `outline`, `outlineVariant`,
+  `secondaryContainer`/`onSecondaryContainer`, `tertiaryContainer`, `errorContainer`, `inverse*`, etc.
+  MUI's `success`/`warning`/`info` are remapped to tokens (success→primary teal, warning→tertiary amber),
+  so `color='success'`/`'warning'` stay on-palette.
+- **Elevation = surface-container tone, not a shadow overlay.** Fills/cards use `surfaceContainer*`
+  tokens; the dark-mode `MuiPaper` white overlay is disabled in the theme. Don't reintroduce it.
+- **Type:** use MUI typography variants — they're mapped to the MD3 type scale in
+  [src/theme/index.ts](src/theme/index.ts) (`h3`=display-small … `h6`=title-large, `body1/2`=body,
+  `button`/`overline`/`caption`=label/body roles, no all-caps). Don't set ad-hoc font sizes.
+- **Shape:** route corners through the theme (cards 16, buttons pill, chips 8, menus/popovers 8–12);
+  avoid bespoke `border-radius` values.
+- **Centered layout:** [AppShell.tsx](src/components/AppShell/AppShell.tsx) centers content in a
+  max-width column; pages that should float vertically (HomePage) use auto block margins.
+- All theme work routes through [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx) (light/dark/system).
+  Before declaring UI work done, QA in **all three modes** and at mobile width, and confirm
+  `grep -rE '#[0-9a-f]{3,6}' src` only matches `src/theme/tokens.ts`.
+
 ### `useEffect` rules
 
 - **Don't reach for `useEffect` first.** Prefer derived state, event handlers, and `useMemo`.

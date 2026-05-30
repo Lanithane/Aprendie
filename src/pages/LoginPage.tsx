@@ -5,9 +5,9 @@ export default function LoginPage() {
   return (
     <Container maxWidth='xs' sx={{ pt: 12 }}>
       <Stack spacing={3} sx={{ alignItems: 'center', textAlign: 'center' }}>
-        <Typography variant='h3'>Guess &amp; Correct</Typography>
+        <Typography variant='h3'>Conjecter</Typography>
         <Typography color='text.secondary'>
-          Practice translating Spanish sentences. Sign in to begin.
+          Practice translating sentences and get instant, friendly corrections. Sign in to begin.
         </Typography>
         <Button
           variant='contained'

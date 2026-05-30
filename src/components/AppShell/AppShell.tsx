@@ -14,10 +14,23 @@ const ShellRoot = styled(Box)`
 
 const Main = styled('main')`
   flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: ${({ theme }) => theme.spacing(3)};
   ${({ theme }) => theme.breakpoints.down('md')} {
     padding: ${({ theme }) => theme.spacing(9, 2, 2, 2)};
   }
+`
+
+// Centered, readable column — the "Google homepage" container. Pages that want to float their
+// content vertically (HomePage) add auto top/bottom margins to their own root.
+const Content = styled('div')`
+  flex: 1;
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
 `
 
 // Keyboard/screen-reader affordance: hidden until focused, then jumps past the
@@ -48,13 +61,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
     <ShellRoot>
       <SkipLink href='#main-content'>Skip to content</SkipLink>
       {isMobile && (
-        <AppBar position='fixed' color='default' elevation={1}>
+        <AppBar position='fixed'>
           <Toolbar>
             <IconButton edge='start' onClick={() => setMobileOpen(true)} aria-label='Open menu'>
               <MenuIcon />
             </IconButton>
             <Typography variant='h6' sx={{ ml: 1 }}>
-              Guess &amp; Correct
+              Conjecter
             </Typography>
           </Toolbar>
         </AppBar>
@@ -69,7 +82,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         widthCollapsed={SIDEBAR_COLLAPSED_WIDTH}
       />
       <Main id='main-content' tabIndex={-1}>
-        {children}
+        <Content>{children}</Content>
       </Main>
     </ShellRoot>
   )

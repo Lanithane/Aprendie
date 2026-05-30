@@ -3,10 +3,10 @@ import {
   Typography,
   Box,
   Card,
+  CardActionArea,
   CardContent,
   Stack,
   Chip,
-  IconButton,
   Collapse,
   Button,
   Alert,
@@ -84,53 +84,51 @@ interface HistoryRowProps {
 function HistoryRow({ entry, open, onToggle }: HistoryRowProps) {
   return (
     <Card variant='outlined'>
-      <CardContent sx={{ pb: '16px !important' }}>
-        <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
-          <Chip size='small' label={entry.score} color={entry.isCorrect ? 'success' : 'warning'} />
-          <Typography lang={entry.learnLanguage} sx={{ flex: 1 }} noWrap>
-            {entry.promptText}
-          </Typography>
-          <Typography variant='caption' color='text.secondary'>
-            {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
-          </Typography>
-          <IconButton
-            size='small'
-            onClick={onToggle}
-            aria-expanded={open}
-            aria-label='Expand attempt'
-          >
-            <ExpandMoreIcon
-              sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }}
+      <CardActionArea onClick={onToggle} aria-expanded={open} aria-label='Toggle attempt details'>
+        <CardContent sx={{ pb: '16px !important' }}>
+          <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+            <Chip
+              size='small'
+              label={entry.score}
+              color={entry.isCorrect ? 'success' : 'warning'}
             />
-          </IconButton>
-        </Stack>
-        <Collapse in={open}>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant='caption' color='text.secondary'>
-              Your answer
+            <Typography lang={entry.learnLanguage} sx={{ flex: 1, minWidth: 0 }} noWrap>
+              {entry.promptText}
             </Typography>
-            <Typography lang={entry.guessLanguage} sx={{ mb: 1 }}>
-              {entry.userAnswer}
+            <Typography variant='caption' sx={{ flexShrink: 0 }}>
+              {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
             </Typography>
-            <Typography variant='caption' color='text.secondary'>
-              Corrected
-            </Typography>
-            <Typography lang={entry.guessLanguage}>{entry.correctedAnswer}</Typography>
-            {entry.mistakes.length > 0 && (
-              <Box sx={{ mt: 1.5 }}>
-                <Typography variant='caption' color='text.secondary'>
-                  Mistakes
+            <ExpandMoreIcon
+              sx={{
+                flexShrink: 0,
+                color: 'action.active',
+                transform: open ? 'rotate(180deg)' : 'none',
+                transition: '0.2s',
+              }}
+            />
+          </Stack>
+        </CardContent>
+      </CardActionArea>
+      <Collapse in={open}>
+        <CardContent sx={{ pt: 0 }}>
+          <Typography variant='caption'>Your answer</Typography>
+          <Typography lang={entry.guessLanguage} sx={{ mb: 1 }}>
+            {entry.userAnswer}
+          </Typography>
+          <Typography variant='caption'>Corrected</Typography>
+          <Typography lang={entry.guessLanguage}>{entry.correctedAnswer}</Typography>
+          {entry.mistakes.length > 0 && (
+            <Box sx={{ mt: 1.5 }}>
+              <Typography variant='caption'>Mistakes</Typography>
+              {entry.mistakes.map((m, i) => (
+                <Typography key={i} variant='body2' sx={{ mt: 0.5 }}>
+                  <strong lang={entry.learnLanguage}>{m.sourceText}</strong>: {m.explanation}
                 </Typography>
-                {entry.mistakes.map((m, i) => (
-                  <Typography key={i} variant='body2' sx={{ mt: 0.5 }}>
-                    <strong lang={entry.learnLanguage}>{m.sourceText}</strong>: {m.explanation}
-                  </Typography>
-                ))}
-              </Box>
-            )}
-          </Box>
-        </Collapse>
-      </CardContent>
+              ))}
+            </Box>
+          )}
+        </CardContent>
+      </Collapse>
     </Card>
   )
 }

@@ -56,6 +56,18 @@ const BottomRail = styled(Box)`
   margin-top: auto;
 `
 
+// MD3 navigation item: an inset, pill-shaped target. Applied via sx (not styled) so
+// ListItemButton keeps its polymorphic `component`/`to` typing. The selected state
+// (secondary-container fill + on-secondary-container content) comes from the theme override.
+const navSx = (rail: boolean) => ({
+  mx: 1,
+  my: 0.5,
+  minHeight: 48,
+  borderRadius: 999,
+  justifyContent: rail ? 'center' : 'flex-start',
+  '& .MuiListItemIcon-root': { minWidth: rail ? 0 : 40, justifyContent: 'center' },
+})
+
 const NAV_ITEMS = [
   { to: '/', label: 'Practice', Icon: HomeIcon },
   { to: '/history', label: 'History', Icon: HistoryIcon },
@@ -124,6 +136,7 @@ export default function Sidebar({
           <ListItem key={to} disablePadding>
             <Tooltip title={!showLabels ? label : ''} placement='right'>
               <ListItemButton
+                sx={navSx(!showLabels)}
                 component={RouterLink}
                 to={to}
                 selected={loc.pathname === to}
@@ -144,7 +157,7 @@ export default function Sidebar({
         <List>
           <ListItem disablePadding>
             <Tooltip title={modeLabel} placement='right'>
-              <ListItemButton onClick={cycleMode} aria-label={modeLabel}>
+              <ListItemButton sx={navSx(!showLabels)} onClick={cycleMode} aria-label={modeLabel}>
                 <ListItemIcon>
                   <ModeIcon />
                 </ListItemIcon>
@@ -155,7 +168,7 @@ export default function Sidebar({
           {user && (
             <ListItem disablePadding>
               <Tooltip title={!showLabels ? 'Sign out' : ''} placement='right'>
-                <ListItemButton component='a' href='/api/auth/logout'>
+                <ListItemButton sx={navSx(!showLabels)} component='a' href='/api/auth/logout'>
                   <ListItemIcon>
                     <LogoutIcon />
                   </ListItemIcon>

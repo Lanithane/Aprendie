@@ -29,7 +29,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started              |
 | 7    | API-key security hardening                                                    | ⬜ Not started              |
 | 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started              |
-| 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ⬜ Not started (next)       |
+| 9    | Full MD3 overhaul + centered "Google homepage" layout                         | 🟡 In progress (branch `epic-9-md3`) |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -326,22 +326,41 @@ attempt when it appears in that attempt's mistakes, else "correct"; every appear
       (RootList, RootCard, VariantList) reusing `components/shared/`; `/pokedex` route + Sidebar nav
       item.
 
-## ⬜ Epic 9 — Full MD3 overhaul + centered layout (last)
+## 🟡 Epic 9 — Full MD3 overhaul + centered layout (in progress, branch `epic-9-md3`)
 
-Done last so it styles the final component set (including Epics 2–8 UI) once. The "Google
-homepage" centering folds in here.
+Styles the final component set (including Epics 2–8 UI) once. The "Google homepage" centering
+folds in here. **MD3 is now the binding design standard** — see the
+[Material Design 3 section in CLAUDE.md](CLAUDE.md) for the rules every future screen must follow.
 
-- [ ] **[src/theme.ts](src/theme.ts)** — expand into an MD3 token set: color roles
-      (primary/secondary/tertiary, surface tones, outline, on-\* pairs) for light + dark, MD3 type
-      scale, shape (corner radii), state-layer/elevation. Keep the light/dark/system mechanism in
-      [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx).
-- [ ] **Centered home** — in [AppShell.tsx](src/components/AppShell/AppShell.tsx) /
-      [HomePage.tsx](src/pages/HomePage.tsx), wrap content in a centered max-width container and
-      vertically center the practice card.
-- [ ] **Restyle screens** to MD3 — Sidebar (nav rail/drawer + mobile drawer), PracticeCard,
-      CorrectionDisplay, SettingsPage, WordPopover/LanguagePairPicker, and `components/shared/`.
-      Keep the `@emotion/styled` template-literal convention; route colors/shape through the new
-      theme tokens (no hardcoded hex).
+- [x] **MD3 token system** — palettes generated at **build time** from seeds
+      (primary teal `#00696E`, secondary Payne's grey `#536878`, tertiary amber-yellow) via
+      [scripts/gen-md3-tokens.ts](scripts/gen-md3-tokens.ts) (`npm run gen:tokens`,
+      `@material/material-color-utilities` as **devDependency only** — zero runtime dep) into the
+      committed [src/theme/tokens.ts](src/theme/tokens.ts) (light+dark schemes, full surface-container
+      ladder). [src/theme/index.ts](src/theme/index.ts) maps roles → MUI palette, adds the MD3 type
+      scale, shape, and component overrides (elevation-as-surface-tone: the dark `MuiPaper` overlay is
+      off; pill nav active-indicator; silvery-blue captions); MD3 roles augmented onto the palette in
+      [src/theme/theme.d.ts](src/theme/theme.d.ts). Replaced the old `src/theme.ts`. Light/dark/system
+      mechanism unchanged in [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx).
+- [x] **Centered home** — [AppShell.tsx](src/components/AppShell/AppShell.tsx) centers content in a
+      760px max-width column; [HomePage.tsx](src/pages/HomePage.tsx) floats the practice flow vertically
+      via auto block margins. Branding fixed to **Conjecter** (AppShell app bar + LoginPage).
+- [x] **Restyle screens** to MD3 — Sidebar (inset pill nav rail/drawer), CorrectionDisplay
+      (surface-container fills + tertiary accent), History (silvery-blue captions + whole summary row
+      clickable via `CardActionArea`), LoginPage. Most other screens inherit the new theme directly
+      (rounded cards, pill buttons, type scale, container tones) since they already read
+      `theme.palette.*`.
+- [x] **Opinionated tinted environment** — raised neutral-palette chroma (16 / variant 24) so every
+      surface carries the teal hue; the page is a tinted canvas and cards float as a lighter layer in
+      both modes (no plain white or neutral-grey panes).
+- [x] **Admin master-detail redesign** — replaced the wide users table with a tappable user **list**
+      ([AdminPage.tsx](src/pages/AdminPage.tsx)) + nested **detail route** `/admin/users/:id`
+      ([AdminUserDetailPage.tsx](src/pages/AdminUserDetailPage.tsx)) to edit role, do key support, and
+      view history. Shared state via an [AdminLayout](src/components/Admin/AdminLayout.tsx) outlet
+      context. Removed `UsersTable.tsx`.
+- [x] **Mobile responsiveness** — long-width content wraps/truncates or scrolls (e.g. history prompt
+      truncation, admin history panel wrap); centered max-width column adapts to mobile padding + drawer.
+- [ ] **Visual QA** — confirm every screen in light/dark/system + mobile drawer (run locally, logged in).
 
 ---
 

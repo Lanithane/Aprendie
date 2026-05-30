@@ -36,8 +36,8 @@ const DiffLine = styled('div')`
   font-size: 1.1rem;
   line-height: 1.6;
   padding: ${({ theme }) => theme.spacing(1.25, 1.5)};
-  border-radius: 6px;
-  background: ${({ theme }) => theme.palette.action.hover};
+  border-radius: 12px;
+  background: ${({ theme }) => theme.palette.surfaceContainerHigh};
   white-space: pre-wrap;
 `
 
@@ -65,9 +65,9 @@ const PromptHeadline = styled('div')`
 
 const MistakeRow = styled(Stack)`
   padding: ${({ theme }) => theme.spacing(1.25, 1.5)};
-  border-left: 3px solid ${({ theme }) => theme.palette.warning.main};
-  background: ${({ theme }) => theme.palette.action.hover};
-  border-radius: 0 6px 6px 0;
+  border-left: 4px solid ${({ theme }) => theme.palette.tertiary};
+  background: ${({ theme }) => theme.palette.surfaceContainerHigh};
+  border-radius: 0 12px 12px 0;
 `
 
 export default function CorrectionDisplay({

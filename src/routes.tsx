@@ -7,6 +7,8 @@ import HomePage from './pages/HomePage'
 import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
 import AdminPage from './pages/AdminPage'
+import AdminUserDetailPage from './pages/AdminUserDetailPage'
+import AdminLayout from './components/Admin/AdminLayout'
 import LoginPage from './pages/LoginPage'
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -43,10 +45,13 @@ export default function AppRoutes() {
           path='/admin'
           element={
             <RequireAdmin>
-              <AdminPage />
+              <AdminLayout />
             </RequireAdmin>
           }
-        />
+        >
+          <Route index element={<AdminPage />} />
+          <Route path='users/:id' element={<AdminUserDetailPage />} />
+        </Route>
       </Route>
       <Route path='*' element={<Navigate to='/' replace />} />
     </Routes>
