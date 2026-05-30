@@ -1,4 +1,5 @@
 import { Popover, Box, Stack, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import { ROOT_LABEL, type LanguageCode, type WordToken } from '../../../shared/languages'
 
 interface WordPopoverProps {
@@ -9,11 +10,30 @@ interface WordPopoverProps {
   onClose: () => void
 }
 
+// MD3 chip for a single morphological segment (e.g. "ie", "-o"). The secondaryContainer fill
+// keeps it on-palette in every theme + mode and reads as a designed token rather than prose.
+const SegmentChip = styled('span')`
+  flex-shrink: 0;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  line-height: 1.35;
+  background: ${({ theme }) => theme.palette.secondaryContainer};
+  color: ${({ theme }) => theme.palette.onSecondaryContainer};
+`
+
+// Claude returns stem changes packed tight ("e→ie") and sometimes with an ASCII arrow ("e->ie").
+// Give the arrow breathing room on both sides and normalise it to a single glyph.
+function spaceArrows(note: string): string {
+  return note.replace(/\s*(?:→|->)\s*/g, ' → ')
+}
+
 // Anchored card for a clicked word. The vocabulary stays immersive — the dictionary form
 // (lemma) is in the learn language and the word's meaning is never translated. For an
-// inflected word it shows the lemma plus each morphological change as `segment — note`. For a
-// word already in its base form, repeating it adds nothing, so the heading reads "root"
-// instead. Part of speech and notes are in the guess language. Driven by SentenceTokens.
+// inflected word it shows the lemma plus each morphological change as a segment chip beside its
+// note. For a word already in its base form, repeating it adds nothing, so the heading reads
+// "root" instead. Part of speech and notes are in the guess language. Driven by SentenceTokens.
 export default function WordPopover({
   anchorEl,
   token,
@@ -49,7 +69,7 @@ export default function WordPopover({
             )}
             {token.partOfSpeech && (
               <Typography
-                variant='caption'
+                variant='body1'
                 color='text.secondary'
                 sx={{ fontStyle: 'italic' }}
                 lang={guessLanguage}
@@ -59,17 +79,14 @@ export default function WordPopover({
             )}
           </Stack>
           {token.modifiers.length > 0 && (
-            <Stack spacing={0.25} sx={{ mt: 0.75 }}>
+            <Stack spacing={0.75} sx={{ mt: 1 }}>
               {token.modifiers.map((m, i) => (
-                <Typography key={i} variant='body2'>
-                  <Box component='span' sx={{ fontWeight: 600 }} lang={learnLanguage}>
-                    {m.segment}
-                  </Box>
-                  {' — '}
-                  <Box component='span' lang={guessLanguage}>
-                    {m.note}
-                  </Box>
-                </Typography>
+                <Stack key={i} direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                  <SegmentChip lang={learnLanguage}>{m.segment}</SegmentChip>
+                  <Typography variant='body2' lang={guessLanguage}>
+                    {spaceArrows(m.note)}
+                  </Typography>
+                </Stack>
               ))}
             </Stack>
           )}
