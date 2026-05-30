@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import SectionCard from '../components/shared/SectionCard'
 import LanguagePairPicker from '../components/LanguagePairPicker/LanguagePairPicker'
+import VoicePicker from '../components/VoicePicker/VoicePicker'
 import ThemePicker from '../components/ThemePicker/ThemePicker'
 import { useAuth } from '../auth/AuthContext'
 import { useApiKey } from '../hooks/useApiKey'
@@ -62,6 +63,13 @@ export default function SettingsPage() {
           description='Pick what to learn, its regional variant, and the language you answer in.'
         >
           <LanguagePairPicker />
+        </SectionCard>
+
+        <SectionCard
+          title='Pronunciation'
+          description='Choose the voice used to read sentences aloud. Available voices depend on your device.'
+        >
+          <VoicePicker />
         </SectionCard>
 
         <SectionCard
