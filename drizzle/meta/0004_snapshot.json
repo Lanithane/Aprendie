@@ -1,6 +1,6 @@
 {
-  "id": "20263942-649f-4f1b-8fa4-1159becc58aa",
-  "prevId": "ae200423-673c-4955-9d8e-a6487a29a2f7",
+  "id": "ae200423-673c-4955-9d8e-a6487a29a2f7",
+  "prevId": "00942fd6-ae99-4233-9c29-fb852936bc17",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -239,6 +239,12 @@
         },
         "level": {
           "name": "level",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "grammar_focus": {
+          "name": "grammar_focus",
           "type": "text",
           "primaryKey": false,
           "notNull": false
