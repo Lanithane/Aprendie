@@ -11,12 +11,14 @@ import { useCurrentSentence } from '../hooks/useCurrentSentence'
 import { useCorrectionSubmission } from '../hooks/useCorrectionSubmission'
 
 // Floats the practice flow in the vertical center of the content column (auto block margins
-// absorb the slack above/below), giving the calm, centered "homepage" feel — nudged a touch
-// above true center on desktop so it sits a little higher in the eyeline.
+// absorb the slack above/below), giving the calm, centered "homepage" feel — biased above true
+// center so it sits higher in the eyeline: ~20% of the viewport up on mobile, a gentle nudge on
+// desktop.
 const Stage = styled('div')`
   margin-block: auto;
   width: 100%;
   padding-block: ${({ theme }) => theme.spacing(2)};
+  transform: translateY(-20vh);
   ${({ theme }) => theme.breakpoints.up('md')} {
     transform: translateY(-${({ theme }) => theme.spacing(6)});
   }
