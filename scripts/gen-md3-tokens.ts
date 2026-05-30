@@ -45,6 +45,9 @@ const THEME_SPECS: ThemeSpec[] = [
   { id: 'mango', name: 'Mango', primary: '#F28482', secondary: '#84A59D', tertiary: '#F6BD60', lightSurface: '#F7EDE2', darkSurface: '#F5CAC3' },
   // Cerezo (cherry blossom) — Baby Pink / Cotton Rose / Frosted Mint / Lemon Chiffon / Mauve.
   { id: 'cerezo', name: 'Cerezo', primary: '#FF99C8', secondary: '#E4C1F9', tertiary: '#D0F4DE', lightSurface: '#FCF6BD', darkSurface: '#FEC8C3' },
+  // Lavanda (lavender twilight) — our own palette: amethyst / dusty rose / honey gold (violet's
+  // complement) on a lilac-mist light canvas and a plum-night dark canvas. Fills the violet gap.
+  { id: 'lavanda', name: 'Lavanda', primary: '#7A5EA6', secondary: '#C98BA4', tertiary: '#E3A857', lightSurface: '#F0EBF6', darkSurface: '#211A30' },
   // Tinta (ink) — monochrome black / white / greys.
   { id: 'tinta', name: 'Tinta', primary: '#3C3C3C', secondary: '#5A5A5A', tertiary: '#787878', lightSurface: '#F2F2F2', darkSurface: '#1A1A1A' },
 ]
