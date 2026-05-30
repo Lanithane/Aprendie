@@ -1,4 +1,5 @@
 import express from 'express'
+import compression from 'compression'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { env } from './env'
@@ -20,6 +21,7 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 app.set('trust proxy', 1)
+app.use(compression())
 app.use(securityHeaders)
 app.use(express.json())
 
@@ -41,8 +43,22 @@ app.use('/api/language', languageController)
 
 if (env.NODE_ENV === 'production') {
   const clientDist = path.resolve(__dirname, '..', 'dist')
-  app.use(express.static(clientDist))
+  // Vite content-hashes everything under /assets, so those are safe to cache
+  // forever; index.html and other root files stay revalidated so a deploy is
+  // picked up on the next load.
+  const assetsDir = `${path.sep}assets${path.sep}`
+  app.use(
+    express.static(clientDist, {
+      setHeaders: (res, filePath) => {
+        res.setHeader(
+          'Cache-Control',
+          filePath.includes(assetsDir) ? 'public, max-age=31536000, immutable' : 'no-cache'
+        )
+      },
+    })
+  )
   app.get(/^\/(?!api).*/, (_req, res) => {
+    res.setHeader('Cache-Control', 'no-cache')
     res.sendFile(path.join(clientDist, 'index.html'))
   })
 }
