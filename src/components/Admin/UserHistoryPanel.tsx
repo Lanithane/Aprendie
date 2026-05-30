@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import { useUserHistory } from '../../hooks/useUserHistory'
 import { languageName } from '../../../shared/languages'
+import { scoreColor } from '../../theme/scoreColor'
 
 interface UserHistoryPanelProps {
   userId: string
@@ -21,7 +22,7 @@ export default function UserHistoryPanel({ userId }: UserHistoryPanelProps) {
     <Stack spacing={1} sx={{ py: 1 }}>
       {items.map((it) => (
         <Box key={it.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-          <Chip size='small' label={it.score} color={it.isCorrect ? 'success' : 'warning'} />
+          <Chip size='small' label={it.score} color={scoreColor(it.score)} />
           <Typography variant='body2' lang={it.learnLanguage} sx={{ flex: 1, minWidth: 160 }}>
             {it.promptText}
           </Typography>

@@ -16,6 +16,7 @@ import { diffWordsWithSpace } from 'diff'
 import { languageName, type LanguageCode } from '../../../shared/languages'
 import type { CorrectionMistakeDto } from '../../api/correctionApi'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
+import { scoreColor } from '../../theme/scoreColor'
 
 const normalizePunct = (s: string) => s.replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"')
 
@@ -96,12 +97,12 @@ export default function CorrectionDisplay({
         <Stack direction='row' spacing={1} sx={{ mb: 2, alignItems: 'center' }}>
           {isCorrect ? <CheckCircleIcon color='success' /> : <CancelIcon color='warning' />}
           <Typography variant='h5'>{isCorrect ? 'Nice!' : "Close — here's what to fix"}</Typography>
-          <Chip label={`Score ${score}/100`} sx={{ ml: 'auto' }} />
+          <Chip label={`Score ${score}/100`} color={scoreColor(score)} sx={{ ml: 'auto' }} />
         </Stack>
         <LinearProgress
           variant='determinate'
           value={Math.max(0, Math.min(100, score))}
-          color={score >= 80 ? 'success' : score >= 50 ? 'warning' : 'error'}
+          color={scoreColor(score)}
           sx={{ mb: 2, height: 6, borderRadius: 3 }}
           aria-label={`Score ${score} out of 100`}
         />

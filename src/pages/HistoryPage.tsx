@@ -18,6 +18,7 @@ import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useHistory } from '../hooks/useHistory'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { languageName } from '../../shared/languages'
+import { scoreColor } from '../theme/scoreColor'
 import type { AttemptDto } from '../api/historyApi'
 
 export default function HistoryPage() {
@@ -87,11 +88,7 @@ function HistoryRow({ entry, open, onToggle }: HistoryRowProps) {
       <CardActionArea onClick={onToggle} aria-expanded={open} aria-label='Toggle attempt details'>
         <CardContent sx={{ pb: '16px !important' }}>
           <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
-            <Chip
-              size='small'
-              label={entry.score}
-              color={entry.isCorrect ? 'success' : 'warning'}
-            />
+            <Chip size='small' label={entry.score} color={scoreColor(entry.score)} />
             <Typography lang={entry.learnLanguage} sx={{ flex: 1, minWidth: 0 }} noWrap>
               {entry.promptText}
             </Typography>

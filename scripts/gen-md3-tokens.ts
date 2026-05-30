@@ -28,7 +28,13 @@ interface ThemeSpec {
   darkSurface: string
 }
 
+// Fixed semantic seeds — like the standard MD3 error red, these are theme-independent so that
+// success/warning/error always read as the universal green/amber/red traffic-light, regardless of
+// which palette's primary/tertiary the user has selected. Each is expanded into a full contrast-
+// correct tonal ramp (light + dark) below, exactly like error.
 const STD_ERROR = '#BA1A1A'
+const STD_SUCCESS = '#2E7D32'
+const STD_WARNING = '#E5A000'
 
 // Alphabetical by name (picker order). The default theme is set explicitly via DEFAULT_ID below.
 // Each comment lists the source palette; every one of its five swatches is mapped to a role below.
@@ -53,7 +59,7 @@ const THEME_SPECS: ThemeSpec[] = [
 ]
 
 // role -> [palette key, lightTone, darkTone]. Surface-container ladder mapped from neutral.
-type PaletteKey = 'P' | 'S' | 'T' | 'E' | 'N' | 'NV'
+type PaletteKey = 'P' | 'S' | 'T' | 'E' | 'SU' | 'W' | 'N' | 'NV'
 const ROLE_TONES: Record<string, [PaletteKey, number, number]> = {
   primary: ['P', 40, 80],
   onPrimary: ['P', 100, 20],
@@ -71,6 +77,14 @@ const ROLE_TONES: Record<string, [PaletteKey, number, number]> = {
   onError: ['E', 100, 20],
   errorContainer: ['E', 90, 30],
   onErrorContainer: ['E', 10, 90],
+  success: ['SU', 40, 80],
+  onSuccess: ['SU', 100, 20],
+  successContainer: ['SU', 90, 30],
+  onSuccessContainer: ['SU', 10, 90],
+  warning: ['W', 40, 80],
+  onWarning: ['W', 100, 20],
+  warningContainer: ['W', 90, 30],
+  onWarningContainer: ['W', 10, 90],
   background: ['N', 98, 6],
   onBackground: ['N', 10, 90],
   surface: ['N', 98, 6],
@@ -107,6 +121,8 @@ function buildScheme(spec: ThemeSpec, which: 'light' | 'dark'): Record<string, s
     S: TonalPalette.fromInt(argbFromHex(spec.secondary)),
     T: TonalPalette.fromInt(argbFromHex(spec.tertiary)),
     E: TonalPalette.fromInt(argbFromHex(STD_ERROR)),
+    SU: TonalPalette.fromInt(argbFromHex(STD_SUCCESS)),
+    W: TonalPalette.fromInt(argbFromHex(STD_WARNING)),
     N: TonalPalette.fromInt(argbFromHex(surfaceSeed)),
     NV: TonalPalette.fromHueAndChroma(seedHct.hue, nvChroma),
   }

@@ -84,8 +84,11 @@ and every new screen/component must be built in it — do **not** restyle later.
   MD3 roles added in [src/theme/theme.d.ts](src/theme/theme.d.ts) —
   `tertiary`, `surfaceContainer{Lowest…Highest}`, `surfaceVariant`, `outline`, `outlineVariant`,
   `secondaryContainer`/`onSecondaryContainer`, `tertiaryContainer`, `errorContainer`, `inverse*`, etc.
-  MUI's `success`/`warning`/`info` are remapped to tokens (success→primary teal, warning→tertiary amber),
-  so `color='success'`/`'warning'` stay on-palette.
+  MUI's `success`/`warning`/`error` carry **fixed semantic ramps** (green/amber/red) generated from
+  standard seeds in [scripts/gen-md3-tokens.ts](scripts/gen-md3-tokens.ts), theme-independent like
+  `error` — so `color='success'`/`'warning'` always read as a traffic-light no matter the selected
+  palette (a 99 score is always green, a 20 always red). `info` follows the theme's secondary. Use
+  [src/theme/scoreColor.ts](src/theme/scoreColor.ts) for the 0–100 score→color mapping.
 - **Elevation = surface-container tone, not a shadow overlay.** Fills/cards use `surfaceContainer*`
   tokens; the dark-mode `MuiPaper` white overlay is disabled in the theme. Don't reintroduce it.
 - **Type:** use MUI typography variants — they're mapped to the MD3 type scale in

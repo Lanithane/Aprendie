@@ -70,9 +70,11 @@ export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme 
       primary: { main: s.primary, contrastText: s.onPrimary },
       secondary: { main: s.secondary, contrastText: s.onSecondary },
       error: { main: s.error, contrastText: s.onError },
-      // Route MUI's semantic colors through MD3 tokens so nothing falls back to stock MUI hues.
-      success: { main: s.primary, contrastText: s.onPrimary },
-      warning: { main: s.tertiary, contrastText: s.onTertiary },
+      // success/warning/error carry fixed semantic green/amber/red ramps (generated like error,
+      // theme-independent) so they always read as a traffic-light regardless of the selected
+      // palette — e.g. a 99 is always green, a 20 always red. info follows the theme's secondary.
+      success: { main: s.success, contrastText: s.onSuccess },
+      warning: { main: s.warning, contrastText: s.onWarning },
       info: { main: s.secondary, contrastText: s.onSecondary },
       // Opinionated, tinted environment with a wide page<->card gap: the page is a clearly tinted
       // canvas (dim in light, the palette's dark colour in dark) and cards float as a distinctly
