@@ -5,52 +5,52 @@ Anthropic API keys (Epic 7). For the product/architecture context see
 [BLUEPRINT.md](../BLUEPRINT.md); for the checklist see [ROADMAP.md](../ROADMAP.md).
 Implementation: [server/infrastructure/crypto/encryption.ts](../server/infrastructure/crypto/encryption.ts).
 
+## Two different "keys" — don't confuse them
+
+| Thing | What it is | Where it lives |
+| --- | --- | --- |
+| **Master key** (`ENCRYPTION_KEY`) | The AES-256 key the *server* uses to encrypt/decrypt stored Anthropic keys at rest | `.env` / Railway env var |
+| **A user's Anthropic API key** (`sk-ant-…`) | The key copied from the Anthropic dashboard, encrypted and stored per user | Postgres `users.encrypted_anthropic_key` (encrypted) |
+
+"Rotating the master key" means replacing `ENCRYPTION_KEY` — *not* the user's
+`sk-ant-…`.
+
 ## How the scheme works
 
-User keys live in `api_keys.encrypted_key` as a `$`-delimited, all-base64
-**envelope**. Two formats are read; writes are always v2:
+User keys live in `users.encrypted_anthropic_key` as a `$`-delimited, all-base64
+**envelope**:
 
 ```
-v1 (legacy):   iv$ciphertext$authTag              # master key used directly, no binding
-v2 (current):  v2$keyId$iv$ciphertext$authTag     # per-record subkey + AAD, both bound to userId
+v3$iv$ciphertext$authTag
 ```
 
-- **keyId** — a short fingerprint of the master key that wrote the row
-  (`base64url(sha256(key)[:6])`). It tells decrypt which configured key to try
-  first, and tells `isCurrentEncoding()` whether a row was written under the
-  *current* key.
-- Each record is encrypted with a **per-user subkey** derived via HKDF-SHA256
-  from the master key (`salt = userId`, `info = "gac/apiKey/v2"`), so the master
-  key never encrypts directly.
-- AES-256-GCM, with the **userId also bound in as AAD** — a second, independent
-  binding. A ciphertext copied onto another user's row decrypts under a
-  different subkey *and* fails the GCM tag.
+- AES-256-GCM, with the owning **userId bound in two independent ways**:
+  - **HKDF per-user subkey** — the AES key is `HKDF(ENCRYPTION_KEY, salt=userId,
+    info="gac/apiKey")`, so the master key never encrypts directly and each
+    row's key is user-bound.
+  - **AAD** — the userId is also fed as GCM additional authenticated data.
+- A ciphertext copied onto another user's row decrypts under a different subkey
+  *and* fails the GCM tag — transplant is cryptographically blocked.
 
-### Env vars (see [server/env.ts](../server/env.ts))
+There is **a single master key and no legacy/previous-key read path**. A blob
+written under one `ENCRYPTION_KEY` is only readable under that exact key; change
+the key and old blobs become undecryptable garbage (by design — see rotation
+below).
+
+### Env var (see [server/env.ts](../server/env.ts))
 
 | Var | Meaning |
 | --- | --- |
-| `ENCRYPTION_KEY` | The **current** master key — base64 of 32 bytes. Used for all writes and re-wraps. Required. |
-| `ENCRYPTION_KEY_PREVIOUS` | Optional **previous** master key (base64 of 32 bytes). Set only during a rotation so rows still wrapped under the old key stay readable. Remove once all rows have rotated forward. |
+| `ENCRYPTION_KEY` | The master key — base64 of 32 bytes. Required; the server exits on boot if it's missing or not 32 bytes. |
 
-On boot each key must base64-decode to exactly 32 bytes or the process throws.
+## Rotating the master key (wipe-and-re-enter)
 
-### Lazy re-encryption (how rows migrate to a new key)
+There is intentionally **no zero-downtime, backwards-compatible rotation**. With
+no real users yet, rotation is simply: swap the key, discard the now-unreadable
+stored keys, and have users re-paste theirs. The only user-visible effect is a
+prompt to re-enter their Anthropic key.
 
-`anthropicClientForUser` decrypts the stored blob, and **if it isn't the current
-encoding (`isCurrentEncoding` → false: a legacy v1 blob, or a v2 blob whose
-keyId ≠ the current key's), it re-encrypts the row with the current key on
-read.** So rows migrate forward naturally as their owners make requests.
-
-> ⚠️ **Migration is read-driven only.** A row is re-wrapped the next time that
-> user's key is *read* (i.e. they make a correction request). Dormant users'
-> rows stay on the old key indefinitely; there is no forced-backfill job today.
-> **Do not unset `ENCRYPTION_KEY_PREVIOUS` until every live row has migrated**
-> (see "Retiring the previous key"). Leaving it set is cheap and safe.
-
-## Generate a new key
-
-A key is 32 random bytes, base64-encoded:
+### Generate a new key
 
 ```sh
 openssl rand -base64 32
@@ -59,70 +59,43 @@ openssl rand -base64 32
 Generate it on a trusted machine. Never commit a real key; never paste a
 production key into chat, a PR, or a log.
 
-## Routine rotation
+### Local
 
-1. Generate the new key (above).
-2. In the deploy environment, set `ENCRYPTION_KEY_PREVIOUS` to the **current**
-   `ENCRYPTION_KEY` value, then set `ENCRYPTION_KEY` to the **new** key.
-3. Deploy. From now on, writes and re-reads wrap with the new key; rows under the
-   old key still decrypt (via `ENCRYPTION_KEY_PREVIOUS`) and lazily re-wrap to
-   the new key as their owners are active.
-4. Leave `ENCRYPTION_KEY_PREVIOUS` set until all rows have migrated, then retire
-   it (below).
+1. `openssl rand -base64 32` → new key.
+2. Replace `ENCRYPTION_KEY=` in `.env`.
+3. Null the now-unreadable stored keys:
+   ```sql
+   UPDATE users SET encrypted_anthropic_key = NULL;
+   ```
+4. Restart the server, log in, re-paste your `sk-ant-…` from the Anthropic
+   dashboard.
 
-## First production rotation — off the bootstrap value
+### Production (Railway — project `guess-and-correct-production`)
 
-The production deploy was bootstrapped with an initial `ENCRYPTION_KEY`. To
-rotate it off that value, run the routine rotation against **Railway** (project
-`guess-and-correct-production`):
+1. `openssl rand -base64 32` → new key.
+2. Set `ENCRYPTION_KEY` to the new value in the Railway service env vars.
+3. Run the wipe against the prod database:
+   ```sql
+   UPDATE users SET encrypted_anthropic_key = NULL;
+   ```
+4. Redeploy (or let the env-var change trigger a restart). Each affected user
+   re-enters their key on next use.
 
-1. `openssl rand -base64 32` → the new key.
-2. Set `ENCRYPTION_KEY_PREVIOUS` = the current prod `ENCRYPTION_KEY`; set
-   `ENCRYPTION_KEY` = the new key.
-3. Redeploy. Verify a user can still load and use their saved key — this both
-   confirms decryption under the previous key and triggers the lazy re-wrap to
-   the new key.
-4. Plan to retire the previous key later (next section).
+> ⚠️ **Order matters only loosely, but the wipe is mandatory.** If you change
+> `ENCRYPTION_KEY` without nulling the column, every stored blob fails to decrypt
+> and those users hit errors until they re-enter their key. Running the
+> `UPDATE … SET NULL` makes that an explicit "please re-enter" instead.
 
-> The original bootstrap key should be treated as compromised-by-convention (it
-> was the first value, possibly seen in setup notes). Retiring it is the goal of
-> this rotation — but it must stay in `ENCRYPTION_KEY_PREVIOUS` until rows
-> migrate.
+### First production rotation — off the bootstrap value
 
-## Retiring the previous key
-
-You may unset `ENCRYPTION_KEY_PREVIOUS` only once **no live row is still wrapped
-under it**. A row is still on an old key if it's a legacy v1 blob (no `v2$`
-prefix) or a v2 blob whose `keyId` isn't the current key's. Until a
-forced-backfill job exists, the safe options are:
-
-- **Confirm via the DB.** Count rows not yet on the current encoding. Legacy
-  rows are easy:
-
-  ```sql
-  -- rows still in the legacy v1 format (no version prefix)
-  SELECT count(*) FROM api_keys WHERE encrypted_key NOT LIKE 'v2$%';
-
-  -- rows under any v2 key other than <currentKeyId>
-  SELECT count(*) FROM api_keys
-  WHERE encrypted_key LIKE 'v2$%' AND encrypted_key NOT LIKE 'v2$<currentKeyId>$%';
-  ```
-
-  `<currentKeyId>` is the fingerprint of the current `ENCRYPTION_KEY`:
-  `node -e "const c=require('crypto');console.log(c.createHash('sha256').update(Buffer.from(process.env.ENCRYPTION_KEY,'base64')).digest().subarray(0,6).toString('base64url'))"`.
-  When both counts are `0`, it's safe to unset `ENCRYPTION_KEY_PREVIOUS`.
-
-- **Force migration** with a one-off script that calls `anthropicClientForUser`
-  (or `getApiKeyRecord` + re-wrap) for every `userId` in `api_keys`, then
-  re-check the counts. _(No such script is committed yet — write one if/when
-  retirement is needed.)_
-
-After the counts are zero: unset `ENCRYPTION_KEY_PREVIOUS`, redeploy, and
-securely destroy the retired key material.
+The prod deploy was bootstrapped with an initial `ENCRYPTION_KEY`. Treat that
+value as compromised-by-convention (first value, possibly in setup notes) and
+rotate it off using the **Production** steps above. This is the one outstanding
+Epic 7 ops task.
 
 ## Disaster note
 
-The master key(s) are the only thing that can decrypt stored user keys. If both
-`ENCRYPTION_KEY` and `ENCRYPTION_KEY_PREVIOUS` are lost, every stored key is
-unrecoverable (users simply re-enter theirs). Back up the production values in
-your secrets manager, separate from the database.
+`ENCRYPTION_KEY` is the only thing that can decrypt stored user keys. If it's
+lost, every stored key is unrecoverable — but recovery is trivial here: null the
+column and users re-enter theirs. Back up the production value in your secrets
+manager anyway to avoid forcing an unnecessary mass re-entry.

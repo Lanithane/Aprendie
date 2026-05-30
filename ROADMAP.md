@@ -66,8 +66,9 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 - **Epic 7:** ~~keep the master key in the `ENCRYPTION_KEY` env var vs. move it to a KMS / managed
   secret.~~ — **resolved: stay on the `ENCRYPTION_KEY` env var (a Railway-managed secret) for now.**
   Railway env vars are treated as sufficiently secret for the current threat model (single
-  deployment, pre-scale, no real users yet). Revisit a KMS if the blast radius grows. Rotation is
-  already supported via `ENCRYPTION_KEY_PREVIOUS` + re-encrypt-on-read, so a future move is low-cost.
+  deployment, pre-scale, no real users yet). Revisit a KMS if the blast radius grows. To rotate the
+  master key, null out stored keys and have users re-enter them (no real users yet, so this is cheap)
+  — see [docs/key-rotation-runbook.md](docs/key-rotation-runbook.md).
 - **Epic 5:** ~~import existing localStorage history vs. start fresh~~ — **resolved: start fresh
   server-side, no one-time import.** _(Epic 5 shipped: cursor pagination, denormalized `attempts`.)_
 
@@ -281,15 +282,13 @@ runner in this epic (`npm test`).
       [saveApiKey.ts](server/modules/apiKey/application/saveApiKey.ts),
       [anthropicClientForUser.ts](server/modules/apiKey/application/anthropicClientForUser.ts),
       [adminUsers.ts](server/modules/user/application/adminUsers.ts).
-- [x] **HKDF per-record subkey** — the AES key is `HKDF(master, salt=userId, info='gac/apiKey/v2')`,
+- [x] **HKDF per-record subkey** — the AES key is `HKDF(master, salt=userId, info='gac/apiKey')`,
       so the master key never encrypts directly (the "doubly" layer) and the subkey is itself
       user-bound.
-- [x] **Key versioning / rotation** — blobs are `v2$keyId$iv$ct$tag` (keyId = a short fingerprint of
-      the master key); `ENCRYPTION_KEY` + optional `ENCRYPTION_KEY_PREVIOUS`
-      ([server/env.ts](server/env.ts)) are both accepted on read. `isCurrentEncoding()` drives
-      **re-encrypt-on-read**, which upgrades legacy/rotated blobs in place — the zero-downtime
-      migration path for AAD/HKDF. Legacy 3-part blobs still decrypt. Operational steps to rotate
-      the master key (incl. retiring the previous key) live in the
+- [x] **Versioned blob format** — blobs are `v3$iv$ct$tag` under a single `ENCRYPTION_KEY`
+      ([server/env.ts](server/env.ts)). There is no multi-key read path or in-place migration: with
+      no real users yet, master-key rotation is a wipe-and-re-enter (null the stored keys, users
+      re-paste from the Anthropic dashboard). Operational steps live in the
       [key-rotation runbook](docs/key-rotation-runbook.md).
 - [x] **Scrub plaintext** — the decrypted key is never attached to `req`/`user`; it lives only as a
       local in `anthropicClientForUser`, is handed to the SDK, and drops on return. (JS strings can't

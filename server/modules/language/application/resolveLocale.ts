@@ -36,7 +36,7 @@ Location: "${location}"
 Return the best-matching locale code now.`
 
   try {
-    const anthropic = await anthropicClientForUser(input.user)
+    const anthropic = anthropicClientForUser(input.user)
     const resp = await anthropic.messages.create({
       model: SENTENCE_MODEL,
       max_tokens: 100,

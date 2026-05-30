@@ -1,9 +1,7 @@
 import { defineConfig } from 'vitest/config'
 
-// Two distinct dummy master keys (32 bytes each) so rotation / multi-key read paths
-// are exercised in tests. KEY_A is the current key, KEY_B the previous one.
-const KEY_A = Buffer.alloc(32, 1).toString('base64')
-const KEY_B = Buffer.alloc(32, 2).toString('base64')
+// A dummy 32-byte master key for tests (env.ts requires a valid ENCRYPTION_KEY).
+const KEY = Buffer.alloc(32, 1).toString('base64')
 
 export default defineConfig({
   test: {
@@ -16,8 +14,7 @@ export default defineConfig({
       // validation passes under Vitest.
       BASE_URL: 'http://localhost:3000',
       SESSION_SECRET: 'test-session-secret-test-session-secret',
-      ENCRYPTION_KEY: KEY_A,
-      ENCRYPTION_KEY_PREVIOUS: KEY_B,
+      ENCRYPTION_KEY: KEY,
     },
   },
 })

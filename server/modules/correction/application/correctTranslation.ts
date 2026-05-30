@@ -32,7 +32,7 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
   const locale = sentence.locale
   const level = (sentence.level as LevelCode | null) ?? null
 
-  const anthropic = await anthropicClientForUser(input.user)
+  const anthropic = anthropicClientForUser(input.user)
   const result = await scoreTranslation(anthropic, {
     learnLanguage,
     guessLanguage,

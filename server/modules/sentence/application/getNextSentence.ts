@@ -27,7 +27,7 @@ export async function getNextSentence(input: GetNextSentenceInput): Promise<Sent
 
   const count = await sentenceRepository.countUnconsumed(filter)
   if (count < REFILL_THRESHOLD) {
-    const anthropic = await anthropicClientForUser(input.user)
+    const anthropic = anthropicClientForUser(input.user)
     const batch = await generateSentenceBatch(anthropic, {
       learnLanguage: input.learnLanguage,
       guessLanguage: input.guessLanguage,
