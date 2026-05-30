@@ -30,26 +30,26 @@ interface ThemeSpec {
 
 const STD_ERROR = '#BA1A1A'
 
-// Order here is the order shown in the picker. First entry is the default theme. Each comment
-// lists the source palette; every one of its five swatches is mapped to a role below.
+// Alphabetical by name; the first entry is the default theme. Each comment lists the source
+// palette; every one of its five swatches is mapped to a role below.
 const THEME_SPECS: ThemeSpec[] = [
-  // Mercado (market) — Eggshell / Burnt Peach / Muted Teal / Twilight Indigo / Apricot Cream.
-  { id: 'mercado', name: 'Mercado', primary: '#E07A5F', secondary: '#81B29A', tertiary: '#F2CC8F', lightSurface: '#F4F1DE', darkSurface: '#3D405B' },
-  // Costa (coast) — Sky Blue / Blue Green / Deep Space Blue / Amber Flame / Princeton Orange.
-  { id: 'costa', name: 'Costa', primary: '#219EBC', secondary: '#FFB703', tertiary: '#FB8500', lightSurface: '#8ECAE6', darkSurface: '#023047' },
-  // Viñedo (vineyard) — Hunter Green / Sage Green / Yellow Green / Floral White / Wine Plum.
-  { id: 'vinedo', name: 'Viñedo', primary: '#6A994E', secondary: '#A7C957', tertiary: '#782832', lightSurface: '#FBF7EF', darkSurface: '#386641' },
-  // Duna (dune) — Dune Beach / Apricot Dust / Sand Nougat / Cacao Husk / Midnight Soil.
-  { id: 'duna', name: 'Duna', primary: '#E49C69', secondary: '#5C3B2E', tertiary: '#F2C299', lightSurface: '#FFD9A0', darkSurface: '#201A17' },
-  // Mango (tropical) — Linen yellow / Linen cream / Light Coral / Cotton Rose / Muted Teal.
-  { id: 'mango', name: 'Mango', primary: '#F28482', secondary: '#84A59D', tertiary: '#F6BD60', lightSurface: '#F7EDE2', darkSurface: '#F5CAC3' },
   // Cerezo (cherry blossom) — Baby Pink / Cotton Rose / Frosted Mint / Lemon Chiffon / Mauve.
   { id: 'cerezo', name: 'Cerezo', primary: '#FF99C8', secondary: '#E4C1F9', tertiary: '#D0F4DE', lightSurface: '#FCF6BD', darkSurface: '#FEC8C3' },
+  // Costa (coast) — Sky Blue / Blue Green / Deep Space Blue / Amber Flame / Princeton Orange.
+  { id: 'costa', name: 'Costa', primary: '#219EBC', secondary: '#FB8500', tertiary: '#FFB703', lightSurface: '#8ECAE6', darkSurface: '#023047' },
+  // Duna (dune) — Dune Beach / Apricot Dust / Sand Nougat / Cacao Husk / Midnight Soil.
+  { id: 'duna', name: 'Duna', primary: '#E49C69', secondary: '#5C3B2E', tertiary: '#F2C299', lightSurface: '#FFD9A0', darkSurface: '#201A17' },
   // Lavanda (lavender twilight) — our own palette: amethyst / dusty rose / honey gold (violet's
   // complement) on a lilac-mist light canvas and a plum-night dark canvas. Fills the violet gap.
   { id: 'lavanda', name: 'Lavanda', primary: '#7A5EA6', secondary: '#C98BA4', tertiary: '#E3A857', lightSurface: '#F0EBF6', darkSurface: '#211A30' },
+  // Mango (tropical) — Linen yellow / Linen cream / Light Coral / Cotton Rose / Muted Teal.
+  { id: 'mango', name: 'Mango', primary: '#F28482', secondary: '#84A59D', tertiary: '#F6BD60', lightSurface: '#F7EDE2', darkSurface: '#F5CAC3' },
+  // Mercado (market) — Eggshell / Burnt Peach / Muted Teal / Twilight Indigo / Apricot Cream.
+  { id: 'mercado', name: 'Mercado', primary: '#E07A5F', secondary: '#81B29A', tertiary: '#F2CC8F', lightSurface: '#F4F1DE', darkSurface: '#3D405B' },
   // Tinta (ink) — monochrome black / white / greys.
   { id: 'tinta', name: 'Tinta', primary: '#3C3C3C', secondary: '#5A5A5A', tertiary: '#787878', lightSurface: '#F2F2F2', darkSurface: '#1A1A1A' },
+  // Viñedo (vineyard) — Hunter Green / Sage Green / Yellow Green / Floral White / Wine Plum.
+  { id: 'vinedo', name: 'Viñedo', primary: '#6A994E', secondary: '#A7C957', tertiary: '#782832', lightSurface: '#FBF7EF', darkSurface: '#386641' },
 ]
 
 // role -> [palette key, lightTone, darkTone]. Surface-container ladder mapped from neutral.
@@ -116,6 +116,18 @@ function buildScheme(spec: ThemeSpec, which: 'light' | 'dark'): Record<string, s
     const [pal, ...tones] = ROLE_TONES[role]
     out[role] = hexFromArgb(pals[pal].tone(tones[idx - 1]))
   }
+
+  // Accent fidelity: use the RAW palette colours for primary/secondary/tertiary (so the UI wears
+  // the exact swatch you see in the picker dots, not a tonally-shifted version), and pick a
+  // black-or-white on-colour by the swatch's perceptual lightness (L*). The tonal algorithm still
+  // owns surfaces, on-surface text, containers, and outlines, which genuinely need a contrast ramp.
+  const ink = (hex: string) => (Hct.fromInt(argbFromHex(hex)).tone >= 62 ? '#1A1A1A' : '#FFFFFF')
+  out.primary = spec.primary
+  out.onPrimary = ink(spec.primary)
+  out.secondary = spec.secondary
+  out.onSecondary = ink(spec.secondary)
+  out.tertiary = spec.tertiary
+  out.onTertiary = ink(spec.tertiary)
   return out
 }
 

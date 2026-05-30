@@ -144,9 +144,9 @@ export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme 
           root: {
             textTransform: 'none',
             '&.Mui-selected': {
-              backgroundColor: s.secondaryContainer,
-              color: s.onSecondaryContainer,
-              '&:hover': { backgroundColor: s.secondaryContainer },
+              backgroundColor: s.secondary,
+              color: s.onSecondary,
+              '&:hover': { backgroundColor: s.secondary },
             },
           },
         },
@@ -184,10 +184,10 @@ export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme 
           root: {
             borderRadius: 999,
             '&.Mui-selected': {
-              backgroundColor: s.secondaryContainer,
-              color: s.onSecondaryContainer,
-              '& .MuiListItemIcon-root': { color: s.onSecondaryContainer },
-              '&:hover': { backgroundColor: s.secondaryContainer },
+              backgroundColor: s.secondary,
+              color: s.onSecondary,
+              '& .MuiListItemIcon-root': { color: s.onSecondary },
+              '&:hover': { backgroundColor: s.secondary },
             },
           },
         },
