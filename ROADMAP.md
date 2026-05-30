@@ -27,9 +27,10 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 4    | RBAC + admin console (roles, users CRUD, key support)                         | ✅ Done (migration on prod)         |
 | 5    | History → Postgres, per user account                                          | ✅ Done (local migrated)            |
 | 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started                      |
-| 7    | API-key security hardening                                                    | ⬜ Not started                      |
+| 7    | API-key security hardening                                                    | ✅ Done (AAD+HKDF+vitest)           |
 | 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started                      |
 | 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
+| 10   | Built-in translator (known → learning+locale, + usage note)                   | ⬜ Not started                      |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -58,6 +59,14 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 - **Numbering:** numeric order = build order. The MD3 overhaul stays **last** (now Epic 9); the
   five new backend-heavy epics are 4–8. They are otherwise independent and reprioritizable, except
   Epic 8 → after 5 and Epic 7 → after 4.
+- **Translator (Epic 10):** runs on **Claude Haiku via the user's own key** — free third-party
+  translation APIs (LibreTranslate, MyMemory, DeepL Free) were rejected: they translate at the
+  language level only (no `es-MX`/`es-ES`/`es-AR` dialect control), return a bare string, and add a
+  new external dependency, all while Claude already costs the operator nothing (user-supplied key).
+  Output is the **translation + one optional usage note** (no per-word `WordToken` breakdown).
+  **Stateless** (no persistence/history) — mirrors the existing `language` module. Direction is fixed
+  known→learning (`guessLanguage` → `learnLanguage` + `locale`); the active pair comes from
+  `useLanguagePair` (changed in Settings).
 
 ### Open questions (unresolved — decide before the relevant epic)
 
@@ -373,6 +382,37 @@ folds in here. **MD3 is now the binding design standard** — see the
       truncation, admin history panel wrap); centered max-width column adapts to mobile padding + drawer.
 - [ ] **Visual QA** — confirm every screen in light/dark/system + mobile drawer (run locally, logged in).
 
+## ⬜ Epic 10 — Built-in translator widget
+
+Lets a learner translate **their own** free text (not just prompted sentences) from the language
+they know into the one they're studying. The user types in their **known** language (`guessLanguage`)
+and gets a natural translation into their **learning** language honoring the selected regional
+**locale** (`learnLanguage` + `locale`), plus one optional short usage note. **Stateless** — a new
+`application/` + `controllers/` module mirroring `language`, no DB/history.
+
+**Decided:** Claude **Haiku** on the user's own key (free third-party APIs rejected — see Decisions
+locked); output = translation + one optional usage note (no `WordToken` breakdown); dedicated
+`/translator` page; direction fixed known→learning.
+
+- [ ] **New stateless `server/modules/translator/`** — `application/translateText.ts` (cached
+      language-agnostic system block + per-pair user turn, `SENTENCE_MODEL`, `extractJsonText` →
+      `{ translation, note? }`; reuses
+      [anthropicClientForUser.ts](server/modules/apiKey/application/anthropicClientForUser.ts)) and
+      `controllers/translatorController.ts` (`POST /api/translate`, zod-validated via the
+      [shared/languages.ts](shared/languages.ts) helpers, mirroring
+      [sentenceController.ts](server/modules/sentence/controllers/sentenceController.ts)). Mounted in
+      [server/main.ts](server/main.ts).
+- [ ] **Frontend** — [src/api/translatorApi.ts](src/api/translatorApi.ts) (`translateText`, POST
+      `/api/translate`); `src/hooks/useTranslation.ts` (mirrors
+      [useCorrectionSubmission.ts](src/hooks/useCorrectionSubmission.ts)); `src/components/Translator/`
+      `TranslatorWidget.tsx` (MD3 styled, wraps
+      [SectionCard](src/components/shared/SectionCard.tsx), Cmd/Ctrl+Enter to submit, shows the
+      direction + translation + optional note); `src/pages/TranslatorPage.tsx` (thin, same `hasApiKey`
+      gate as [HomePage.tsx](src/pages/HomePage.tsx)).
+- [ ] **Nav/routing** — `/translator` route in [routes.tsx](src/routes.tsx) (inside the authed
+      `AppShell` block) + a "Translate" item (`TranslateIcon`) in
+      [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx)'s `NAV_ITEMS`, right after Practice.
+
 ---
 
 ## Verification
@@ -385,6 +425,10 @@ Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
   speed and persists across reload.
 - **Epic 4** — visually QA every screen in light/dark/system and at mobile width (drawer);
   confirm centered home; grep for stray hardcoded colors.
+- **Epic 10** — from the Translate page, translate your own text into two locales of the same
+  language (e.g. es-MX then es-ES) and confirm the dialect/vocabulary shifts and an optional note
+  appears when relevant; the empty-input button is disabled, Cmd/Ctrl+Enter submits, errors surface
+  as an Alert, and the no-API-key state shows `ApiKeySetup`; QA light/dark/system + mobile.
 
 Use the `/verify` skill for end-to-end confirmation and `/code-review` before declaring an epic
 done. Each epic is a natural PR/commit boundary.
