@@ -7,7 +7,7 @@ export default function ApiKeySetup() {
   const { save, saving, error } = useApiKey()
 
   return (
-    <Card sx={{ maxWidth: 540, mx: 'auto', mt: 6 }}>
+    <Card sx={{ maxWidth: 540, mx: 'auto' }}>
       <CardContent>
         <Stack spacing={2}>
           <Typography variant='h5'>Connect your Anthropic API key</Typography>

@@ -18,7 +18,7 @@ const Stage = styled('div')`
   width: 100%;
   padding-block: ${({ theme }) => theme.spacing(2)};
   ${({ theme }) => theme.breakpoints.up('md')} {
-    transform: translateY(-${({ theme }) => theme.spacing(4)});
+    transform: translateY(-${({ theme }) => theme.spacing(6)});
   }
 `
 
@@ -38,7 +38,12 @@ export default function HomePage() {
   })
   const { correction, submitting, error: submitError, submit, reset } = useCorrectionSubmission()
 
-  if (!user?.hasApiKey) return <ApiKeySetup />
+  if (!user?.hasApiKey)
+    return (
+      <Stage>
+        <ApiKeySetup />
+      </Stage>
+    )
 
   const error = sentenceError ?? submitError
   if (error)
