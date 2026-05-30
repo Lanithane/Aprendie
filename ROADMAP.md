@@ -31,6 +31,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started                      |
 | 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
 | 10   | Built-in translator (known → learning+locale, + usage note)                   | ⬜ Not started                      |
+| 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ⬜ Not started (refill shipped)     |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -80,6 +81,9 @@ Epics are listed by number (a stable identifier); see the intro for the current 
   — see [docs/key-rotation-runbook.md](docs/key-rotation-runbook.md).
 - **Epic 5:** ~~import existing localStorage history vs. start fresh~~ — **resolved: start fresh
   server-side, no one-time import.** _(Epic 5 shipped: cursor pagination, denormalized `attempts`.)_
+- **Epic 11:** keep a localStorage **mirror** of the now-server-side language pair (instant first
+  paint, but two sources can diverge) or read it from `/api/me` only (one source of truth, at the cost
+  of a brief flash before it loads)?
 
 ---
 
@@ -424,6 +428,53 @@ locked); output = translation + one optional usage note (no `WordToken` breakdow
 
 ---
 
+## ⬜ Epic 11 — First-run onboarding + always-warm preload
+
+Goal: **every flow feels instant** — new login, a language/locale/level switch, and "Next" alike.
+The steady-state half already shipped (2026-05-30):
+[getNextSentence.ts](server/modules/sentence/application/getNextSentence.ts) now serves from a buffer
+and refills the pool in the **background** (off the request's critical path), only blocking on
+generation when the pool is genuinely empty. What remains is the **cold start** — a brand-new account,
+or any never-seen `(learn, guess, locale, level)` combo, still has an empty pool and must wait for the
+first batch. This epic removes that wait by (a) guiding the first choice and (b) warming the pool
+_while the user is still choosing_, so they never land on a spinner. This is **not** static seeding
+(rejected as unmaintainable across dynamic languages/locales) — the pool still fills itself
+on-demand; we just start filling it a few seconds earlier.
+
+**Decided:** the first-run flow is a **short wizard** — (1) pick learn → guess → locale → level, then
+(2) enter + validate the Anthropic API key — and only **then** warm the pool, because generation
+can't call Anthropic until the key exists. Warm with a **small first batch (2–3 sentences)** so the
+first sentences land while step 2's key-validation round-trip (and a brief "preparing…" screen) plays,
+with the full 10-sentence top-up continuing in the background — the user lands on Practice already
+warm. The key step is therefore a hard part of the new-user flow, not a separate gate.
+
+**Prereq — persist the language pair server-side.** Today the pair + locale live in localStorage only
+(`gac:languagePair`, [useLanguagePair.ts](src/hooks/useLanguagePair.ts)); `level` and theme already
+moved onto the `users` row. The server can't prewarm a pool it doesn't know about, so the pair must
+follow the account. (This supersedes the old "prefs stay client-side" decision — already half-reversed
+by `level`/theme.)
+
+- [ ] **Schema + persistence** — add `learn_language`, `guess_language`, `locale` to `users`
+      ([schema.ts](server/infrastructure/db/schema.ts), loose-typed text like `level`), a migration,
+      and an update use case + route mirroring `updateUserLevel`
+      ([userApi.ts](src/api/userApi.ts)). Rework [useLanguagePair.ts](src/hooks/useLanguagePair.ts) to
+      read/write the account value (see the open question on whether to keep a localStorage mirror),
+      mirroring [useLevelPreference.ts](src/hooks/useLevelPreference.ts)'s optimistic-override pattern.
+- [ ] **Onboarding wizard** — replaces the current bare `!user.hasApiKey` gate on
+      [HomePage.tsx](src/pages/HomePage.tsx#L43-L48). Shown on first run when the account is missing
+      the language pair **or** the API key. **Step 1:** the learn → guess → locale → level picker
+      (reusing the Settings controls), persisted server-side. **Step 2:** absorb the existing
+      [ApiKeySetup.tsx](src/components/ApiKeySetup/ApiKeySetup.tsx) /
+      [useApiKey.ts](src/hooks/useApiKey.ts) as the key-entry step (it stays usable standalone for
+      Settings' "replace key"). A thin `useOnboarding` gate drives the step sequence.
+- [ ] **Optimistic warm** — a small-batch warm path (give `generateSentenceBatch` a size arg, or a
+      dedicated `prewarmPool` use case) + `POST /api/sentence/prewarm` that fires a background refill
+      for the chosen pool. Fire it the instant the key validates at the end of step 2 (overlapping the
+      transition to Practice), and on app boot for the returning user's saved pair — so Practice is
+      never cold.
+
+---
+
 ## Verification
 
 Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
@@ -438,6 +489,11 @@ Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
   language (e.g. es-MX then es-ES) and confirm the dialect/vocabulary shifts and an optional note
   appears when relevant; the empty-input button is disabled, Cmd/Ctrl+Enter submits, errors surface
   as an Alert, and the no-API-key state shows `ApiKeySetup`; QA light/dark/system + mobile.
+- **Epic 11** — sign in on a fresh account; step through onboarding (pick languages/level, then enter
+  and validate the key) and confirm a sentence is already present (no spinner) on landing; switch to a
+  brand-new locale/level and confirm the warm hides the wait; reload and confirm the pair persists from
+  the account (not just localStorage). Also confirm the steady-state refill: page through a full batch
+  and verify no "Next" press stalls on generation.
 
 Use the `/verify` skill for end-to-end confirmation and `/code-review` before declaring an epic
 done. Each epic is a natural PR/commit boundary.
