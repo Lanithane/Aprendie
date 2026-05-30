@@ -20,6 +20,9 @@ export const sessionMiddleware = session({
     httpOnly: true,
     sameSite: 'lax',
     secure: env.NODE_ENV === 'production',
+    // `.aprendie.com` in prod so a login on www and on the apex share one session;
+    // undefined (host-only) locally. apex↔www are same-site, so `lax` is fine.
+    domain: env.COOKIE_DOMAIN,
     maxAge: 1000 * 60 * 60 * 24 * 30,
   },
 })
