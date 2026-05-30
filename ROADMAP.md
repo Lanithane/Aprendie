@@ -357,16 +357,20 @@ Styles the final component set (including Epics 2–8 UI) once. The "Google home
 folds in here. **MD3 is now the binding design standard** — see the
 [Material Design 3 section in CLAUDE.md](CLAUDE.md) for the rules every future screen must follow.
 
-- [x] **MD3 token system** — palettes generated at **build time** from seeds
-      (primary teal `#00696E`, secondary Payne's grey `#536878`, tertiary amber-yellow) via
+- [x] **MD3 token system** — palettes generated at **build time** via
       [scripts/gen-md3-tokens.ts](scripts/gen-md3-tokens.ts) (`npm run gen:tokens`,
       `@material/material-color-utilities` as **devDependency only** — zero runtime dep) into the
-      committed [src/theme/tokens.ts](src/theme/tokens.ts) (light+dark schemes, full surface-container
-      ladder). [src/theme/index.ts](src/theme/index.ts) maps roles → MUI palette, adds the MD3 type
-      scale, shape, and component overrides (elevation-as-surface-tone: the dark `MuiPaper` overlay is
-      off; pill nav active-indicator; silvery-blue captions); MD3 roles augmented onto the palette in
-      [src/theme/theme.d.ts](src/theme/theme.d.ts). Replaced the old `src/theme.ts`. Light/dark/system
-      mechanism unchanged in [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx).
+      committed [src/theme/tokens.ts](src/theme/tokens.ts). Now an **8-theme registry** (`abra`,
+      `cerezo`, `costa`, `duna`, `lavanda`, `mango`, `tinta`, `vinedo`; default `abra`), each a full
+      light+dark scheme with the surface-container ladder, user-selectable in Settings. `success`/
+      `warning`/`error` carry **fixed semantic ramps** (green/amber/red) seeded independently of the
+      theme, so they always read as a traffic-light (a 99 score is always green, a 20 always red);
+      `src/theme/scoreColor.ts` maps 0–100 → color. [src/theme/index.ts](src/theme/index.ts) maps
+      roles → MUI palette, adds the MD3 type scale, shape, and component overrides
+      (elevation-as-surface-tone: the dark `MuiPaper` overlay is off; pill nav active-indicator);
+      MD3 roles augmented onto the palette in [src/theme/theme.d.ts](src/theme/theme.d.ts). Replaced
+      the old `src/theme.ts`. Light/dark/system mechanism in
+      [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx).
 - [x] **Centered home** — [AppShell.tsx](src/components/AppShell/AppShell.tsx) centers content in a
       760px max-width column; [HomePage.tsx](src/pages/HomePage.tsx) floats the practice flow vertically
       via auto block margins. Branding fixed to **Guess and Correct** (AppShell app bar + LoginPage).
