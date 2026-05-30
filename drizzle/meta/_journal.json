@@ -50,6 +50,13 @@
       "when": 1780115555242,
       "tag": "0006_noisy_katie_power",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1780121316782,
+      "tag": "0007_wipe_anthropic_keys",
+      "breakpoints": true
     }
   ]
 }
