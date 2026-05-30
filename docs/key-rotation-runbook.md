@@ -86,6 +86,21 @@ production key into chat, a PR, or a log.
 > and those users hit errors until they re-enter their key. Running the
 > `UPDATE … SET NULL` makes that an explicit "please re-enter" instead.
 
+### Tooling notes (DB targeting + migrations)
+
+- **Two DB URLs, selected by `NODE_ENV`** (see [server/env.ts](../server/env.ts) and
+  `.env`): `DATABASE_URL_LOCAL` is used in dev/test, `DATABASE_URL` in production
+  (also the var Railway injects). So you no longer comment/uncomment a URL to
+  switch targets — set `NODE_ENV=production` to point local tooling at prod.
+- **Running the wipe against prod from your machine:** the simplest path is the
+  raw `UPDATE` above via `psql "$DATABASE_URL"`. (Migration `0007` already
+  performed the one-time wipe for the single-key cutover; a *future* rotation is
+  not a migration, so use the manual `UPDATE`.)
+- **Deploys run migrations automatically:** Railway's start command is
+  `npm run db:migrate:deploy && npm start` ([railway.json](../railway.json)), so
+  schema/data migrations apply on each deploy. To run migrations manually:
+  `npm run db:migrate` (local) or `npm run db:migrate:prod` (prod, from local).
+
 ### First production rotation — off the bootstrap value
 
 The prod deploy was bootstrapped with an initial `ENCRYPTION_KEY`. Treat that
