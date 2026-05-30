@@ -64,12 +64,16 @@ and every new screen/component must be built in it — do **not** restyle later.
 
 - **Color comes only from theme tokens — never hardcode a hex.** `src/theme/tokens.ts` is the single
   source of color truth and is **generated** — do not hand-edit it. It holds **7 selectable themes**
-  (`THEMES` registry: `mercado`, `costa`, `vendange`, `sahara`, `mango`, `sakura`, `sumi`), each with a
-  full light + dark MD3 scheme. To add/change a theme, edit its seed spec
-  (primary/secondary/tertiary + neutral tint chroma) in
-  [scripts/gen-md3-tokens.ts](scripts/gen-md3-tokens.ts) and run `npm run gen:tokens` (build-time only;
-  `@material/material-color-utilities` is a devDependency, never imported at runtime — the script also
-  prettier-formats the output).
+  (`THEMES` registry; Spanish names: `mercado`, `costa`, `vinedo`, `duna`, `mango`, `cerezo`, `tinta`),
+  each with a full light + dark MD3 scheme. Each theme spec uses **all five colours of its source
+  palette**: three accent seeds (primary/secondary/tertiary) plus the palette's light member as the
+  **light-mode surface seed** and its dark member as the **dark-mode surface seed** (so light surfaces
+  are the cream, dark surfaces are the dark colour, and on-surface text carries that hue). To add/change
+  a theme, edit its seed spec in [scripts/gen-md3-tokens.ts](scripts/gen-md3-tokens.ts) and run
+  `npm run gen:tokens` (build-time only; `@material/material-color-utilities` is a devDependency, never
+  imported at runtime — the script also prettier-formats the output). The generator stays because it
+  derives the ~37 contrast-correct roles per mode (on-* pairs, container tones, the surface-elevation
+  ladder, state layers) that 5 raw colours can't safely cover.
 - **Theme + mode are both user prefs.** [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx) owns the
   selected `themeId` (`gac:themeId`) and light/dark/system `mode` (`gac:themeMode`) and builds the MUI
   theme via `createGacTheme(themeId, resolvedMode)`. The picker lives in Settings
