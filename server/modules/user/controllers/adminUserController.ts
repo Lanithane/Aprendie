@@ -9,6 +9,7 @@ import {
   setUserRole,
   adminRevokeUserKey,
   adminRevalidateUserKey,
+  adminDeleteUser,
 } from '../application/adminUsers'
 import { adminGetUserHistory } from '../application/adminUserHistory'
 
@@ -76,6 +77,19 @@ router.post(
   asyncHandler(async (req, res) => {
     try {
       res.json(await adminRevalidateUserKey(req.params.id))
+    } catch (err) {
+      if (err instanceof UserNotFoundError) return res.status(404).json({ error: err.message })
+      throw err
+    }
+  })
+)
+
+router.delete(
+  '/:id',
+  asyncHandler(async (req, res) => {
+    try {
+      await adminDeleteUser(req.params.id)
+      res.status(204).end()
     } catch (err) {
       if (err instanceof UserNotFoundError) return res.status(404).json({ error: err.message })
       throw err

@@ -27,6 +27,16 @@ export async function adminRevokeUserKey(id: string): Promise<void> {
   await userRepository.updateEncryptedApiKey(id, null)
 }
 
+// Hard-deletes a user and their cascaded data. No last-admin guard: the
+// configured ADMIN_EMAIL is re-granted admin on next Google login, so deleting
+// your own account (the intended way to re-test the new-user onboarding flow)
+// is recoverable by signing back in.
+export async function adminDeleteUser(id: string): Promise<void> {
+  const target = await userRepository.findById(id)
+  if (!target) throw new UserNotFoundError(id)
+  await userRepository.deleteById(id)
+}
+
 export interface RevalidateResult {
   ok: boolean
   reason?: string

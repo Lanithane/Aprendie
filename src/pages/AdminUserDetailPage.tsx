@@ -1,18 +1,22 @@
 import { useState } from 'react'
-import { useParams, Link as RouterLink } from 'react-router-dom'
+import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom'
 import { Box, Typography, Alert, Button, Stack, Select, MenuItem, Chip } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { format } from 'date-fns'
 import SectionCard from '../components/shared/SectionCard'
 import UserHistoryPanel from '../components/Admin/UserHistoryPanel'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAdminContext } from '../components/Admin/AdminLayout'
+import { useAuth } from '../auth/AuthContext'
 import type { RevalidateResult } from '../api/adminApi'
 import type { UserRole } from '../api/userApi'
 
 export default function AdminUserDetailPage() {
   const { id } = useParams()
-  const { users, loading, error, setRole, revokeKey, revalidateKey } = useAdminContext()
+  const navigate = useNavigate()
+  const { user: currentUser } = useAuth()
+  const { users, loading, error, setRole, revokeKey, revalidateKey, deleteUser } = useAdminContext()
   const user = users.find((u) => u.id === id)
 
   const [busy, setBusy] = useState(false)
@@ -58,6 +62,22 @@ export default function AdminUserDetailPage() {
     void run(async () => {
       setResult(await revalidateKey(user.id))
     })
+
+  const isSelf = currentUser?.id === user.id
+
+  const handleDelete = () => {
+    const message = isSelf
+      ? `Delete your OWN account (${user.email})? You'll be signed out — signing back in creates a fresh account, which is how you re-test the new-user flow.`
+      : `Permanently delete ${user.email} and all their cached sentences and history? This cannot be undone.`
+    if (!confirm(message)) return
+    void run(async () => {
+      if (!(await deleteUser(user.id))) return
+      // A self-delete invalidates the session, so hard-navigate: /api/me then 401s
+      // and the app drops to the login screen — a clean entry point to re-onboard.
+      if (isSelf) window.location.href = '/'
+      else void navigate('/admin')
+    })
+  }
 
   return (
     <Box>
@@ -121,6 +141,21 @@ export default function AdminUserDetailPage() {
 
         <SectionCard title='History' description='Recent practice attempts (read-only).'>
           <UserHistoryPanel userId={user.id} />
+        </SectionCard>
+
+        <SectionCard
+          title='Delete account'
+          description='Permanently removes this user and all their cached sentences and history. Cannot be undone.'
+        >
+          <Button
+            color='error'
+            variant='outlined'
+            startIcon={<DeleteIcon />}
+            onClick={handleDelete}
+            disabled={busy}
+          >
+            {isSelf ? 'Delete my account' : 'Delete user'}
+          </Button>
         </SectionCard>
       </Stack>
     </Box>

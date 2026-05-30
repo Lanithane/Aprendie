@@ -41,3 +41,7 @@ export function fetchUserHistory(id: string, cursor?: string): Promise<HistoryPa
   const qs = search.toString()
   return api<HistoryPageDto>(`/api/admin/users/${id}/history${qs ? `?${qs}` : ''}`)
 }
+
+export function deleteUser(id: string): Promise<void> {
+  return api<void>(`/api/admin/users/${id}`, { method: 'DELETE' })
+}

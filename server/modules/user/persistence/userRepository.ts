@@ -28,6 +28,13 @@ export async function countAdmins(): Promise<number> {
   return rows[0]?.value ?? 0
 }
 
+// Hard delete. `sentence_cache` and `attempts` rows cascade via their FK
+// onDelete: 'cascade'; the user's `session` rows are orphaned and expire on
+// their own (not FK-linked).
+export async function deleteById(id: string): Promise<void> {
+  await db.delete(users).where(eq(users.id, id))
+}
+
 export async function findByGoogleSub(googleSub: string): Promise<UserRow | null> {
   const rows = await db.select().from(users).where(eq(users.googleSub, googleSub))
   return rows[0] ?? null

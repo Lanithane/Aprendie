@@ -5,6 +5,7 @@ import {
   setUserRole as apiSetUserRole,
   revokeUserKey as apiRevokeUserKey,
   revalidateUserKey as apiRevalidateUserKey,
+  deleteUser as apiDeleteUser,
   type AdminUser,
   type RevalidateResult,
 } from '../api/adminApi'
@@ -18,6 +19,7 @@ interface UseAdminUsersResult {
   setRole: (id: string, role: UserRole) => Promise<boolean>
   revokeKey: (id: string) => Promise<boolean>
   revalidateKey: (id: string) => Promise<RevalidateResult | null>
+  deleteUser: (id: string) => Promise<boolean>
 }
 
 export function useAdminUsers(): UseAdminUsersResult {
@@ -77,5 +79,17 @@ export function useAdminUsers(): UseAdminUsersResult {
     }
   }, [])
 
-  return { users, loading, error, reload, setRole, revokeKey, revalidateKey }
+  const deleteUser = useCallback(async (id: string) => {
+    setError(null)
+    try {
+      await apiDeleteUser(id)
+      setUsers((cur) => cur.filter((u) => u.id !== id))
+      return true
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to delete user')
+      return false
+    }
+  }, [])
+
+  return { users, loading, error, reload, setRole, revokeKey, revalidateKey, deleteUser }
 }
