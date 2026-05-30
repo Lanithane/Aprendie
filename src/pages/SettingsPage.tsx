@@ -8,18 +8,23 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material'
 import SectionCard from '../components/shared/SectionCard'
 import LanguagePairPicker from '../components/LanguagePairPicker/LanguagePairPicker'
+import ThemePicker from '../components/ThemePicker/ThemePicker'
 import { useAuth } from '../auth/AuthContext'
 import { useApiKey } from '../hooks/useApiKey'
 import { useLevelPreference } from '../hooks/useLevelPreference'
+import { useThemeMode, type ThemeMode } from '../ThemeModeProvider'
 import { LEVELS, levelLabel } from '../../shared/levels'
 
 export default function SettingsPage() {
   const { user } = useAuth()
   const { remove, removing, error } = useApiKey()
   const { pref, setPref } = useLevelPreference()
+  const { mode, setMode } = useThemeMode()
 
   const onRemoveKey = () => {
     if (!confirm("Remove your API key? You'll need to re-enter it to keep practicing.")) return
@@ -32,6 +37,26 @@ export default function SettingsPage() {
         Settings
       </Typography>
       <Stack spacing={3} sx={{ maxWidth: 540 }}>
+        <SectionCard
+          title='Appearance'
+          description='Pick a color theme and your light/dark preference. Every theme adapts to both.'
+        >
+          <Stack spacing={2}>
+            <ToggleButtonGroup
+              value={mode}
+              exclusive
+              size='small'
+              onChange={(_, v: ThemeMode | null) => v && setMode(v)}
+              aria-label='Light or dark mode'
+            >
+              <ToggleButton value='light'>Light</ToggleButton>
+              <ToggleButton value='system'>System</ToggleButton>
+              <ToggleButton value='dark'>Dark</ToggleButton>
+            </ToggleButtonGroup>
+            <ThemePicker />
+          </Stack>
+        </SectionCard>
+
         <SectionCard
           title='Languages'
           description='Pick what to learn, its regional variant, and the language you answer in.'

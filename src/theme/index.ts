@@ -1,5 +1,6 @@
 import { createTheme, type Theme, type TypographyVariantsOptions } from '@mui/material/styles'
-import { lightScheme, darkScheme, type Md3Scheme } from './tokens'
+import { THEMES, type Md3Scheme, type ThemeId } from './tokens'
+export { THEMES, THEME_META, THEME_IDS, DEFAULT_THEME_ID, type ThemeId } from './tokens'
 
 // Material 3 type scale (px @ 16px root). Sizes in rem, line-height unitless, tracking in em.
 const rem = (px: number) => `${px / 16}rem`
@@ -60,8 +61,8 @@ function md3Typography(): TypographyVariantsOptions {
   }
 }
 
-export function createGacTheme(mode: 'light' | 'dark'): Theme {
-  const s: Md3Scheme = mode === 'light' ? lightScheme : darkScheme
+export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme {
+  const s: Md3Scheme = THEMES[themeId][mode]
 
   return createTheme({
     palette: {
@@ -136,6 +137,18 @@ export function createGacTheme(mode: 'light' | 'dark'): Theme {
       },
       MuiChip: {
         styleOverrides: { root: { borderRadius: 8, fontWeight: 500 } },
+      },
+      MuiToggleButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            '&.Mui-selected': {
+              backgroundColor: s.secondaryContainer,
+              color: s.onSecondaryContainer,
+              '&:hover': { backgroundColor: s.secondaryContainer },
+            },
+          },
+        },
       },
       MuiOutlinedInput: {
         styleOverrides: { root: { borderRadius: 8 } },

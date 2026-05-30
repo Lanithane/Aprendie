@@ -63,11 +63,18 @@ The UI follows **Material Design 3** (https://m3.material.io). The MD3 system wa
 and every new screen/component must be built in it — do **not** restyle later. Rules:
 
 - **Color comes only from theme tokens — never hardcode a hex.** `src/theme/tokens.ts` is the single
-  source of color truth (light + dark MD3 schemes) and is **generated** — do not hand-edit it. To change
-  the palette, edit the seeds in [scripts/gen-md3-tokens.ts](scripts/gen-md3-tokens.ts) and run
-  `npm run gen:tokens` (build-time only; `@material/material-color-utilities` is a devDependency, never
-  imported at runtime). Seeds: **primary = teal `#00696E`**, **secondary = Payne's grey `#536878`**
-  (its lighter tones read as silvery-blue; captions use it), **tertiary = amber-yellow** (hue ~80).
+  source of color truth and is **generated** — do not hand-edit it. It holds **7 selectable themes**
+  (`THEMES` registry: `mercado`, `costa`, `vendange`, `sahara`, `mango`, `sakura`, `sumi`), each with a
+  full light + dark MD3 scheme. To add/change a theme, edit its seed spec
+  (primary/secondary/tertiary + neutral tint chroma) in
+  [scripts/gen-md3-tokens.ts](scripts/gen-md3-tokens.ts) and run `npm run gen:tokens` (build-time only;
+  `@material/material-color-utilities` is a devDependency, never imported at runtime — the script also
+  prettier-formats the output).
+- **Theme + mode are both user prefs.** [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx) owns the
+  selected `themeId` (`gac:themeId`) and light/dark/system `mode` (`gac:themeMode`) and builds the MUI
+  theme via `createGacTheme(themeId, resolvedMode)`. The picker lives in Settings
+  ([ThemePicker.tsx](src/components/ThemePicker/ThemePicker.tsx)); every theme adapts to light & dark.
+  Components must stay theme-agnostic — read roles off `theme.palette.*`, never assume a specific hue.
 - **Read roles off the theme** in styled components: `theme.palette.primary/secondary/error` plus the
   MD3 roles added in [src/theme/theme.d.ts](src/theme/theme.d.ts) —
   `tertiary`, `surfaceContainer{Lowest…Highest}`, `surfaceVariant`, `outline`, `outlineVariant`,
