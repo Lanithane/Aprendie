@@ -3,32 +3,42 @@
 Living roadmap for the post-MVP feature work. Build order was chosen deliberately: the
 **language generalization refactor first** (it touches the most files), then the small
 contained features, then the **backend-heavy epics** (RBAC + admin, server-side history,
-usage-cost showback, API-key hardening, the Pokédex), and a **full Material Design 3 overhaul
-last** (so it styles the final component set once). See [BLUEPRINT.md](BLUEPRINT.md) for
+usage-cost showback, API-key hardening, the Pokédex). See [BLUEPRINT.md](BLUEPRINT.md) for
 product/architecture context and [CLAUDE.md](CLAUDE.md) for the layer rules that govern every
 change here.
 
+**Reprioritized (2026-05-29):** an **accessibility pass** (Epic A, done) lands first, then the
+**MD3 overhaul (Epic 9) moves next** — we'd rather settle the final visual language before
+building the remaining feature UI (TTS, showback, Pokédex), so those screens are styled in MD3
+from the start instead of being restyled afterward. The backend-heavy epics (3, 6, 7, 8) follow.
+Epic numbers are stable identifiers, not build order — see the status table.
+
 ## Status at a glance
+
+Epics are listed by number (a stable identifier); see the intro for the current build order.
 
 | Epic | Scope                                                                         | Status                      |
 | ---- | ----------------------------------------------------------------------------- | --------------------------- |
 | 0    | Tab title → "Conjecter"                                                       | ✅ Done (merged)            |
 | 1    | Language generalization + CEFR levels + word-breakdown data + location→locale | ✅ Done (merged + deployed) |
 | 2    | Word-root-on-click UI                                                         | ✅ Done                     |
+| A    | Accessibility pass (focus flow, skip link, labels)                            | ✅ Done                     |
 | 3    | Text-to-speech + rate slider                                                  | ⬜ Not started              |
 | 4    | RBAC + admin console (roles, users CRUD, key support)                         | ✅ Done (migration on prod) |
 | 5    | History → Postgres, per user account                                          | ✅ Done (local migrated)    |
 | 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started              |
 | 7    | API-key security hardening                                                    | ⬜ Not started              |
 | 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started              |
-| 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ⬜ Not started (last)       |
+| 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ⬜ Not started (next)       |
 
 ### Decisions locked (from clarifying Q&A)
 
 - **Languages:** fully generic any-source → any-target pairs (registry-driven).
 - **Word roots:** generated **upfront** with each sentence (stored in `word_breakdown`),
   surfaced in the UI in Epic 2.
-- **M3:** full overhaul, done last so it styles the final component set once.
+- **M3:** full overhaul. ~~Done last so it styles the final component set once.~~ **Reprioritized
+  2026-05-29 to run next** (after the accessibility pass) so the remaining feature UI (Epics 3, 6, 8)
+  is built directly in MD3 rather than restyled afterward.
 - **Difficulty → Levels:** CEFR long names + two pre-A1 levels.
 - **Prefs stay client-side** (localStorage); the unused `users.locale_preference` column was
   dropped in Epic 1's migration.
@@ -100,6 +110,29 @@ Consumes the `wordBreakdown` produced by Epic 1 (no new backend).
       [CorrectionDisplay.tsx](src/components/CorrectionDisplay/CorrectionDisplay.tsx) — skipped
       because `CorrectionDto` doesn't carry `wordBreakdown`; would need a backend change, out of
       Epic 2's "no new backend" scope.
+
+## ✅ Epic A — Accessibility pass
+
+A focused a11y sweep done **before the MD3 overhaul** so the new design system inherits good
+keyboard/screen-reader behavior rather than bolting it on after. Pure frontend, no backend.
+
+- [x] **src/hooks/useAutoFocus.ts** (new) — `useAutoFocus<T>(key?)` focuses a ref'd element on
+      mount and whenever `key` changes; keeps the "focus a DOM node on prop change" effect in a hook
+      per the [CLAUDE.md](CLAUDE.md) useEffect rules.
+- [x] **Keyboard flow sentence→sentence** —
+      [CorrectionDisplay.tsx](src/components/CorrectionDisplay/CorrectionDisplay.tsx) lands focus on
+      the **Next →** button when a result renders, so `Enter` to submit flows straight into `Enter`
+      to advance. [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx) refactored onto
+      `useAutoFocus` (refocuses the answer field on each new sentence; replaces its inline effect).
+- [x] **Skip-to-content link** — [AppShell.tsx](src/components/AppShell/AppShell.tsx) adds a
+      hidden-until-focused skip link jumping past the nav to `<main id="main-content" tabIndex={-1}>`.
+- [x] **Labeled status indicators** — `aria-label` on the score
+      [LinearProgress](src/components/CorrectionDisplay/CorrectionDisplay.tsx) and the
+      [LoadingSpinner](src/components/shared/LoadingSpinner.tsx) `CircularProgress`.
+- _Already in place (kept):_ `aria-live='polite'` on the correction card; `aria-label`s on every
+      sidebar/appbar icon button; `:focus-visible` outlines + per-token `aria-label`s in
+      [SentenceTokens.tsx](src/components/SentenceTokens/SentenceTokens.tsx); `lang` attributes on
+      learn/guess-language text.
 
 ## ⬜ Epic 3 — Text-to-speech + rate slider
 
