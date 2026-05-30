@@ -9,11 +9,11 @@
   "scripts": {
     "dev": "concurrently -k -n vite,api -c blue,magenta \"npm:dev:vite\" \"npm:dev:api\"",
     "dev:vite": "vite",
-    "dev:api": "tsx watch --env-file=.env server/index.ts",
+    "dev:api": "tsx watch --env-file=.env server/main.ts",
     "dev:local": "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/guess_and_correct npm run dev",
     "build": "npm run build:frontend && npm run build:backend",
     "build:frontend": "vite build",
-    "build:backend": "esbuild server/index.ts --bundle --platform=node --target=node22 --packages=external --format=esm --outfile=dist-server/index.js",
+    "build:backend": "esbuild server/main.ts --bundle --platform=node --target=node22 --packages=external --format=esm --outfile=dist-server/index.js",
     "start": "node dist-server/index.js",
     "start:local": "node --env-file=.env dist-server/index.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

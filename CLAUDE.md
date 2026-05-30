@@ -8,7 +8,7 @@ The backend (`server/`) is organized by bounded context, each with the same four
 
 ```
 server/
-├── index.ts                          # bootstrap only
+├── main.ts                           # bootstrap only
 ├── env.ts                            # zod-validated env
 ├── types/express.d.ts                # ambient types
 ├── infrastructure/                   # cross-cutting, no domain logic
