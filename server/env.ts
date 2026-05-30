@@ -24,6 +24,10 @@ const envSchema = z.object({
   // The account whose email matches this is promoted to `admin` on login.
   // Optional: when unset, no account is auto-promoted.
   ADMIN_EMAIL: z.string().email().optional(),
+  // Session cookie domain. Set to a registrable domain with a leading dot
+  // (e.g. `.aprendie.com`) to share the login across the apex and `www` (and any
+  // subdomain). Unset = host-only cookie (correct for localhost / single-host).
+  COOKIE_DOMAIN: z.string().optional(),
 })
 
 const parsed = envSchema.safeParse(process.env)
