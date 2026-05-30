@@ -47,7 +47,6 @@ export const sentenceCache = pgTable(
     promptText: text('prompt_text').notNull(),
     answerText: text('answer_text').notNull(),
     level: text('level'),
-    grammarFocus: text('grammar_focus'),
     wordBreakdown: json('word_breakdown').$type<WordToken[]>(),
     consumedAt: timestamp('consumed_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

@@ -31,7 +31,6 @@ Output requirements:
 - "promptText" is the sentence in the LEARN language; "answerText" is a natural translation in the GUESS language.
 - Match the requested difficulty level, or vary across levels if asked to mix. Set "level" to the matching code.
 - Make each sentence natural and idiomatic for the given regional locale.
-- "grammarFocus": a short tag in the GUESS language for the main grammar point; choose points that matter pedagogically for the LEARN language.
 - "wordBreakdown": one entry per meaningful word in promptText (skip pure punctuation). Decompose EVERY inflected word into the changes that derive it from its dictionary form. Each entry has:
     "surface" = the word exactly as it appears in promptText,
     "lemma" = its dictionary / base form, in the LEARN language,
@@ -49,7 +48,6 @@ JSON shape:
       "promptText": string,
       "answerText": string,
       "level": string,
-      "grammarFocus": string,
       "wordBreakdown": [ { "surface": string, "lemma": string, "partOfSpeech": string, "modifiers": [ { "segment": string, "note": string } ] } ]
     }
   ]
@@ -66,7 +64,6 @@ interface RawSentence {
   promptText?: string
   answerText?: string
   level?: string
-  grammarFocus?: string
   wordBreakdown?: WordToken[]
 }
 
@@ -91,7 +88,6 @@ function normalize(raw: RawSentence, requestedLevel?: LevelCode): GeneratedSente
     promptText: (raw.promptText ?? '').trim(),
     answerText: (raw.answerText ?? '').trim(),
     level,
-    grammarFocus: raw.grammarFocus ?? '',
     wordBreakdown: Array.isArray(raw.wordBreakdown)
       ? raw.wordBreakdown.filter((t) => t?.surface).map(normalizeToken)
       : [],

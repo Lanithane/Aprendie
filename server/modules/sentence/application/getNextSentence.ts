@@ -43,7 +43,6 @@ export async function getNextSentence(input: GetNextSentenceInput): Promise<Sent
         promptText: s.promptText,
         answerText: s.answerText,
         level: s.level,
-        grammarFocus: s.grammarFocus,
         wordBreakdown: s.wordBreakdown,
       }))
     )

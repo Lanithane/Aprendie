@@ -35,7 +35,6 @@ interface PracticeCardProps {
   guessLanguage: LanguageCode
   level: LevelPref
   onLevelChange: (level: LevelPref) => void
-  grammarFocus?: string | null
   onSubmit: (answer: string) => void
   submitting?: boolean
   disabled?: boolean
@@ -48,7 +47,6 @@ export default function PracticeCard({
   guessLanguage,
   level,
   onLevelChange,
-  grammarFocus,
   onSubmit,
   submitting,
   disabled,
@@ -90,7 +88,6 @@ export default function PracticeCard({
             aria-haspopup='menu'
             aria-expanded={menuOpen}
           />
-          {grammarFocus && <Chip size='small' label={grammarFocus} variant='outlined' />}
         </Stack>
         <Menu anchorEl={anchorEl} open={menuOpen} onClose={closeMenu}>
           <MenuItem selected={level === null} onClick={() => pick(null)}>

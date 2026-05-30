@@ -10,7 +10,6 @@ export interface SentenceView {
   promptText: string
   answerText: string
   level: LevelCode | null
-  grammarFocus: string | null
   wordBreakdown: WordToken[]
 }
 
@@ -18,7 +17,6 @@ export interface GeneratedSentence {
   promptText: string
   answerText: string
   level: LevelCode
-  grammarFocus: string
   wordBreakdown: WordToken[]
 }
 
@@ -31,7 +29,6 @@ export function toSentenceView(row: SentenceRow): SentenceView {
     promptText: row.promptText,
     answerText: row.answerText,
     level: (row.level as LevelCode | null) ?? null,
-    grammarFocus: row.grammarFocus,
     wordBreakdown: row.wordBreakdown ?? [],
   }
 }

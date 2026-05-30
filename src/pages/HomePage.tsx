@@ -60,7 +60,6 @@ export default function HomePage() {
       guessLanguage={sentence.guessLanguage}
       level={level}
       onLevelChange={setLevel}
-      grammarFocus={sentence.grammarFocus}
       onSubmit={(userAnswer) => {
         void submit(sentence.id, userAnswer)
       }}

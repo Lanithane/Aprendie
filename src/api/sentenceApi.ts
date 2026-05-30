@@ -10,7 +10,6 @@ export interface SentenceDto {
   promptText: string
   answerText: string
   level: LevelCode | null
-  grammarFocus: string | null
   wordBreakdown: WordToken[]
 }
 
