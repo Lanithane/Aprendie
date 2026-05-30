@@ -37,7 +37,7 @@ const DiffLine = styled('div')`
   line-height: 1.6;
   padding: ${({ theme }) => theme.spacing(1.25, 1.5)};
   border-radius: 12px;
-  background: ${({ theme }) => theme.palette.surfaceContainerHigh};
+  background: ${({ theme }) => theme.palette.surfaceContainerHighest};
   white-space: pre-wrap;
 `
 
@@ -66,7 +66,7 @@ const PromptHeadline = styled('div')`
 const MistakeRow = styled(Stack)`
   padding: ${({ theme }) => theme.spacing(1.25, 1.5)};
   border-left: 4px solid ${({ theme }) => theme.palette.tertiary};
-  background: ${({ theme }) => theme.palette.surfaceContainerHigh};
+  background: ${({ theme }) => theme.palette.surfaceContainerHighest};
   border-radius: 0 12px 12px 0;
 `
 

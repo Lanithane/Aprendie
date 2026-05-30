@@ -74,11 +74,12 @@ export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme 
       success: { main: s.primary, contrastText: s.onPrimary },
       warning: { main: s.tertiary, contrastText: s.onTertiary },
       info: { main: s.secondary, contrastText: s.onSecondary },
-      // Opinionated, tinted environment: the page is a clearly teal canvas and cards float as a
-      // lighter layer on top (in both modes) — never plain white or neutral grey.
+      // Opinionated, tinted environment with a wide page<->card gap: the page is a clearly tinted
+      // canvas (dim in light, the palette's dark colour in dark) and cards float as a distinctly
+      // brighter layer on top — never plain white or neutral grey.
       background: {
-        default: mode === 'light' ? s.surfaceContainerHighest : s.surface,
-        paper: mode === 'light' ? s.surface : s.surfaceContainer,
+        default: mode === 'light' ? s.surfaceDim : s.surface,
+        paper: mode === 'light' ? s.surface : s.surfaceContainerHigh,
       },
       text: { primary: s.onSurface, secondary: s.onSurfaceVariant },
       divider: s.outlineVariant,

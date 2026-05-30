@@ -41,9 +41,10 @@ const Dots = styled('div')`
 `
 
 const Dot = styled('span')`
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
 `
 
 export default function ThemePicker() {
@@ -51,7 +52,7 @@ export default function ThemePicker() {
 
   return (
     <Grid role='radiogroup' aria-label='Color theme'>
-      {THEME_META.map(({ id, name }) => {
+      {THEME_META.map(({ id, name, swatches }) => {
         const s = THEMES[id][resolvedMode]
         const selected = id === themeId
         const bg = resolvedMode === 'light' ? s.surfaceContainerHighest : s.surface
@@ -70,9 +71,9 @@ export default function ThemePicker() {
             }}
           >
             <Dots>
-              <Dot style={{ background: s.primary }} />
-              <Dot style={{ background: s.secondary }} />
-              <Dot style={{ background: s.tertiary }} />
+              {swatches.map((c, i) => (
+                <Dot key={i} style={{ background: c }} />
+              ))}
             </Dots>
             <span style={{ fontWeight: 500 }}>{name}</span>
             {selected && (
