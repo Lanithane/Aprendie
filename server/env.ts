@@ -10,6 +10,10 @@ const envSchema = z.object({
   // Required: server cannot operate securely without these.
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be 32+ chars'),
   ENCRYPTION_KEY: z.string().min(32, 'ENCRYPTION_KEY must be 32+ chars (base64 of 32 bytes)'),
+  // Optional previous master key (base64 of 32 bytes). Set during key rotation so
+  // ciphertexts written under the old key stay readable; they re-encrypt to the
+  // current key on next read. Remove once all blobs have rotated forward.
+  ENCRYPTION_KEY_PREVIOUS: z.string().min(32).optional(),
   // Required when auth is wired; left optional now to allow early local boot.
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),

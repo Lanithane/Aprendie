@@ -4,7 +4,8 @@ import { validateApiKey } from './validateApiKey'
 
 export async function saveApiKey(userId: string, apiKey: string): Promise<void> {
   await validateApiKey(apiKey)
-  await userRepository.updateEncryptedApiKey(userId, encrypt(apiKey))
+  // Bind the ciphertext to the owning user (HKDF salt + GCM AAD) — see encryption.ts.
+  await userRepository.updateEncryptedApiKey(userId, encrypt(apiKey, userId))
 }
 
 export async function removeApiKey(userId: string): Promise<void> {

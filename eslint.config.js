@@ -122,6 +122,7 @@ export default [
       'eslint.config.js',
       'prettier.config.*',
       'vite.config.*',
+      'vitest.config.*',
       'drizzle.config.*',
       'tsconfig.*.json',
     ],

@@ -63,8 +63,11 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 
 - **Epic 6:** the offset-provider URL + tip/sponsor URL, and the carbon/water estimate
   factor/methodology.
-- **Epic 7:** keep the master key in the `ENCRYPTION_KEY` env var vs. move it to a KMS / managed
-  secret.
+- **Epic 7:** ~~keep the master key in the `ENCRYPTION_KEY` env var vs. move it to a KMS / managed
+  secret.~~ — **resolved: stay on the `ENCRYPTION_KEY` env var (a Railway-managed secret) for now.**
+  Railway env vars are treated as sufficiently secret for the current threat model (single
+  deployment, pre-scale, no real users yet). Revisit a KMS if the blast radius grows. Rotation is
+  already supported via `ENCRYPTION_KEY_PREVIOUS` + re-encrypt-on-read, so a future move is low-cost.
 - **Epic 5:** ~~import existing localStorage history vs. start fresh~~ — **resolved: start fresh
   server-side, no one-time import.** _(Epic 5 shipped: cursor pagination, denormalized `attempts`.)_
 
@@ -266,32 +269,39 @@ users run on their own key (per BLUEPRINT), so this is visibility, not billing.
       URL (`VITE_OFFSET_URL` / `VITE_SUPPORT_URL`; hide if unset).
 - [ ] _Open:_ the two CTA URLs + the carbon/water factor methodology.
 
-## ⬜ Epic 7 — API-key security hardening ("super doubly secure")
+## ✅ Epic 7 — API-key security hardening ("super doubly secure")
 
-Hardens the already-solid AES-256-GCM scheme in
+Hardened the AES-256-GCM scheme in
 [encryption.ts](server/infrastructure/crypto/encryption.ts) into a layered, rotatable one.
-**Sequenced after Epic 4** so it also covers the new admin key-access path.
+**Sequenced after Epic 4** so it also covers the admin key-access path. Vitest was added as the test
+runner in this epic (`npm test`).
 
-- [ ] **AAD-bind to userId** — pass `user.id` as GCM additional authenticated data in
+- [x] **AAD-bind to userId** — `user.id` is passed as GCM additional authenticated data in
       encrypt/decrypt so a ciphertext can't be transplanted between rows. Callers:
       [saveApiKey.ts](server/modules/apiKey/application/saveApiKey.ts),
-      [anthropicClientForUser.ts](server/modules/apiKey/application/anthropicClientForUser.ts).
-- [ ] **HKDF per-record subkey** — derive a per-user subkey `HKDF(master, salt=userId)` so the
-      master key is never used to encrypt directly (the "doubly" layer).
-- [ ] **Key versioning / rotation** — prefix the blob with a keyId (`v2$…`); accept current +
-      previous master (`ENCRYPTION_KEY` + `ENCRYPTION_KEY_PREVIOUS` in [server/env.ts](server/env.ts));
-      decrypt tries both; re-encrypt-on-read upgrades old blobs. This is also the **migration path** for
-      adding AAD/HKDF without downtime.
-- [ ] **Scrub plaintext** — never attach the decrypted key to `req`; build the client and drop the
-      reference; prefer Buffers (note: JS strings can't be zeroed — document the limit).
-- [ ] **Leak/redaction test** — assert the key never appears in logs/errors/JSON; confirm `UserView`
-  - all `users` responses omit `encryptedAnthropicKey`;
-    [errorHandler](server/infrastructure/http/errorHandler.ts) never echoes it.
-- [ ] **Admin boundary test** — admin paths only revoke / re-validate (decrypt→ping→discard), never
-      return plaintext (enforces Epic 4's decision).
-- [ ] _Consider:_ master key in a KMS / managed secret vs. env; ciphertext in a dedicated table;
-      rate-limit key endpoints + a small `key_audit` log of admin key ops (recommended now that admins
-      touch keys).
+      [anthropicClientForUser.ts](server/modules/apiKey/application/anthropicClientForUser.ts),
+      [adminUsers.ts](server/modules/user/application/adminUsers.ts).
+- [x] **HKDF per-record subkey** — the AES key is `HKDF(master, salt=userId, info='gac/apiKey/v2')`,
+      so the master key never encrypts directly (the "doubly" layer) and the subkey is itself
+      user-bound.
+- [x] **Key versioning / rotation** — blobs are `v2$keyId$iv$ct$tag` (keyId = a short fingerprint of
+      the master key); `ENCRYPTION_KEY` + optional `ENCRYPTION_KEY_PREVIOUS`
+      ([server/env.ts](server/env.ts)) are both accepted on read. `isCurrentEncoding()` drives
+      **re-encrypt-on-read**, which upgrades legacy/rotated blobs in place — the zero-downtime
+      migration path for AAD/HKDF. Legacy 3-part blobs still decrypt.
+- [x] **Scrub plaintext** — the decrypted key is never attached to `req`/`user`; it lives only as a
+      local in `anthropicClientForUser`, is handed to the SDK, and drops on return. (JS strings can't
+      be zeroed — documented in the file.)
+- [x] **Leak/redaction test** — `toUserView`/`toAdminUserView` omit `encryptedAnthropicKey`;
+      [errorHandler](server/infrastructure/http/errorHandler.ts) returns a generic 500 and never
+      echoes the error. ([User.test.ts](server/modules/user/domain/User.test.ts),
+      [errorHandler.test.ts](server/infrastructure/http/errorHandler.test.ts))
+- [x] **Admin boundary test** — admin paths only revoke / re-validate (decrypt→ping→discard), never
+      return plaintext, enforcing Epic 4's decision.
+      ([adminUsers.test.ts](server/modules/user/application/adminUsers.test.ts))
+- [ ] _Deferred (consider):_ master key in a KMS / managed secret vs. env (**decided: stay on env —
+      see Open questions**); ciphertext in a dedicated table; rate-limit key endpoints + a small
+      `key_audit` log of admin key ops.
 
 ## ⬜ Epic 8 — Word "Pokédex"
 

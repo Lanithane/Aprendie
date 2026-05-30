@@ -24,7 +24,9 @@
     "db:migrate": "tsx --env-file=.env server/infrastructure/db/migrate.ts",
     "db:migrate:local": "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/guess_and_correct npm run db:migrate",
     "db:studio": "drizzle-kit studio",
-    "gen:tokens": "esbuild scripts/gen-md3-tokens.ts --bundle --platform=node --format=esm --outfile=scripts/.gen-tokens.mjs && node scripts/.gen-tokens.mjs && rm scripts/.gen-tokens.mjs && prettier --write src/theme/tokens.ts"
+    "gen:tokens": "esbuild scripts/gen-md3-tokens.ts --bundle --platform=node --format=esm --outfile=scripts/.gen-tokens.mjs && node scripts/.gen-tokens.mjs && rm scripts/.gen-tokens.mjs && prettier --write src/theme/tokens.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
@@ -78,6 +80,7 @@
     "tsx": "^4.19.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
-    "vite": "^7.1.12"
+    "vite": "^7.1.12",
+    "vitest": "^4.1.7"
   }
 }

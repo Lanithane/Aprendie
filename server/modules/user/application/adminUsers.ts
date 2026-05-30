@@ -42,7 +42,7 @@ export async function adminRevalidateUserKey(id: string): Promise<RevalidateResu
   }
   // validateApiKey throws InvalidApiKeyError (message already descriptive) on failure.
   try {
-    await validateApiKey(decrypt(target.encryptedAnthropicKey))
+    await validateApiKey(decrypt(target.encryptedAnthropicKey, target.id))
     return { ok: true }
   } catch (err) {
     return { ok: false, reason: err instanceof Error ? err.message : 'Validation failed' }
