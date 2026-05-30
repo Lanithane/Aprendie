@@ -3,6 +3,7 @@ import { db } from '../../../infrastructure/db/client'
 import { users, type UserRow, type NewUserRow } from '../../../infrastructure/db/schema'
 import type { UserRole } from '../domain/User'
 import type { LevelCode } from '../../../../shared/levels'
+import type { ThemeMode } from '../../../../shared/appearance'
 
 export async function findById(id: string): Promise<UserRow | null> {
   const rows = await db.select().from(users).where(eq(users.id, id))
@@ -53,5 +54,20 @@ export async function updateLevel(id: string, level: LevelCode | null): Promise<
     .set({ level, updatedAt: new Date() })
     .where(eq(users.id, id))
     .returning()
+  return updated[0]
+}
+
+export interface AppearancePatch {
+  themeId?: string | null
+  themeMode?: ThemeMode | null
+}
+
+export async function updateAppearance(id: string, patch: AppearancePatch): Promise<UserRow> {
+  const set: { themeId?: string | null; themeMode?: ThemeMode | null; updatedAt: Date } = {
+    updatedAt: new Date(),
+  }
+  if ('themeId' in patch) set.themeId = patch.themeId
+  if ('themeMode' in patch) set.themeMode = patch.themeMode
+  const updated = await db.update(users).set(set).where(eq(users.id, id)).returning()
   return updated[0]
 }

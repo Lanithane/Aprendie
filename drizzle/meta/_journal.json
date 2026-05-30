@@ -43,6 +43,13 @@
       "when": 1780100964465,
       "tag": "0005_abandoned_proudstar",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1780115555242,
+      "tag": "0006_noisy_katie_power",
+      "breakpoints": true
     }
   ]
 }

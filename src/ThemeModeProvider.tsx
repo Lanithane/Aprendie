@@ -1,8 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ThemeProvider, CssBaseline } from '@mui/material'
 import { createGacTheme, DEFAULT_THEME_ID, THEME_IDS, type ThemeId } from './theme'
+import { useAuth } from './auth/AuthContext'
+import { updateUserAppearance } from './api/userApi'
+import type { ThemeMode } from '../shared/appearance'
 
-export type ThemeMode = 'light' | 'dark' | 'system'
+export type { ThemeMode }
 
 const STORAGE_KEY = 'gac:themeMode'
 const THEME_STORAGE_KEY = 'gac:themeId'
@@ -45,6 +48,7 @@ function osDark(): boolean {
 const CYCLE: ThemeMode[] = ['light', 'dark', 'system']
 
 export function ThemeModeProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
   const [mode, setModeState] = useState<ThemeMode>(readStored)
   const [themeId, setThemeIdState] = useState<ThemeId>(readStoredTheme)
   const [systemDark, setSystemDark] = useState(osDark)
@@ -56,6 +60,29 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
+  // Adopt the account's saved appearance once the signed-in user loads (cross-device sync). Local
+  // state seeds from localStorage first to avoid a flash; the server value wins when present.
+  useEffect(() => {
+    if (!user) return
+    if (user.themeId && (THEME_IDS as string[]).includes(user.themeId)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setThemeIdState(user.themeId as ThemeId)
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, user.themeId)
+      } catch {
+        // ignore
+      }
+    }
+    if (user.themeMode) {
+      setModeState(user.themeMode)
+      try {
+        localStorage.setItem(STORAGE_KEY, user.themeMode)
+      } catch {
+        // ignore
+      }
+    }
+  }, [user])
+
   const resolvedMode: 'light' | 'dark' = mode === 'system' ? (systemDark ? 'dark' : 'light') : mode
 
   const setMode = (next: ThemeMode) => {
@@ -65,6 +92,7 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
       // ignore
     }
     setModeState(next)
+    if (user) void updateUserAppearance({ themeMode: next }).catch(() => {})
   }
 
   const cycleMode = () => {
@@ -79,6 +107,7 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
       // ignore
     }
     setThemeIdState(next)
+    if (user) void updateUserAppearance({ themeId: next }).catch(() => {})
   }
 
   const theme = useMemo(() => createGacTheme(themeId, resolvedMode), [themeId, resolvedMode])

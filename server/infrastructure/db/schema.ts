@@ -11,6 +11,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import type { WordToken } from '../../../shared/languages'
 import type { LevelCode } from '../../../shared/levels'
+import type { ThemeMode } from '../../../shared/appearance'
 
 // Denormalized snapshot of a graded attempt. Mirrors the correction `Mistake`
 // shape structurally so the DB layer stays free of module imports.
@@ -30,6 +31,10 @@ export const users = pgTable('users', {
   // Loose-typed like `level` on sentence_cache to avoid pg-enum alter friction.
   role: text('role').$type<'admin' | 'user'>().notNull().default('user'),
   level: text('level').$type<LevelCode | null>(),
+  // Appearance prefs, persisted per account. Loose-typed text like `level`/`role` to avoid
+  // pg-enum friction; `theme_id` is an opaque registry id (unknown -> client falls back).
+  themeId: text('theme_id'),
+  themeMode: text('theme_mode').$type<ThemeMode | null>(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
