@@ -54,7 +54,8 @@ const SkipLink = styled('a')`
 export default function AppShell({ children }: { children: ReactNode }) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-  const [collapsed, setCollapsed] = useState(false)
+  // Desktop sidebar defaults to the collapsed rail; users expand it on demand.
+  const [collapsed, setCollapsed] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
