@@ -29,7 +29,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started              |
 | 7    | API-key security hardening                                                    | ⬜ Not started              |
 | 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started              |
-| 9    | Full MD3 overhaul + centered "Google homepage" layout                         | 🟡 In progress (branch `epic-9-md3`) |
+| 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -326,7 +326,7 @@ attempt when it appears in that attempt's mistakes, else "correct"; every appear
       (RootList, RootCard, VariantList) reusing `components/shared/`; `/pokedex` route + Sidebar nav
       item.
 
-## 🟡 Epic 9 — Full MD3 overhaul + centered layout (in progress, branch `epic-9-md3`)
+## ✅ Epic 9 — Full MD3 overhaul + centered layout (merged to main + deployed)
 
 Styles the final component set (including Epics 2–8 UI) once. The "Google homepage" centering
 folds in here. **MD3 is now the binding design standard** — see the
