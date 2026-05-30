@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type MouseEvent } from 'react'
+import { useState, type MouseEvent } from 'react'
 import {
   Card,
   CardContent,
@@ -15,6 +15,7 @@ import { languageName, type LanguageCode, type WordToken } from '../../../shared
 import { LEVELS, levelLabel } from '../../../shared/levels'
 import type { LevelPref } from '../../hooks/useLevelPreference'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
+import { useAutoFocus } from '../../hooks/useAutoFocus'
 
 const SentenceCenter = styled('div')`
   text-align: center;
@@ -52,13 +53,10 @@ export default function PracticeCard({
   disabled,
 }: PracticeCardProps) {
   const [guess, setGuess] = useState('')
-  const inputRef = useRef<HTMLInputElement | null>(null)
+  // Refocus the answer field each time a new sentence loads, so the flow stays keyboard-driven.
+  const inputRef = useAutoFocus<HTMLInputElement>(promptText)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const menuOpen = Boolean(anchorEl)
-
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [promptText])
 
   const submit = () => {
     const trimmed = guess.trim()

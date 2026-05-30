@@ -15,6 +15,7 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import { diffWordsWithSpace } from 'diff'
 import { languageName, type LanguageCode } from '../../../shared/languages'
 import type { CorrectionMistakeDto } from '../../api/correctionApi'
+import { useAutoFocus } from '../../hooks/useAutoFocus'
 
 const normalizePunct = (s: string) => s.replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"')
 
@@ -81,6 +82,9 @@ export default function CorrectionDisplay({
   notes,
   onNext,
 }: CorrectionDisplayProps) {
+  // Land focus on "Next" when the result appears, so submitting with Enter flows
+  // straight into advancing to the next sentence with Enter.
+  const nextRef = useAutoFocus<HTMLButtonElement>()
   const parts = diffWordsWithSpace(normalizePunct(userAnswer), normalizePunct(correctedAnswer))
   const visibleMistakes = mistakes.filter(
     (m) => normalizePunct(m.userPhrase) !== normalizePunct(m.correctPhrase)
@@ -99,6 +103,7 @@ export default function CorrectionDisplay({
           value={Math.max(0, Math.min(100, score))}
           color={score >= 80 ? 'success' : score >= 50 ? 'warning' : 'error'}
           sx={{ mb: 2, height: 6, borderRadius: 3 }}
+          aria-label={`Score ${score} out of 100`}
         />
 
         <Typography variant='overline' color='text.secondary'>
@@ -176,7 +181,7 @@ export default function CorrectionDisplay({
         )}
 
         <Stack direction='row' sx={{ mt: 3, justifyContent: 'flex-end' }}>
-          <Button variant='contained' onClick={onNext} size='large'>
+          <Button ref={nextRef} variant='contained' onClick={onNext} size='large'>
             Next →
           </Button>
         </Stack>

@@ -20,6 +20,24 @@ const Main = styled('main')`
   }
 `
 
+// Keyboard/screen-reader affordance: hidden until focused, then jumps past the
+// nav into the main content. First Tab on any page reveals it.
+const SkipLink = styled('a')`
+  position: absolute;
+  left: ${({ theme }) => theme.spacing(1)};
+  top: -100%;
+  z-index: ${({ theme }) => theme.zIndex.appBar + 1};
+  padding: ${({ theme }) => theme.spacing(1, 2)};
+  border-radius: 4px;
+  background: ${({ theme }) => theme.palette.background.paper};
+  color: ${({ theme }) => theme.palette.primary.main};
+  &:focus-visible {
+    top: ${({ theme }) => theme.spacing(1)};
+    outline: 2px solid ${({ theme }) => theme.palette.primary.main};
+    outline-offset: 2px;
+  }
+`
+
 export default function AppShell({ children }: { children: ReactNode }) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -28,6 +46,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <ShellRoot>
+      <SkipLink href='#main-content'>Skip to content</SkipLink>
       {isMobile && (
         <AppBar position='fixed' color='default' elevation={1}>
           <Toolbar>
@@ -49,7 +68,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
         widthExpanded={SIDEBAR_WIDTH}
         widthCollapsed={SIDEBAR_COLLAPSED_WIDTH}
       />
-      <Main>{children}</Main>
+      <Main id='main-content' tabIndex={-1}>
+        {children}
+      </Main>
     </ShellRoot>
   )
 }
