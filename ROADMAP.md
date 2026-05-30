@@ -448,6 +448,17 @@ first sentences land while step 2's key-validation round-trip (and a brief "prep
 with the full 10-sentence top-up continuing in the background — the user lands on Practice already
 warm. The key step is therefore a hard part of the new-user flow, not a separate gate.
 
+**Decided — no Claude OAuth; the key step stays a polished paste (investigated 2026-05-30).** There is
+no "Sign in with Claude → app gets API access" OAuth for third-party apps, and Anthropic actively
+banned the workaround of reusing Claude Code subscription OAuth tokens (`sk-ant-oat01-…`): enforced
+from 2026-01-09, declared a ToS violation 2026-02-19, and those tokens API-rejected since 2026-02-20.
+The mandated path for any third-party app is a Console API key (`sk-ant-api03-…`) on the user's own
+usage billing — exactly our model. So step 2 keeps the paste, made frictionless: a "Get a key →" deep
+link to the Console + a 3-step guide; **format-aware validation** (accept `sk-ant-api03-…`; if an
+`sk-ant-oat01-…` token is pasted, say so specifically rather than a generic "invalid key"); and
+encryption/trust copy. Keep it a self-contained component so a real OAuth flow could slot in later, but
+don't architect around one.
+
 **Prereq — persist the language pair server-side.** Today the pair + locale live in localStorage only
 (`gac:languagePair`, [useLanguagePair.ts](src/hooks/useLanguagePair.ts)); `level` and theme already
 moved onto the `users` row. The server can't prewarm a pool it doesn't know about, so the pair must
