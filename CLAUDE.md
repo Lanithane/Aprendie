@@ -64,7 +64,7 @@ and every new screen/component must be built in it — do **not** restyle later.
 
 - **Color comes only from theme tokens — never hardcode a hex.** `src/theme/tokens.ts` is the single
   source of color truth and is **generated** — do not hand-edit it. It holds **8 selectable themes**
-  (`THEMES` registry; Spanish names: `mercado`, `costa`, `vinedo`, `duna`, `mango`, `cerezo`, `lavanda`,
+  (`THEMES` registry; Spanish names: `abra`, `costa`, `vinedo`, `duna`, `mango`, `cerezo`, `lavanda`,
   `tinta`),
   each with a full light + dark MD3 scheme. Each theme spec uses **all five colours of its source
   palette**: three accent seeds (primary/secondary/tertiary) plus the palette's light member as the

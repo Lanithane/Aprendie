@@ -41,12 +41,12 @@ export interface Md3Scheme {
 }
 
 export type ThemeId =
+  | 'abra'
   | 'cerezo'
   | 'costa'
   | 'duna'
   | 'lavanda'
   | 'mango'
-  | 'mercado'
   | 'tinta'
   | 'vinedo'
 
@@ -57,6 +57,85 @@ export interface ThemeTokens {
 }
 
 export const THEMES: Record<ThemeId, ThemeTokens> = {
+  abra: {
+    name: 'Abra',
+    light: {
+      primary: '#E07A5F',
+      onPrimary: '#1A1A1A',
+      primaryContainer: '#ffdbd2',
+      onPrimaryContainer: '#3c0800',
+      secondary: '#F2CC8F',
+      onSecondary: '#1A1A1A',
+      secondaryContainer: '#ffdeab',
+      onSecondaryContainer: '#271900',
+      tertiary: '#81B29A',
+      onTertiary: '#1A1A1A',
+      tertiaryContainer: '#bbeed4',
+      onTertiaryContainer: '#002115',
+      error: '#ba1a1a',
+      onError: '#ffffff',
+      errorContainer: '#ffdad5',
+      onErrorContainer: '#410002',
+      background: '#fdfae7',
+      onBackground: '#1c1c11',
+      surface: '#fdfae7',
+      onSurface: '#1c1c11',
+      surfaceVariant: '#e6e4c3',
+      onSurfaceVariant: '#484830',
+      surfaceDim: '#dddbc8',
+      surfaceBright: '#fdfae7',
+      surfaceContainerLowest: '#ffffff',
+      surfaceContainerLow: '#f7f4e1',
+      surfaceContainer: '#f1eedb',
+      surfaceContainerHigh: '#ece9d6',
+      surfaceContainerHighest: '#e6e3d0',
+      outline: '#79795d',
+      outlineVariant: '#cac8a8',
+      shadow: '#000000',
+      scrim: '#000000',
+      inverseSurface: '#313124',
+      inverseOnSurface: '#f4f1de',
+      inversePrimary: '#ffb4a1',
+    },
+    dark: {
+      primary: '#E07A5F',
+      onPrimary: '#1A1A1A',
+      primaryContainer: '#7c2e19',
+      onPrimaryContainer: '#ffdbd2',
+      secondary: '#F2CC8F',
+      onSecondary: '#1A1A1A',
+      secondaryContainer: '#5c4212',
+      onSecondaryContainer: '#ffdeab',
+      tertiary: '#81B29A',
+      onTertiary: '#1A1A1A',
+      tertiaryContainer: '#1f4f3c',
+      onTertiaryContainer: '#bbeed4',
+      error: '#ffb4ab',
+      onError: '#690004',
+      errorContainer: '#930009',
+      onErrorContainer: '#ffdad5',
+      background: '#0e112a',
+      onBackground: '#dfe0ff',
+      surface: '#0e112a',
+      onSurface: '#dfe0ff',
+      surfaceVariant: '#404469',
+      onSurfaceVariant: '#c0c3f0',
+      surfaceDim: '#0e112a',
+      surfaceBright: '#343752',
+      surfaceContainerLowest: '#090c24',
+      surfaceContainerLow: '#161a32',
+      surfaceContainer: '#1a1e37',
+      surfaceContainerHigh: '#252842',
+      surfaceContainerHighest: '#30334d',
+      outline: '#8a8eb8',
+      outlineVariant: '#404469',
+      shadow: '#000000',
+      scrim: '#000000',
+      inverseSurface: '#dfe0ff',
+      inverseOnSurface: '#2b2e48',
+      inversePrimary: '#9a442d',
+    },
+  },
   cerezo: {
     name: 'Cerezo',
     light: {
@@ -452,85 +531,6 @@ export const THEMES: Record<ThemeId, ThemeTokens> = {
       inversePrimary: '#9c4141',
     },
   },
-  mercado: {
-    name: 'Mercado',
-    light: {
-      primary: '#E07A5F',
-      onPrimary: '#1A1A1A',
-      primaryContainer: '#ffdbd2',
-      onPrimaryContainer: '#3c0800',
-      secondary: '#F2CC8F',
-      onSecondary: '#1A1A1A',
-      secondaryContainer: '#ffdeab',
-      onSecondaryContainer: '#271900',
-      tertiary: '#81B29A',
-      onTertiary: '#1A1A1A',
-      tertiaryContainer: '#bbeed4',
-      onTertiaryContainer: '#002115',
-      error: '#ba1a1a',
-      onError: '#ffffff',
-      errorContainer: '#ffdad5',
-      onErrorContainer: '#410002',
-      background: '#fdfae7',
-      onBackground: '#1c1c11',
-      surface: '#fdfae7',
-      onSurface: '#1c1c11',
-      surfaceVariant: '#e6e4c3',
-      onSurfaceVariant: '#484830',
-      surfaceDim: '#dddbc8',
-      surfaceBright: '#fdfae7',
-      surfaceContainerLowest: '#ffffff',
-      surfaceContainerLow: '#f7f4e1',
-      surfaceContainer: '#f1eedb',
-      surfaceContainerHigh: '#ece9d6',
-      surfaceContainerHighest: '#e6e3d0',
-      outline: '#79795d',
-      outlineVariant: '#cac8a8',
-      shadow: '#000000',
-      scrim: '#000000',
-      inverseSurface: '#313124',
-      inverseOnSurface: '#f4f1de',
-      inversePrimary: '#ffb4a1',
-    },
-    dark: {
-      primary: '#E07A5F',
-      onPrimary: '#1A1A1A',
-      primaryContainer: '#7c2e19',
-      onPrimaryContainer: '#ffdbd2',
-      secondary: '#F2CC8F',
-      onSecondary: '#1A1A1A',
-      secondaryContainer: '#5c4212',
-      onSecondaryContainer: '#ffdeab',
-      tertiary: '#81B29A',
-      onTertiary: '#1A1A1A',
-      tertiaryContainer: '#1f4f3c',
-      onTertiaryContainer: '#bbeed4',
-      error: '#ffb4ab',
-      onError: '#690004',
-      errorContainer: '#930009',
-      onErrorContainer: '#ffdad5',
-      background: '#0e112a',
-      onBackground: '#dfe0ff',
-      surface: '#0e112a',
-      onSurface: '#dfe0ff',
-      surfaceVariant: '#404469',
-      onSurfaceVariant: '#c0c3f0',
-      surfaceDim: '#0e112a',
-      surfaceBright: '#343752',
-      surfaceContainerLowest: '#090c24',
-      surfaceContainerLow: '#161a32',
-      surfaceContainer: '#1a1e37',
-      surfaceContainerHigh: '#252842',
-      surfaceContainerHighest: '#30334d',
-      outline: '#8a8eb8',
-      outlineVariant: '#404469',
-      shadow: '#000000',
-      scrim: '#000000',
-      inverseSurface: '#dfe0ff',
-      inverseOnSurface: '#2b2e48',
-      inversePrimary: '#9a442d',
-    },
-  },
   tinta: {
     name: 'Tinta',
     light: {
@@ -692,17 +692,18 @@ export const THEMES: Record<ThemeId, ThemeTokens> = {
 }
 
 export const THEME_IDS: ThemeId[] = [
+  'abra',
   'cerezo',
   'costa',
   'duna',
   'lavanda',
   'mango',
-  'mercado',
   'tinta',
   'vinedo',
 ]
 
 export const THEME_META: ReadonlyArray<{ id: ThemeId; name: string; swatches: string[] }> = [
+  { id: 'abra', name: 'Abra', swatches: ['#E07A5F', '#F2CC8F', '#81B29A', '#F4F1DE', '#3D405B'] },
   {
     id: 'cerezo',
     name: 'Cerezo',
@@ -716,11 +717,6 @@ export const THEME_META: ReadonlyArray<{ id: ThemeId; name: string; swatches: st
     swatches: ['#7A5EA6', '#E3A857', '#C98BA4', '#F0EBF6', '#211A30'],
   },
   { id: 'mango', name: 'Mango', swatches: ['#F28482', '#F6BD60', '#84A59D', '#F7EDE2', '#F5CAC3'] },
-  {
-    id: 'mercado',
-    name: 'Mercado',
-    swatches: ['#E07A5F', '#F2CC8F', '#81B29A', '#F4F1DE', '#3D405B'],
-  },
   { id: 'tinta', name: 'Tinta', swatches: ['#3C3C3C', '#787878', '#5A5A5A', '#F2F2F2', '#1A1A1A'] },
   {
     id: 'vinedo',
@@ -729,4 +725,4 @@ export const THEME_META: ReadonlyArray<{ id: ThemeId; name: string; swatches: st
   },
 ]
 
-export const DEFAULT_THEME_ID: ThemeId = 'mercado'
+export const DEFAULT_THEME_ID: ThemeId = 'abra'
