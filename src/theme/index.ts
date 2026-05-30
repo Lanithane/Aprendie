@@ -173,10 +173,10 @@ export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme 
           },
         },
       },
-      // Captions read as a silvery blue (the secondary/Payne's-grey ramp) rather than plain grey.
-      // Applies wherever a caption doesn't set an explicit `color` prop.
+      // Captions use the MD3 on-surface-variant role (the proper secondary-text color), so hint text
+      // stays legible across every theme + mode. Applies wherever a caption sets no explicit `color`.
       MuiTypography: {
-        styleOverrides: { caption: { color: s.secondary } },
+        styleOverrides: { caption: { color: s.onSurfaceVariant } },
       },
       // MD3 navigation active-indicator: a pill-shaped secondary-container highlight.
       MuiListItemButton: {
