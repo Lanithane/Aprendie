@@ -1,4 +1,4 @@
-# Conjecter — Feature Roadmap
+# Guess and Correct — Feature Roadmap
 
 Living roadmap for the post-MVP feature work. Build order was chosen deliberately: the
 **language generalization refactor first** (it touches the most files), then the small
@@ -17,18 +17,18 @@ Epic numbers are stable identifiers, not build order — see the status table.
 
 Epics are listed by number (a stable identifier); see the intro for the current build order.
 
-| Epic | Scope                                                                         | Status                      |
-| ---- | ----------------------------------------------------------------------------- | --------------------------- |
-| 0    | Tab title → "Conjecter"                                                       | ✅ Done (merged)            |
-| 1    | Language generalization + CEFR levels + word-breakdown data + location→locale | ✅ Done (merged + deployed) |
-| 2    | Word-root-on-click UI                                                         | ✅ Done                     |
-| A    | Accessibility pass (focus flow, skip link, labels)                            | ✅ Done                     |
-| 3    | Text-to-speech + rate slider                                                  | ⬜ Not started              |
-| 4    | RBAC + admin console (roles, users CRUD, key support)                         | ✅ Done (migration on prod) |
-| 5    | History → Postgres, per user account                                          | ✅ Done (local migrated)    |
-| 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started              |
-| 7    | API-key security hardening                                                    | ⬜ Not started              |
-| 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started              |
+| Epic | Scope                                                                         | Status                              |
+| ---- | ----------------------------------------------------------------------------- | ----------------------------------- |
+| 0    | Tab title → "Guess and Correct"                                               | ✅ Done (merged)                    |
+| 1    | Language generalization + CEFR levels + word-breakdown data + location→locale | ✅ Done (merged + deployed)         |
+| 2    | Word-root-on-click UI                                                         | ✅ Done                             |
+| A    | Accessibility pass (focus flow, skip link, labels)                            | ✅ Done                             |
+| 3    | Text-to-speech + rate slider                                                  | ⬜ Not started                      |
+| 4    | RBAC + admin console (roles, users CRUD, key support)                         | ✅ Done (migration on prod)         |
+| 5    | History → Postgres, per user account                                          | ✅ Done (local migrated)            |
+| 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started                      |
+| 7    | API-key security hardening                                                    | ⬜ Not started                      |
+| 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started                      |
 | 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
 
 ### Decisions locked (from clarifying Q&A)
@@ -72,7 +72,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 
 ## ✅ Epic 0 — Tab title
 
-- [x] [index.html](index.html) `<title>` → `Conjecter`.
+- [x] [index.html](index.html) `<title>` → `Guess and Correct`.
 
 ## ✅ Epic 1 — Language generalization + CEFR levels (the foundation)
 
@@ -130,9 +130,9 @@ keyboard/screen-reader behavior rather than bolting it on after. Pure frontend, 
       [LinearProgress](src/components/CorrectionDisplay/CorrectionDisplay.tsx) and the
       [LoadingSpinner](src/components/shared/LoadingSpinner.tsx) `CircularProgress`.
 - _Already in place (kept):_ `aria-live='polite'` on the correction card; `aria-label`s on every
-      sidebar/appbar icon button; `:focus-visible` outlines + per-token `aria-label`s in
-      [SentenceTokens.tsx](src/components/SentenceTokens/SentenceTokens.tsx); `lang` attributes on
-      learn/guess-language text.
+  sidebar/appbar icon button; `:focus-visible` outlines + per-token `aria-label`s in
+  [SentenceTokens.tsx](src/components/SentenceTokens/SentenceTokens.tsx); `lang` attributes on
+  learn/guess-language text.
 
 ## ⬜ Epic 3 — Text-to-speech + rate slider
 
@@ -344,7 +344,7 @@ folds in here. **MD3 is now the binding design standard** — see the
       mechanism unchanged in [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx).
 - [x] **Centered home** — [AppShell.tsx](src/components/AppShell/AppShell.tsx) centers content in a
       760px max-width column; [HomePage.tsx](src/pages/HomePage.tsx) floats the practice flow vertically
-      via auto block margins. Branding fixed to **Conjecter** (AppShell app bar + LoginPage).
+      via auto block margins. Branding fixed to **Guess and Correct** (AppShell app bar + LoginPage).
 - [x] **Restyle screens** to MD3 — Sidebar (inset pill nav rail/drawer), CorrectionDisplay
       (surface-container fills + tertiary accent), History (silvery-blue captions + whole summary row
       clickable via `CardActionArea`), LoginPage. Most other screens inherit the new theme directly
