@@ -152,11 +152,20 @@ export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme 
             const c = ownerState.color
             const paletteColor =
               c && c !== 'inherit'
-                ? (theme.palette[c as keyof typeof theme.palette] as { main?: string } | undefined)
+                ? (theme.palette[c as keyof typeof theme.palette] as
+                    | { main?: string; dark?: string; light?: string }
+                    | undefined)
                 : undefined
             // Hold the contained fill steady on hover so the state layer (not a darkened fill)
             // carries the feedback — MD3 expresses states as a translucent on-color overlay.
             const restingFill = ownerState.variant === 'contained' ? paletteColor?.main : undefined
+            // Focus ring: a brighter/darker shade of the button's own color (deeper in light,
+            // brighter in dark). Stays theme-agnostic — derived from whatever palette color the
+            // button carries — yet contrasts against both the fill edge and the page behind it.
+            const focusRing = mode === 'light' ? paletteColor?.dark : paletteColor?.light
+            const focusOutline = focusRing
+              ? { outline: `2.5px solid ${focusRing}`, outlineOffset: 2 }
+              : undefined
             return {
               borderRadius: 999,
               paddingInline: 24,
@@ -174,9 +183,16 @@ export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme 
                 transition: 'opacity 120ms ease',
                 pointerEvents: 'none',
               },
-              '&:hover::after': { opacity: 0.08 },
-              '&.Mui-focusVisible::after': { opacity: 0.1 },
-              '&:active::after': { opacity: 0.12 },
+              '&:hover::after': { opacity: 0.12 },
+              '&.Mui-focusVisible::after': { opacity: 0.12 },
+              '&:active::after': { opacity: 0.16 },
+              // Shaded outline: a semi-thick ring offset off the edge so a sliver of the page shows
+              // through and the ring reads on every theme/mode. Shown on hover plus any focus (mouse
+              // or keyboard) so it persists after a click, and forced on while aria-busy (loading)
+              // so phone taps — which give no hover and unreliable focus — still see the ring.
+              ...(focusOutline
+                ? { '&:hover, &:focus, &.Mui-focusVisible, &[aria-busy="true"]': focusOutline }
+                : {}),
               ...(restingFill ? { '&:hover': { backgroundColor: restingFill } } : {}),
             }
           },

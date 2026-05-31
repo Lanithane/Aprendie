@@ -1,7 +1,9 @@
 import { useState, type MouseEvent } from 'react'
 import {
+  Box,
   Card,
   CardContent,
+  CircularProgress,
   TextField,
   Button,
   Stack,
@@ -233,9 +235,24 @@ export default function PracticeCard({
           <Button
             color='primary'
             onClick={submit}
-            disabled={!guess.trim() || submitting || disabled}
+            // Stay enabled while checking (re-entry is guarded in submit()) so the button keeps its
+            // resting look and the aria-busy ring stays lit — disabling would blur it and grey it out.
+            disabled={!guess.trim() || disabled}
+            aria-busy={submitting}
           >
-            {submitting ? 'Checking…' : 'Submit'}
+            {/* Hold the resting "Submit" width with a hidden copy and center the spinner over it,
+                so the button doesn't resize when it flips into the loading state. */}
+            <Box component='span' sx={{ visibility: submitting ? 'hidden' : 'visible' }}>
+              Submit
+            </Box>
+            {submitting && (
+              <CircularProgress
+                size={18}
+                color='inherit'
+                aria-label='Checking'
+                sx={{ position: 'absolute', top: '50%', left: '50%', mt: '-9px', ml: '-9px' }}
+              />
+            )}
           </Button>
         </Stack>
       </CardContent>
