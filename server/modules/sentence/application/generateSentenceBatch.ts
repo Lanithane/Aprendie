@@ -13,6 +13,49 @@ import type { GeneratedSentence } from '../domain/Sentence'
 
 const BATCH_SIZE = 10
 
+// Rotating content domains. Difficulty is governed entirely by the level rubric below; these
+// steer only WHAT a batch is about, so the same domain yields a starter "I eat bread" and a
+// C2 restaurant-review sentence alike. We shuffle and pass a different spread on every call so
+// successive pools stop converging on the same high-frequency phrases (the starter pool was the
+// worst offender — endless "hola"/"gracias"). Deliberately kept OUT of the cached system block:
+// variety must change per call, the system prompt must stay byte-identical to keep its cache hit.
+const THEME_DOMAINS = [
+  'greetings and introductions',
+  'family and relationships',
+  'food, cooking and eating out',
+  'numbers, time and dates',
+  'weather and the seasons',
+  'home, rooms and furniture',
+  'work, study and school',
+  'travel, directions and transport',
+  'shopping and money',
+  'health, the body and the doctor',
+  'clothes and appearance',
+  'animals and nature',
+  'hobbies and free time',
+  'feelings, opinions and personality',
+  'technology, phones and the internet',
+  'city life and the neighbourhood',
+  'sports and exercise',
+  'art, music, film and books',
+  'daily routine and chores',
+  'plans, dreams and the future',
+  'holidays, festivals and celebrations',
+  'the natural world and the environment',
+]
+
+// Shuffle and take a spread sized to the batch: roughly one domain per sentence, but capped so a
+// full 10-sentence batch still touches ~7 distinct areas without forcing rigid one-per-sentence.
+function pickThemes(count: number): string[] {
+  const wanted = Math.min(THEME_DOMAINS.length, Math.max(2, Math.min(count, 7)))
+  const pool = [...THEME_DOMAINS]
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[pool[i], pool[j]] = [pool[j], pool[i]]
+  }
+  return pool.slice(0, wanted)
+}
+
 const LEVEL_RUBRIC = LEVELS.map(
   (l) => `- ${l.code}${l.cefr ? ` (CEFR ${l.cefr})` : ''}: ${l.blurb}`
 ).join('\n')
@@ -29,6 +72,7 @@ Output requirements:
 - "promptText" is the sentence in the LEARN language; "answerText" is a natural translation in the GUESS language.
 - Match the requested difficulty level, or vary across levels if asked to mix. Set "level" to the matching code.
 - Make each sentence natural and idiomatic for the given regional locale.
+- Variety matters: across a batch, vary the grammatical subject (don't open most sentences with the same word or pronoun), mix sentence types — statements, questions, requests, exclamations — wherever the difficulty level allows, and reach for different vocabulary instead of recycling the same handful of words. No batch should read like a list of near-identical greetings or textbook filler.
 - "wordBreakdown": one entry per meaningful word in promptText (skip pure punctuation). Decompose EVERY inflected word into the changes that derive it from its dictionary form. Each entry has:
     "surface" = the word exactly as it appears in promptText,
     "lemma" = its dictionary / base form, in the LEARN language,
@@ -112,10 +156,17 @@ export async function generateSentenceBatch(
     ? `All ${count} sentences at difficulty level "${level}" (${levelByCode(level)?.name ?? level}).`
     : 'Mix difficulty levels across the batch, from starter up to advanced.'
 
+  const themes = pickThemes(count)
+  const themeLine =
+    count === 1
+      ? `Base this sentence on one of these everyday domains: ${themes.join(', ')}.`
+      : `Spread the ${count} sentences across these everyday domains — aim for a different one each and don't cluster on a single topic: ${themes.join('; ')}.`
+
   const userText = `Learn language (write the sentences in this): ${languageName(learnLanguage)} (${learnLanguage})
 Guess language (translate into this): ${languageName(guessLanguage)} (${guessLanguage})
 Regional locale: ${locale} — use vocabulary, spelling, and idioms typical of this region.
 ${levelLine}
+${themeLine}
 
 Generate ${count} sentences now.`
 
