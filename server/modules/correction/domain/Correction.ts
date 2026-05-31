@@ -8,9 +8,13 @@ export interface CorrectionMistake {
   explanation: string
 }
 
+export type Naturalness = 'natural' | 'stiff'
+
 export interface CorrectionResult {
   isCorrect: boolean
   score: number
+  grade: string
+  naturalness: Naturalness
   correctedAnswer: string
   mistakes: CorrectionMistake[]
   notes?: string

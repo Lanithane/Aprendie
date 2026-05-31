@@ -65,6 +65,7 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
     userAnswer: input.userAnswer,
     correctedAnswer: result.correctedAnswer,
     score: result.score,
+    grade: result.grade,
     isCorrect: result.isCorrect,
     mistakes: result.mistakes,
     notes: result.notes,

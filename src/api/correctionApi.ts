@@ -20,6 +20,8 @@ export interface CorrectionDto {
   userAnswer: string
   isCorrect: boolean
   score: number
+  grade: string
+  naturalness: 'natural' | 'stiff'
   correctedAnswer: string
   mistakes: CorrectionMistakeDto[]
   notes?: string

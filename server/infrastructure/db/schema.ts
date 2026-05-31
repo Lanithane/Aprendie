@@ -103,6 +103,7 @@ export const attempts = pgTable(
     userAnswer: text('user_answer').notNull(),
     correctedAnswer: text('corrected_answer').notNull(),
     score: integer('score').notNull(),
+    grade: text('grade'),
     isCorrect: boolean('is_correct').notNull(),
     mistakes: json('mistakes').$type<AttemptMistakeSnapshot[]>().notNull(),
     notes: text('notes'),

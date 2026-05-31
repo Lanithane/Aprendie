@@ -15,6 +15,7 @@ export interface RecordAttemptInput {
   userAnswer: string
   correctedAnswer: string
   score: number
+  grade: string
   isCorrect: boolean
   mistakes: AttemptMistake[]
   notes?: string
@@ -34,6 +35,7 @@ export async function recordAttempt(input: RecordAttemptInput): Promise<AttemptV
     userAnswer: input.userAnswer,
     correctedAnswer: input.correctedAnswer,
     score: input.score,
+    grade: input.grade,
     isCorrect: input.isCorrect,
     mistakes: input.mistakes,
     notes: input.notes ?? null,

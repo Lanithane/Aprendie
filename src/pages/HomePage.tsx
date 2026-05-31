@@ -83,6 +83,7 @@ export default function HomePage() {
           correctedAnswer={correction.correctedAnswer}
           isCorrect={correction.isCorrect}
           score={correction.score}
+          grade={correction.grade}
           mistakes={correction.mistakes}
           notes={correction.notes}
           onNext={() => {

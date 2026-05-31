@@ -1,5 +1,6 @@
 import type { LanguageCode, LocaleCode, WordToken } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
+import { scoreToGrade } from '../../../../shared/grades'
 import type { AttemptRow } from '../../../infrastructure/db/schema'
 
 // Mirrors the correction `Mistake` shape; kept local so the domain layer stays
@@ -23,6 +24,7 @@ export interface AttemptView {
   userAnswer: string
   correctedAnswer: string
   score: number
+  grade: string
   isCorrect: boolean
   mistakes: AttemptMistake[]
   notes?: string
@@ -43,6 +45,7 @@ export function toAttemptView(row: AttemptRow): AttemptView {
     userAnswer: row.userAnswer,
     correctedAnswer: row.correctedAnswer,
     score: row.score,
+    grade: row.grade ?? scoreToGrade(row.score),
     isCorrect: row.isCorrect,
     mistakes: row.mistakes,
     notes: row.notes ?? undefined,

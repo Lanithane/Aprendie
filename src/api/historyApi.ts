@@ -21,6 +21,7 @@ export interface AttemptDto {
   userAnswer: string
   correctedAnswer: string
   score: number
+  grade: string
   isCorrect: boolean
   mistakes: AttemptMistakeDto[]
   notes?: string
