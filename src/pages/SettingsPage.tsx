@@ -13,6 +13,7 @@ import {
 import SectionCard from '../components/shared/SectionCard'
 import LanguagePairPicker from '../components/LanguagePairPicker/LanguagePairPicker'
 import VoicePicker from '../components/VoicePicker/VoicePicker'
+import AutoSpeakControls from '../components/AutoSpeakControls/AutoSpeakControls'
 import ThemePicker from '../components/ThemePicker/ThemePicker'
 import { useAuth } from '../auth/AuthContext'
 import { useLevelPreference } from '../hooks/useLevelPreference'
@@ -59,9 +60,12 @@ export default function SettingsPage() {
 
         <SectionCard
           title='Pronunciation'
-          description='Choose the voice used to read sentences aloud. Available voices depend on your device.'
+          description='Choose the voice used to read sentences aloud, and whether new sentences play on their own. Available voices depend on your device.'
         >
-          <VoicePicker />
+          <Stack spacing={2}>
+            <VoicePicker />
+            <AutoSpeakControls />
+          </Stack>
         </SectionCard>
 
         <SectionCard

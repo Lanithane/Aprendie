@@ -110,3 +110,20 @@ export async function updateAppearance(id: string, patch: AppearancePatch): Prom
   const updated = await db.update(users).set(set).where(eq(users.id, id)).returning()
   return updated[0]
 }
+
+export interface AutoSpeakPatch {
+  autoSpeak?: boolean
+  autoSpeakDelayMs?: number
+}
+
+// Persists the auto-speak prefs. Only provided fields are written, so the toggle and the delay
+// can be updated independently (mirrors updateAppearance).
+export async function updateAutoSpeak(id: string, patch: AutoSpeakPatch): Promise<UserRow> {
+  const set: { autoSpeak?: boolean; autoSpeakDelayMs?: number; updatedAt: Date } = {
+    updatedAt: new Date(),
+  }
+  if ('autoSpeak' in patch) set.autoSpeak = patch.autoSpeak
+  if ('autoSpeakDelayMs' in patch) set.autoSpeakDelayMs = patch.autoSpeakDelayMs
+  const updated = await db.update(users).set(set).where(eq(users.id, id)).returning()
+  return updated[0]
+}

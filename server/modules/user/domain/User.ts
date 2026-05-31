@@ -26,6 +26,8 @@ export interface UserView {
   learnLanguage: string | null
   guessLanguage: string | null
   locale: string | null
+  autoSpeak: boolean | null
+  autoSpeakDelayMs: number | null
 }
 
 // Admin-facing projection of another user, including their daily-limit posture.
@@ -58,6 +60,8 @@ export function toUserView(row: UserRow): UserView {
     learnLanguage: row.learnLanguage ?? null,
     guessLanguage: row.guessLanguage ?? null,
     locale: row.locale ?? null,
+    autoSpeak: row.autoSpeak ?? null,
+    autoSpeakDelayMs: row.autoSpeakDelayMs ?? null,
   }
 }
 

@@ -45,6 +45,11 @@ export const users = pgTable('users', {
   learnLanguage: text('learn_language'),
   guessLanguage: text('guess_language'),
   locale: text('locale'),
+  // Auto-speak prefs (Epic 15): whether a new sentence is read aloud on its own and the delay
+  // before it plays. Nullable — a null column falls back to the shared/speech.ts defaults on read
+  // (auto-speak on, 500 ms), so new accounts get the default without a DB default.
+  autoSpeak: boolean('auto_speak'),
+  autoSpeakDelayMs: integer('auto_speak_delay_ms'),
   // Per-user daily-cap controls (operator-key spend). `capExemptUntil`, when in the future,
   // skips the cap entirely (a temporary "uncap for a bit"); `dailyCapOverride`, when set,
   // replaces the global cap for this account. Both null by default → global cap applies.
