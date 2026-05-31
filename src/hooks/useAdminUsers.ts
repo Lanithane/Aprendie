@@ -11,6 +11,10 @@ import {
 } from '../api/adminApi'
 import type { UserRole, AccessState } from '../api/userApi'
 
+// How often the list silently refetches so usage stats (e.g. the admin "Graded today"
+// tile) track activity without a manual reload. Short-lived admin view, modest cost.
+const POLL_INTERVAL_MS = 20_000
+
 interface UseAdminUsersResult {
   users: AdminUser[]
   loading: boolean
@@ -40,11 +44,36 @@ export function useAdminUsers(): UseAdminUsersResult {
     }
   }, [])
 
+  // Pull the latest list without flipping the loading flag, so the background poll
+  // updates counts in place instead of flashing the spinner. Transient failures are
+  // swallowed — the next tick retries, and the initial reload() surfaces hard errors.
+  const refresh = useCallback(async () => {
+    try {
+      setUsers(await fetchUsers())
+    } catch {
+      // ignore — keep showing the last good list until the next poll succeeds
+    }
+  }, [])
+
   useEffect(() => {
     // Load the user list once on mount; reload() owns its own loading state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void reload()
   }, [reload])
+
+  useEffect(() => {
+    // Background-refresh while the tab is visible so stats track activity live. Skip
+    // hidden tabs to avoid pointless requests, and catch up once on becoming visible.
+    const tick = () => {
+      if (document.visibilityState === 'visible') void refresh()
+    }
+    const id = setInterval(tick, POLL_INTERVAL_MS)
+    document.addEventListener('visibilitychange', tick)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', tick)
+    }
+  }, [refresh])
 
   const setRole = useCallback(async (id: string, role: UserRole) => {
     setError(null)
