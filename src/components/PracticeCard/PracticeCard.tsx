@@ -231,7 +231,7 @@ export default function PracticeCard({
         />
         <Stack direction='row' sx={{ mt: 2, justifyContent: 'flex-end' }}>
           <Button
-            variant='contained'
+            color='primary'
             onClick={submit}
             disabled={!guess.trim() || submitting || disabled}
           >

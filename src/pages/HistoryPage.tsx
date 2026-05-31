@@ -47,7 +47,7 @@ export default function HistoryPage() {
           <Alert severity='error' sx={{ width: '100%' }}>
             {error}
           </Alert>
-          <Button variant='outlined' size='small' onClick={() => void reload()}>
+          <Button color='secondary' size='small' onClick={() => void reload()}>
             Try again
           </Button>
         </Stack>
@@ -71,6 +71,7 @@ export default function HistoryPage() {
           ))}
           {hasMore && (
             <Button
+              color='tertiary'
               onClick={() => void loadMore()}
               disabled={loadingMore}
               sx={{ alignSelf: 'center', mt: 1 }}

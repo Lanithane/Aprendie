@@ -88,7 +88,7 @@ export default function SettingsPage() {
 
         <SectionCard title='Account' description={user?.email}>
           <Box sx={{ mt: 2 }}>
-            <Button variant='outlined' component='a' href='/api/auth/logout'>
+            <Button color='secondary' component='a' href='/api/auth/logout'>
               Sign out
             </Button>
           </Box>

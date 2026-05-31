@@ -64,6 +64,13 @@ function md3Typography(): TypographyVariantsOptions {
 export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme {
   const s: Md3Scheme = THEMES[themeId][mode]
 
+  // Promote the MD3 tertiary role to a full PaletteColor (light/dark/contrastText derived)
+  // so `color='tertiary'` Buttons work — the third rung of the page action hierarchy.
+  const tertiary = createTheme({ palette: { mode } }).palette.augmentColor({
+    color: { main: s.tertiary, contrastText: s.onTertiary },
+    name: 'tertiary',
+  })
+
   return createTheme({
     palette: {
       mode,
@@ -90,7 +97,7 @@ export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme 
       onPrimaryContainer: s.onPrimaryContainer,
       secondaryContainer: s.secondaryContainer,
       onSecondaryContainer: s.onSecondaryContainer,
-      tertiary: s.tertiary,
+      tertiary,
       onTertiary: s.onTertiary,
       tertiaryContainer: s.tertiaryContainer,
       onTertiaryContainer: s.onTertiaryContainer,
@@ -134,9 +141,46 @@ export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme 
       MuiCard: {
         styleOverrides: { root: { borderRadius: 16 } },
       },
+      // Buttons are contained by default site-wide (the standard action style); pages pick a
+      // single `primary` main action and drop others to `secondary`/`tertiary`. The MUI ripple is
+      // off in favour of an MD3 state layer (see root override) — a pulsing focus ripple looked
+      // wrong on the auto-focused Next button before any hover.
       MuiButton: {
-        defaultProps: { disableElevation: true },
-        styleOverrides: { root: { borderRadius: 999, paddingInline: 24 } },
+        defaultProps: { variant: 'contained', disableElevation: true, disableRipple: true },
+        styleOverrides: {
+          root: ({ ownerState, theme }) => {
+            const c = ownerState.color
+            const paletteColor =
+              c && c !== 'inherit'
+                ? (theme.palette[c as keyof typeof theme.palette] as { main?: string } | undefined)
+                : undefined
+            // Hold the contained fill steady on hover so the state layer (not a darkened fill)
+            // carries the feedback — MD3 expresses states as a translucent on-color overlay.
+            const restingFill = ownerState.variant === 'contained' ? paletteColor?.main : undefined
+            return {
+              borderRadius: 999,
+              paddingInline: 24,
+              position: 'relative',
+              overflow: 'hidden',
+              // MD3 state layer: a steady currentColor wash that fades in on hover/focus/press,
+              // replacing the ripple. currentColor resolves to each button's on-* tone, so it
+              // adapts across primary/secondary/tertiary/error and the text/outlined variants.
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                inset: 0,
+                backgroundColor: 'currentColor',
+                opacity: 0,
+                transition: 'opacity 120ms ease',
+                pointerEvents: 'none',
+              },
+              '&:hover::after': { opacity: 0.08 },
+              '&.Mui-focusVisible::after': { opacity: 0.1 },
+              '&:active::after': { opacity: 0.12 },
+              ...(restingFill ? { '&:hover': { backgroundColor: restingFill } } : {}),
+            }
+          },
+        },
       },
       MuiChip: {
         styleOverrides: { root: { borderRadius: 8, fontWeight: 500 } },

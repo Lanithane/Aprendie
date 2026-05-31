@@ -18,7 +18,7 @@ export default function UserHistoryPanel({ userId }: UserHistoryPanelProps) {
     return (
       <Stack spacing={1} sx={{ alignItems: 'flex-start' }}>
         <Typography color='error'>{error}</Typography>
-        <Button size='small' variant='outlined' onClick={() => void reload()}>
+        <Button size='small' color='secondary' onClick={() => void reload()}>
           Try again
         </Button>
       </Stack>
@@ -46,6 +46,7 @@ export default function UserHistoryPanel({ userId }: UserHistoryPanelProps) {
       {hasMore && (
         <Button
           size='small'
+          color='tertiary'
           onClick={() => void loadMore()}
           disabled={loadingMore}
           sx={{ alignSelf: 'flex-start' }}

@@ -1,4 +1,5 @@
 import '@mui/material/styles'
+import type { PaletteColor, PaletteColorOptions } from '@mui/material/styles'
 
 // MD3 color roles that MUI's palette doesn't model natively. Mapped flat (string hex) so
 // styled-components can read e.g. `theme.palette.surfaceContainerHigh`. The structured roles
@@ -9,7 +10,9 @@ declare module '@mui/material/styles' {
     onPrimaryContainer: string
     secondaryContainer: string
     onSecondaryContainer: string
-    tertiary: string
+    // tertiary is a full PaletteColor (not a flat hex) so it can back `color='tertiary'`
+    // contained Buttons — the third rung of the page action hierarchy.
+    tertiary: PaletteColor
     onTertiary: string
     tertiaryContainer: string
     onTertiaryContainer: string
@@ -38,7 +41,7 @@ declare module '@mui/material/styles' {
     onPrimaryContainer?: string
     secondaryContainer?: string
     onSecondaryContainer?: string
-    tertiary?: string
+    tertiary?: PaletteColorOptions
     onTertiary?: string
     tertiaryContainer?: string
     onTertiaryContainer?: string
@@ -61,5 +64,12 @@ declare module '@mui/material/styles' {
     inverseOnSurface?: string
     inversePrimary?: string
     scrim?: string
+  }
+}
+
+// Let Buttons opt into the theme's MD3 tertiary role as the lowest rung of the action hierarchy.
+declare module '@mui/material/Button' {
+  interface ButtonPropsColorOverrides {
+    tertiary: true
   }
 }

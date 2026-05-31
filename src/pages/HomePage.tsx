@@ -60,7 +60,7 @@ export default function HomePage() {
             {error}
           </Alert>
           <Button
-            variant='outlined'
+            color='secondary'
             onClick={() => {
               reset()
               clear()

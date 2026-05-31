@@ -21,7 +21,13 @@ export default function AdminUserDetailPage() {
   const [busy, setBusy] = useState(false)
 
   const back = (
-    <Button component={RouterLink} to='/admin' startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>
+    <Button
+      color='tertiary'
+      component={RouterLink}
+      to='/admin'
+      startIcon={<ArrowBackIcon />}
+      sx={{ mb: 2 }}
+    >
       All users
     </Button>
   )
@@ -128,13 +134,7 @@ export default function AdminUserDetailPage() {
           title='Delete account'
           description='Permanently removes this user and all their cached sentences and history. Cannot be undone.'
         >
-          <Button
-            color='error'
-            variant='outlined'
-            startIcon={<DeleteIcon />}
-            onClick={handleDelete}
-            disabled={busy}
-          >
+          <Button color='error' startIcon={<DeleteIcon />} onClick={handleDelete} disabled={busy}>
             {isSelf ? 'Delete my account' : 'Delete user'}
           </Button>
         </SectionCard>

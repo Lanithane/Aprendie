@@ -66,7 +66,7 @@ const PromptHeadline = styled('div')`
 
 const MistakeRow = styled(Stack)`
   padding: ${({ theme }) => theme.spacing(1.25, 1.5)};
-  border-left: 4px solid ${({ theme }) => theme.palette.tertiary};
+  border-left: 4px solid ${({ theme }) => theme.palette.tertiary.main};
   background: ${({ theme }) => theme.palette.surfaceContainerHighest};
   border-radius: 0 12px 12px 0;
 `
@@ -182,7 +182,7 @@ export default function CorrectionDisplay({
         )}
 
         <Stack direction='row' sx={{ mt: 3, justifyContent: 'flex-end' }}>
-          <Button ref={nextRef} variant='contained' onClick={onNext} size='large'>
+          <Button ref={nextRef} color='primary' onClick={onNext} size='large'>
             Next →
           </Button>
         </Stack>

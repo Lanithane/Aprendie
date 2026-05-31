@@ -82,6 +82,7 @@ export default function LanguagePairPicker() {
             helperText='Picks the best regional variant for your learning language.'
           />
           <Button
+            color='secondary'
             onClick={() => void onDetect()}
             disabled={resolving || !location.trim()}
             sx={{ mt: 0.5 }}
