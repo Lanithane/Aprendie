@@ -70,7 +70,7 @@ production key into chat, a PR, or a log.
 4. Restart the server, log in, re-paste your `sk-ant-…` from the Anthropic
    dashboard.
 
-### Production (Railway — project `guess-and-correct-production`)
+### Production (Railway — project `aprendie`)
 
 1. `openssl rand -base64 32` → new key.
 2. Set `ENCRYPTION_KEY` to the new value in the Railway service env vars.
