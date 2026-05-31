@@ -5,6 +5,7 @@ export interface AdminSettings {
   dailyGradedCap: number
   signupsPaused: boolean
   spendPaused: boolean
+  autoApproveSignups: boolean
 }
 
 export type AdminSettingsPatch = Partial<AdminSettings>

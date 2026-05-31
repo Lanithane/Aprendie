@@ -151,6 +151,9 @@ export const appSettings = pgTable('app_settings', {
   dailyGradedCap: integer('daily_graded_cap').notNull().default(100),
   signupsPaused: boolean('signups_paused').notNull().default(false),
   spendPaused: boolean('spend_paused').notNull().default(false),
+  // When true, brand-new non-admin accounts are immediately approved instead of
+  // landing in `pending`. Toggleable by an admin; off by default.
+  autoApproveSignups: boolean('auto_approve_signups').notNull().default(false),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 

@@ -26,17 +26,17 @@ export async function findOrCreateGoogleUser(profile: GoogleProfileInput): Promi
     return existing
   }
   // Brand-new identity: honor the global signup pause, but never lock out the operator.
-  if (desiredRole !== 'admin' && (await getSettings()).signupsPaused) {
+  const settings = await getSettings()
+  if (desiredRole !== 'admin' && settings.signupsPaused) {
     throw new SignupsPausedError()
   }
+  const access = desiredRole === 'admin' || settings.autoApproveSignups ? 'approved' : 'pending'
   return userRepository.create({
     email: profile.email,
     name: profile.name,
     googleSub: profile.googleSub,
     role: desiredRole,
-    // The operator (admin) is auto-approved; every other new account starts pending
-    // and must be approved before it can spend the operator key.
-    access: desiredRole === 'admin' ? 'approved' : 'pending',
+    access,
     level: 'starter',
   })
 }

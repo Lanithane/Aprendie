@@ -23,6 +23,7 @@ export interface SettingsPatch {
   dailyGradedCap?: number
   signupsPaused?: boolean
   spendPaused?: boolean
+  autoApproveSignups?: boolean
 }
 
 export async function update(patch: SettingsPatch): Promise<AppSettingsRow> {

@@ -163,6 +163,20 @@ export default function LimitsPanel({ users }: LimitsPanelProps) {
                 <FormControlLabel
                   control={
                     <Switch
+                      checked={settings.autoApproveSignups}
+                      onChange={(e) => void update({ autoApproveSignups: e.target.checked })}
+                    />
+                  }
+                  label='Auto-approve new accounts'
+                />
+                <Typography variant='caption' color='text.secondary' sx={{ display: 'block' }}>
+                  New sign-ups are immediately approved instead of landing in the pending queue.
+                </Typography>
+              </Box>
+              <Box>
+                <FormControlLabel
+                  control={
+                    <Switch
                       checked={settings.signupsPaused}
                       onChange={(e) => void update({ signupsPaused: e.target.checked })}
                     />

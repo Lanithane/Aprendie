@@ -1,0 +1,1 @@
+ALTER TABLE "app_settings" ADD COLUMN "auto_approve_signups" boolean DEFAULT false NOT NULL;

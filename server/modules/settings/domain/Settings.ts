@@ -5,6 +5,7 @@ export interface AppSettings {
   dailyGradedCap: number
   signupsPaused: boolean
   spendPaused: boolean
+  autoApproveSignups: boolean
 }
 
 export function toSettingsView(row: AppSettingsRow): AppSettings {
@@ -12,5 +13,6 @@ export function toSettingsView(row: AppSettingsRow): AppSettings {
     dailyGradedCap: row.dailyGradedCap,
     signupsPaused: row.signupsPaused,
     spendPaused: row.spendPaused,
+    autoApproveSignups: row.autoApproveSignups,
   }
 }

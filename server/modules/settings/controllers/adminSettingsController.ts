@@ -15,6 +15,7 @@ const settingsBodySchema = z
     dailyGradedCap: z.coerce.number().int().min(1).max(10000),
     signupsPaused: z.boolean(),
     spendPaused: z.boolean(),
+    autoApproveSignups: z.boolean(),
   })
   .partial()
   .refine((b) => Object.keys(b).length > 0, { message: 'no fields to update' })
