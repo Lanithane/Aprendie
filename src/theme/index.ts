@@ -12,13 +12,37 @@ function md3Typography(): TypographyVariantsOptions {
     fontFamily: '"Inter Variable", "Inter", "Helvetica", "Arial", sans-serif',
     fontWeightMedium: 500,
     // display-small
-    h3: { fontSize: rem(36), lineHeight: 44 / 36, fontWeight: 400, letterSpacing: 0 },
+    h3: {
+      fontFamily: "'Lilita One', system-ui, sans-serif",
+      fontSize: rem(36),
+      lineHeight: 44 / 36,
+      fontWeight: 400,
+      letterSpacing: 0,
+    },
     // headline-medium
-    h4: { fontSize: rem(28), lineHeight: 36 / 28, fontWeight: 400, letterSpacing: 0 },
+    h4: {
+      fontFamily: "'Lilita One', system-ui, sans-serif",
+      fontSize: rem(28),
+      lineHeight: 36 / 28,
+      fontWeight: 400,
+      letterSpacing: 0,
+    },
     // headline-small
-    h5: { fontSize: rem(24), lineHeight: 32 / 24, fontWeight: 400, letterSpacing: 0 },
+    h5: {
+      fontFamily: "'Lilita One', system-ui, sans-serif",
+      fontSize: rem(24),
+      lineHeight: 32 / 24,
+      fontWeight: 400,
+      letterSpacing: 0,
+    },
     // title-large
-    h6: { fontSize: rem(22), lineHeight: 28 / 22, fontWeight: 400, letterSpacing: 0 },
+    h6: {
+      fontFamily: "'Lilita One', system-ui, sans-serif",
+      fontSize: rem(22),
+      lineHeight: 28 / 22,
+      fontWeight: 400,
+      letterSpacing: 0,
+    },
     // title-medium
     subtitle1: {
       fontSize: rem(16),
