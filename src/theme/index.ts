@@ -63,10 +63,10 @@ function md3Typography(): TypographyVariantsOptions {
     body2: { fontSize: rem(14), lineHeight: 20 / 14, fontWeight: 700, letterSpacing: em(0.25, 14) },
     // label-large (buttons) — MD3 has no all-caps
     button: {
-      fontSize: rem(14),
-      lineHeight: 20 / 14,
-      fontWeight: 500,
-      letterSpacing: em(0.1, 14),
+      fontSize: rem(15),
+      lineHeight: 20 / 15,
+      fontWeight: 700,
+      letterSpacing: em(0.1, 15),
       textTransform: 'none',
     },
     // label-medium (eyebrow labels)
@@ -226,6 +226,9 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
               ...(restingFill ? { '&:hover': { backgroundColor: restingFill } } : {}),
             }
           },
+          sizeLarge: { fontSize: rem(17), fontWeight: 700 },
+          sizeMedium: { fontWeight: 700 },
+          sizeSmall: { fontWeight: 700 },
         },
       },
       MuiChip: {

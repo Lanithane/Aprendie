@@ -101,7 +101,7 @@ export default function CorrectionDisplay({
             rowGap: 1,
           }}
         >
-          {isCorrect ? <CheckCircleIcon color='success' /> : <CancelIcon color='warning' />}
+          {isCorrect ? <CheckCircleIcon color='success' sx={{ fontSize: '2rem' }} /> : <CancelIcon color='warning' />}
           <Typography variant='h5' sx={{ flex: '1 1 220px', minWidth: 0 }}>
             {isCorrect ? 'Nice!' : "Close! Here's what to fix"}
           </Typography>
@@ -138,7 +138,7 @@ export default function CorrectionDisplay({
           </Box>
           <Box>
             <Typography variant='overline' color='text.secondary'>
-              Corrected
+              Correct
             </Typography>
             <DiffLine lang={guessLanguage}>
               {parts.map((p, i) => {
