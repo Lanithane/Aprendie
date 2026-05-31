@@ -37,7 +37,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 14   | Forgiving scoring & letter grades (A+…F)                                       | ✅ Done (shipped to main)           |
 | 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                     | ⬜ Not started                      |
 | 16   | Feedback & analytics (self-hosted, in admin)                                   | ⬜ Not started                      |
-| 17   | Single Starter level (drop Foundation) + Starter word-meaning hints            | ⬜ Not started                      |
+| 17   | Single Starter level (drop Foundation) + Starter word-meaning hints            | ✅ Done                             |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -643,7 +643,7 @@ existing admin console.
       ([AdminPage.tsx](src/pages/AdminPage.tsx) / [AdminUserDetailPage.tsx](src/pages/AdminUserDetailPage.tsx)).
 - [ ] _Backlog:_ richer admin analytics dashboards.
 
-## ⬜ Epic 17 — Single Starter level + Starter word hints
+## ✅ Epic 17 — Single Starter level + Starter word hints
 
 Collapses the two invented pre-A1 levels (`starter` + `foundation`) into **one `starter` level** below
 A1, and gives that level a **little help**: clicking a word at Starter reveals its meaning (a
@@ -653,33 +653,32 @@ still never translate the word.
 **Decided:** keep the `starter` code, drop `foundation`; the gloss shows **on click, at Starter only**;
 gloss is **generated only for Starter sentences**; existing `foundation` data is **remapped → `starter`**.
 
-- [ ] **Levels ladder** — in [shared/levels.ts](shared/levels.ts): remove the `foundation` entry, drop
+- [x] **Levels ladder** — in [shared/levels.ts](shared/levels.ts): remove the `foundation` entry, drop
       it from the `LevelCode` union, re-number `order`, and fold its calibration into the `starter`
       `blurb` (single high-frequency words + short set phrases — greetings, numbers, basic needs;
       present tense, concrete vocabulary, cognates where natural). Update the "two pre-A1 levels" header
       comment. Downstream auto-updates: the generation `LEVEL_RUBRIC` and the level chip/menu both
       derive from `LEVELS`.
-- [ ] **Migration (next free number, e.g. `0014`)** — rewrite stored `'foundation'` → `'starter'` across
+- [x] **Migration `0014`** — rewrite stored `'foundation'` → `'starter'` across
       `users.level`, `sentence_cache.level`, and `attempts.level` (all loose text in
       [schema.ts](server/infrastructure/db/schema.ts)), so no row references the removed code; cached
       Foundation sentences are remapped in place. Applied local + (auto on deploy) prod.
-- [ ] **Optional gloss on `WordToken`** — add `gloss?: string` (the word's meaning in the guess
+- [x] **Optional gloss on `WordToken`** — add `gloss?: string` (the word's meaning in the guess
       language) to `WordToken` in [shared/languages.ts](shared/languages.ts), carried through
       `normalizeToken` in
       [generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts). It rides
       in the existing `word_breakdown` JSON — no column change.
-- [ ] **Starter-only gloss generation** — when a **Starter** batch is requested, relax the prompt's
-      "CRITICAL: never give the meaning" rule
-      ([generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts), the
-      `gloss`-forbidding line in `SYSTEM_PROMPT_TEXT`) to require a one-word `gloss` per token; for every
-      other level — and mixed (Any level) batches — keep the immersive rule and omit `gloss`.
-- [ ] **Show the gloss at Starter** — thread the sentence's `level` from
-      [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx) /
-      [SentenceTokens.tsx](src/components/SentenceTokens/SentenceTokens.tsx) into
-      [WordPopover.tsx](src/components/WordPopover/WordPopover.tsx); render `token.gloss` (clearly marked
-      as the meaning, in the guess language) only when `level === 'starter'` and a gloss is present. A1+
+- [x] **Starter-only gloss generation** — when a **Starter** batch is requested, uses a separate
+      `SYSTEM_PROMPT_STARTER` (cached) that requires a one-word `gloss` per token; for every
+      other level — and mixed (Any level) batches — `SYSTEM_PROMPT_STANDARD` keeps the immersive rule
+      and omits `gloss`.
+- [x] **Show the gloss at Starter** — `sentenceLevel` threaded from
+      [HomePage.tsx](src/pages/HomePage.tsx) → [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx) →
+      [SentenceTokens.tsx](src/components/SentenceTokens/SentenceTokens.tsx) →
+      [WordPopover.tsx](src/components/WordPopover/WordPopover.tsx); renders `token.gloss` in primary
+      colour above the lemma row only when `sentenceLevel === 'starter'` and a gloss is present. A1+
       popovers stay exactly as they are.
-- [ ] _Note:_ the hint applies to explicit Starter selection only; mixed-level batches don't carry
+- [x] _Note:_ the hint applies to explicit Starter selection only; mixed-level batches don't carry
       Starter glosses. Further assistance ideas (first-letter hint, word bank) are parked in the backlog.
 
 ---

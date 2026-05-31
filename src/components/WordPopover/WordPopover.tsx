@@ -1,12 +1,14 @@
 import { Popover, Box, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { ROOT_LABEL, type LanguageCode, type WordToken } from '../../../shared/languages'
+import type { LevelCode } from '../../../shared/levels'
 
 interface WordPopoverProps {
   anchorEl: HTMLElement | null
   token: WordToken | null
   learnLanguage: LanguageCode
   guessLanguage: LanguageCode
+  sentenceLevel?: LevelCode | null
   onClose: () => void
 }
 
@@ -39,9 +41,11 @@ export default function WordPopover({
   token,
   learnLanguage,
   guessLanguage,
+  sentenceLevel,
   onClose,
 }: WordPopoverProps) {
   const isBaseForm = token !== null && token.modifiers.length === 0
+  const showGloss = sentenceLevel === 'starter' && Boolean(token?.gloss)
   return (
     <Popover
       open={Boolean(anchorEl && token)}
@@ -52,6 +56,15 @@ export default function WordPopover({
     >
       {token && (
         <Box sx={{ p: 1.5, maxWidth: 280 }}>
+          {showGloss && (
+            <Typography
+              variant='body2'
+              lang={guessLanguage}
+              sx={{ mb: 0.75, color: 'primary.main', fontWeight: 600 }}
+            >
+              {token.gloss}
+            </Typography>
+          )}
           <Stack direction='row' spacing={1} sx={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
             {isBaseForm ? (
               <Typography

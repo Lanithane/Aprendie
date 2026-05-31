@@ -17,9 +17,7 @@ const LEVEL_RUBRIC = LEVELS.map(
   (l) => `- ${l.code}${l.cefr ? ` (CEFR ${l.cefr})` : ''}: ${l.blurb}`
 ).join('\n')
 
-// Language-agnostic so the cached system block is byte-identical across every language
-// pair. Everything pair-specific lives in the user turn.
-const SYSTEM_PROMPT_TEXT = `You generate language-learning sentences for a learner.
+const SHARED_PROMPT_INTRO = `You generate language-learning sentences for a learner.
 
 The user message gives you: the LEARN language (write the sentences in this language), the GUESS language (the language the learner translates into), a regional locale, and a target difficulty level (or an instruction to mix levels).
 
@@ -37,7 +35,11 @@ Output requirements:
     "partOfSpeech" = a short, common part-of-speech label in the GUESS language (e.g. "noun", "verb", "adjective", "adverb", "pronoun", "preposition", "article", "conjunction"). Use everyday grammar terms — avoid fine-grained technical subcategories like "proper noun" or "clitic pronoun",
     "modifiers" = an array describing how the surface word differs from the lemma. If the surface word IS the dictionary/base form (identical to the lemma apart from capitalization), use an empty array []. Otherwise include one entry per morphological change — suffixes, prefixes, AND stem changes (e.g. the e→ie diphthong that turns "tener" into "tienes"). Each entry:
         "segment" = the affix or changed letters as they appear (e.g. "-es", "-as", "ie"),
-        "note" = a brief explanation of that change's grammatical function, written in the GUESS language (e.g. "2nd person singular, present tense", "stem change e→ie", "feminine plural").
+        "note" = a brief explanation of that change's grammatical function, written in the GUESS language (e.g. "2nd person singular, present tense", "stem change e→ie", "feminine plural").`
+
+// Standard prompt: immersive — no word meanings ever revealed. Language-agnostic so the
+// cached system block is byte-identical across every language pair.
+const SYSTEM_PROMPT_STANDARD = `${SHARED_PROMPT_INTRO}
 - CRITICAL: never give the meaning or translation of any word. The learner must recall meanings unaided. The GUESS language appears ONLY as grammatical metadata — the "partOfSpeech" label and modifier "note" fields — never as a gloss. "lemma" and modifier "segment" stay in the LEARN language.
 - Return ONLY valid JSON, no markdown, no commentary.
 
@@ -49,6 +51,25 @@ JSON shape:
       "answerText": string,
       "level": string,
       "wordBreakdown": [ { "surface": string, "lemma": string, "partOfSpeech": string, "modifiers": [ { "segment": string, "note": string } ] } ]
+    }
+  ]
+}`
+
+// Starter prompt: adds a one-word gloss per token in the guess language. Only used when the
+// entire batch is at the starter level — mixed batches always use the standard prompt.
+const SYSTEM_PROMPT_STARTER = `${SHARED_PROMPT_INTRO}
+- For each wordBreakdown entry, include a "gloss" field: a single word (or very short phrase) in the GUESS language that gives the core meaning of that word. This is the one place the guess language may express meaning — keep it to one word where possible.
+- "lemma" and modifier "segment" still stay in the LEARN language.
+- Return ONLY valid JSON, no markdown, no commentary.
+
+JSON shape:
+{
+  "sentences": [
+    {
+      "promptText": string,
+      "answerText": string,
+      "level": string,
+      "wordBreakdown": [ { "surface": string, "lemma": string, "partOfSpeech": string, "gloss": string, "modifiers": [ { "segment": string, "note": string } ] } ]
     }
   ]
 }`
@@ -74,12 +95,14 @@ function normalizeToken(raw: Partial<WordToken>): WordToken {
   const modifiers: WordModifier[] = rawModifiers
     .filter((m): m is WordModifier => Boolean(m?.segment))
     .map((m) => ({ segment: m.segment, note: m.note ?? '' }))
-  return {
+  const token: WordToken = {
     surface: raw.surface ?? '',
     lemma: raw.lemma ?? '',
     partOfSpeech: raw.partOfSpeech ?? '',
     modifiers,
   }
+  if (raw.gloss) token.gloss = raw.gloss
+  return token
 }
 
 function normalize(raw: RawSentence, requestedLevel?: LevelCode): GeneratedSentence {
@@ -111,10 +134,11 @@ ${levelLine}
 
 Generate ${count} sentences now.`
 
+  const systemPrompt = level === 'starter' ? SYSTEM_PROMPT_STARTER : SYSTEM_PROMPT_STANDARD
   const resp = await anthropic.messages.create({
     model: SENTENCE_MODEL,
     max_tokens: 8000,
-    system: [{ type: 'text', text: SYSTEM_PROMPT_TEXT, cache_control: { type: 'ephemeral' } }],
+    system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: userText }],
   })
 

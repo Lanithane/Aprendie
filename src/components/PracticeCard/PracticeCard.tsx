@@ -26,7 +26,7 @@ import {
   type LocaleCode,
   type WordToken,
 } from '../../../shared/languages'
-import { LEVELS, levelLabel } from '../../../shared/levels'
+import { LEVELS, levelLabel, type LevelCode } from '../../../shared/levels'
 import type { LevelPref } from '../../hooks/useLevelPreference'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
@@ -76,6 +76,7 @@ interface PracticeCardProps {
   guessLanguage: LanguageCode
   locale: LocaleCode
   level: LevelPref
+  sentenceLevel?: LevelCode | null
   onLevelChange: (level: LevelPref) => void
   onSubmit: (answer: string) => void
   submitting?: boolean
@@ -89,6 +90,7 @@ export default function PracticeCard({
   guessLanguage,
   locale,
   level,
+  sentenceLevel,
   onLevelChange,
   onSubmit,
   submitting,
@@ -182,6 +184,7 @@ export default function PracticeCard({
             breakdown={wordBreakdown}
             learnLanguage={learnLanguage}
             guessLanguage={guessLanguage}
+            sentenceLevel={sentenceLevel}
           />
         </SentenceCenter>
 

@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import { Stack, TextField, Button, Typography, Chip, CircularProgress, InputAdornment } from '@mui/material'
+import {
+  Stack,
+  TextField,
+  Button,
+  Typography,
+  Chip,
+  CircularProgress,
+  InputAdornment,
+} from '@mui/material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import { format } from 'date-fns'
@@ -103,7 +111,9 @@ export default function DailyLimitSection({
             disabled={busy || capSaveState === 'saving'}
             error={!capValid}
             onChange={(e) => setCapField(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') void saveCap() }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void saveCap()
+            }}
             slotProps={{
               htmlInput: { min: 1, max: 10000, step: 1 },
               input: { endAdornment: capAdornment },
@@ -147,7 +157,11 @@ export default function DailyLimitSection({
               Re-cap now
             </Button>
           </Stack>
-          <Stack direction='row' spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap', mt: '24px !important' }}>
+          <Stack
+            direction='row'
+            spacing={1.5}
+            sx={{ alignItems: 'center', flexWrap: 'wrap', mt: '24px !important' }}
+          >
             <TextField
               size='small'
               type='datetime-local'

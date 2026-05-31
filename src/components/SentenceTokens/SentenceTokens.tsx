@@ -1,6 +1,7 @@
 import { useMemo, useState, type MouseEvent } from 'react'
 import { styled } from '@mui/material/styles'
 import type { LanguageCode, WordToken } from '../../../shared/languages'
+import type { LevelCode } from '../../../shared/levels'
 import WordPopover from '../WordPopover/WordPopover'
 import { tokenizeSentence } from './tokenize'
 
@@ -38,6 +39,7 @@ interface SentenceTokensProps {
   breakdown: WordToken[]
   learnLanguage: LanguageCode
   guessLanguage: LanguageCode
+  sentenceLevel?: LevelCode | null
 }
 
 // Renders a learn-language sentence with each meaningful word clickable; clicking opens a
@@ -49,6 +51,7 @@ export default function SentenceTokens({
   breakdown,
   learnLanguage,
   guessLanguage,
+  sentenceLevel,
 }: SentenceTokensProps) {
   const segments = useMemo(() => tokenizeSentence(text, breakdown), [text, breakdown])
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
@@ -81,6 +84,7 @@ export default function SentenceTokens({
         token={active}
         learnLanguage={learnLanguage}
         guessLanguage={guessLanguage}
+        sentenceLevel={sentenceLevel}
         onClose={close}
       />
     </span>

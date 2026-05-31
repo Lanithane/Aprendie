@@ -1,8 +1,8 @@
 // CEFR-aligned difficulty levels shared by the frontend (UI labels) and backend (prompt
-// rubric). The ladder runs from two pre-A1 levels up through C2. `blurb` is a
+// rubric). The ladder runs from one pre-A1 level (starter) up through C2. `blurb` is a
 // language-agnostic calibration hint that goes into the generation prompt and the UI tooltip.
 
-export type LevelCode = 'starter' | 'foundation' | 'a1' | 'a2' | 'b1' | 'b2' | 'c1' | 'c2'
+export type LevelCode = 'starter' | 'a1' | 'a2' | 'b1' | 'b2' | 'c1' | 'c2'
 
 export interface LevelDef {
   code: LevelCode
@@ -19,21 +19,13 @@ export const LEVELS: LevelDef[] = [
     cefr: null,
     order: 0,
     blurb:
-      'Absolute first contact: single high-frequency words and 2-3 word set phrases. Present tense only, concrete everyday nouns, cognates where natural.',
-  },
-  {
-    code: 'foundation',
-    name: 'Foundation Level',
-    cefr: null,
-    order: 1,
-    blurb:
-      'Very simple fixed everyday phrases of 3-5 words (greetings, basic needs, numbers, simple statements). Present tense, concrete vocabulary, no subordinate clauses.',
+      'Absolute first contact: single high-frequency words and short set phrases of 2-5 words (greetings, numbers, basic needs, simple statements). Present tense only, concrete everyday nouns, cognates where natural.',
   },
   {
     code: 'a1',
     name: 'Beginner Level',
     cefr: 'A1',
-    order: 2,
+    order: 1,
     blurb:
       'Simple sentences about familiar everyday topics. Basic present tense, simple connectors, high-frequency vocabulary.',
   },
@@ -41,7 +33,7 @@ export const LEVELS: LevelDef[] = [
     code: 'a2',
     name: 'Elementary Level',
     cefr: 'A2',
-    order: 3,
+    order: 2,
     blurb:
       'Short connected sentences on routine matters. Common past and future tenses, everyday vocabulary, simple subordination.',
   },
@@ -49,7 +41,7 @@ export const LEVELS: LevelDef[] = [
     code: 'b1',
     name: 'Intermediate Level',
     cefr: 'B1',
-    order: 4,
+    order: 3,
     blurb:
       'Everyday situations, plans and opinions. Multiple tenses, some subordinate clauses, moderately varied vocabulary.',
   },
@@ -57,7 +49,7 @@ export const LEVELS: LevelDef[] = [
     code: 'b2',
     name: 'Upper Intermediate Level',
     cefr: 'B2',
-    order: 5,
+    order: 4,
     blurb:
       'Abstract and concrete topics with clear argument. Complex sentences, varied moods and aspects, broader vocabulary and some idioms.',
   },
@@ -65,7 +57,7 @@ export const LEVELS: LevelDef[] = [
     code: 'c1',
     name: 'Advanced Level',
     cefr: 'C1',
-    order: 6,
+    order: 5,
     blurb:
       'Nuanced, fluent expression. Complex syntax, idiomatic usage, lower-frequency and figurative vocabulary, register awareness.',
   },
@@ -73,7 +65,7 @@ export const LEVELS: LevelDef[] = [
     code: 'c2',
     name: 'Proficiency Level',
     cefr: 'C2',
-    order: 7,
+    order: 6,
     blurb:
       'Near-native subtlety. Sophisticated structure, idioms, register and tone shifts, precise and uncommon vocabulary.',
   },

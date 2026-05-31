@@ -106,6 +106,7 @@ export default function HomePage() {
         guessLanguage={sentence.guessLanguage}
         locale={sentence.locale}
         level={level}
+        sentenceLevel={sentence.level}
         onLevelChange={setLevel}
         onSubmit={(userAnswer) => {
           void submit(sentence.id, userAnswer)
