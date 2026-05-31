@@ -62,9 +62,9 @@ export default function WordPopover({
         <Box sx={{ p: 1.5, maxWidth: 280 }}>
           {showGloss && (
             <Typography
-              variant='body2'
+              variant='subtitle1'
               lang={guessLanguage}
-              sx={{ mb: 0.75, color: 'primary.main', fontWeight: 600 }}
+              sx={{ mb: 0.75, color: 'primary.main', fontWeight: 700, fontSize: '1.125rem' }}
             >
               {token.gloss}
             </Typography>

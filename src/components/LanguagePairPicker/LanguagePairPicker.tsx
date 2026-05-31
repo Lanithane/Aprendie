@@ -8,6 +8,7 @@ import {
   TextField,
   Button,
   Alert,
+  Typography,
 } from '@mui/material'
 import { useLanguagePair } from '../../hooks/useLanguagePair'
 import { useLocaleResolver } from '../../hooks/useLocaleResolver'
@@ -65,30 +66,33 @@ export default function LanguagePairPicker() {
       )}
 
       {showRegion && (
-        <Stack direction='row' spacing={1} sx={{ alignItems: 'flex-start' }}>
-          <TextField
-            fullWidth
-            size='small'
-            label='Or type a place'
-            placeholder='e.g. Buenos Aires'
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                void onDetect()
-              }
-            }}
-            helperText='Picks the best regional variant for your learning language.'
-          />
-          <Button
-            color='secondary'
-            onClick={() => void onDetect()}
-            disabled={resolving || !location.trim()}
-            sx={{ mt: 0.5 }}
-          >
-            {resolving ? 'Detecting…' : 'Detect'}
-          </Button>
+        <Stack spacing={0.5}>
+          <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+            <TextField
+              fullWidth
+              size='small'
+              label='Or type a place'
+              placeholder='e.g. Buenos Aires'
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  void onDetect()
+                }
+              }}
+            />
+            <Button
+              color='secondary'
+              onClick={() => void onDetect()}
+              disabled={resolving || !location.trim()}
+            >
+              {resolving ? 'Detecting…' : 'Detect'}
+            </Button>
+          </Stack>
+          <Typography variant='caption' color='text.secondary'>
+            Picks the best regional variant for your learning language.
+          </Typography>
         </Stack>
       )}
 

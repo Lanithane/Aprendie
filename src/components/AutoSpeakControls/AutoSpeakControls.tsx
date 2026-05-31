@@ -35,6 +35,10 @@ export default function AutoSpeakControls() {
           onChange={(_, v) => setDelayMs(v)}
           disabled={!autoSpeak}
           aria-labelledby='auto-speak-delay-label'
+          sx={{
+            '& .MuiSlider-markLabel[data-index="0"]': { transform: 'translateX(0%)' },
+            '& .MuiSlider-markLabel[data-index="3"]': { transform: 'translateX(-100%)' },
+          }}
         />
       </Box>
     </Stack>

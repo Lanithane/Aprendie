@@ -206,7 +206,7 @@ export default function PracticeCard({
           onClose={() => setRateAnchor(null)}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
           transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-          slotProps={{ paper: { sx: { px: 3, pt: 2.5, pb: 4.5, width: 260 } } }}
+          slotProps={{ paper: { sx: { px: 2.25, pt: 1.875, pb: 1.875, width: 260 } } }}
         >
           <Typography variant='caption' color='text.secondary'>
             Playback speed
@@ -226,6 +226,10 @@ export default function PracticeCard({
             valueLabelFormat={(v) => `${v.toFixed(1)}×`}
             onChange={(_, v) => setRate(v)}
             aria-label='Speech rate'
+            sx={{
+              '& .MuiSlider-markLabel[data-index="0"]': { transform: 'translateX(0%)' },
+              '& .MuiSlider-markLabel[data-index="2"]': { transform: 'translateX(-100%)' },
+            }}
           />
         </Popover>
 
