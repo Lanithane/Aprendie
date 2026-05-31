@@ -250,7 +250,7 @@ function HistoryRow({ entry, open, onToggle, showDivider }: HistoryRowProps) {
             primary: {
               lang: entry.learnLanguage,
               noWrap: true,
-              sx: { flex: 1, minWidth: 0 },
+              sx: { flex: 1, minWidth: 0, wordSpacing: '-0.05em' },
             },
           }}
         />
@@ -271,13 +271,13 @@ function HistoryRow({ entry, open, onToggle, showDivider }: HistoryRowProps) {
           <Typography variant='caption' color='text.secondary'>
             Your answer
           </Typography>
-          <Typography lang={entry.guessLanguage} sx={{ mb: 1, fontWeight: 400 }}>
+          <Typography lang={entry.guessLanguage} sx={{ mb: 1, fontWeight: 400, wordSpacing: '-0.05em' }}>
             {entry.userAnswer}
           </Typography>
           <Typography variant='caption' color='text.secondary'>
             Correct
           </Typography>
-          <Typography lang={entry.guessLanguage} sx={{ fontWeight: 400 }}>
+          <Typography lang={entry.guessLanguage} sx={{ fontWeight: 400, wordSpacing: '-0.05em' }}>
             {entry.correctedAnswer}
           </Typography>
           {entry.mistakes.length > 0 && (

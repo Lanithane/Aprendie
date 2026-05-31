@@ -7,6 +7,11 @@ import { tokenizeSentence } from './tokenize'
 
 // Inline word button: inherits the surrounding typography, adds a dotted underline
 // (Duolingo-style) to signal it's tappable, and lifts to the primary colour on hover/focus.
+// Sentence wrapper: tightens the gap between words a touch sitewide for a more cohesive line.
+const SentenceText = styled('span')`
+  word-spacing: -0.05em;
+`
+
 const TokenButton = styled('button')`
   font: inherit;
   color: inherit;
@@ -68,7 +73,7 @@ export default function SentenceTokens({
   const close = () => setAnchorEl(null)
 
   return (
-    <span lang={learnLanguage}>
+    <SentenceText lang={learnLanguage}>
       {segments.map((seg, i) =>
         seg.token ? (
           <TokenButton
@@ -92,6 +97,6 @@ export default function SentenceTokens({
         alwaysShowGloss={alwaysShowGloss}
         onClose={close}
       />
-    </span>
+    </SentenceText>
   )
 }
