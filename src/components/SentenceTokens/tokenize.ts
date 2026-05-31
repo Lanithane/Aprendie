@@ -9,11 +9,17 @@ export interface SentenceSegment {
 }
 
 // Word run = one or more letters/marks, allowing internal apostrophes or hyphens
-// (so "l'eau", "anti-héros", "qu'est-ce" stay whole). Everything else (spaces,
+// (so "l’eau", "anti-héros", "qu’est-ce" stay whole). Everything else (spaces,
 // punctuation) falls between matches and is emitted as inert text.
 const WORD_RE = /[\p{L}\p{M}]+(?:['’-][\p{L}\p{M}]+)*/gu
 
 const normalize = (s: string) => s.normalize('NFC').toLowerCase().trim()
+
+// Surface strings from the AI may include attached punctuation (e.g. "¿Cómo", "llamas?")
+// because the prompt asks for the word "as it appears in promptText". Strip leading/trailing
+// non-letter/mark chars so the key matches what WORD_RE extracts from the sentence text.
+const surfaceKey = (s: string) =>
+  normalize(s).replace(/^[^\p{L}\p{M}]+|[^\p{L}\p{M}]+$/gu, '')
 
 // Split `text` into ordered segments, attaching a WordToken to each word run whose
 // surface matches (case-insensitively). Punctuation and whitespace are preserved as
@@ -22,7 +28,7 @@ const normalize = (s: string) => s.normalize('NFC').toLowerCase().trim()
 export function tokenizeSentence(text: string, breakdown: WordToken[]): SentenceSegment[] {
   const bySurface = new Map<string, WordToken>()
   for (const token of breakdown) {
-    const key = normalize(token.surface)
+    const key = surfaceKey(token.surface)
     // First occurrence wins, so a repeated surface keeps its earliest breakdown entry.
     if (key && !bySurface.has(key)) bySurface.set(key, token)
   }
