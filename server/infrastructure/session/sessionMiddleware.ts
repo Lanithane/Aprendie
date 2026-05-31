@@ -11,7 +11,7 @@ export const sessionMiddleware = session({
     tableName: 'session',
     createTableIfMissing: false,
   }),
-  name: 'gac.sid',
+  name: 'aprendie.sid',
   secret: env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,

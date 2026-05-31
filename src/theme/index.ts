@@ -62,7 +62,7 @@ function md3Typography(): TypographyVariantsOptions {
   }
 }
 
-export function createGacTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme {
+export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): Theme {
   const s: Md3Scheme = THEMES[themeId][mode]
 
   // Promote the MD3 tertiary role to a full PaletteColor (light/dark/contrastText derived)

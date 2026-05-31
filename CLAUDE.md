@@ -76,8 +76,8 @@ and every new screen/component must be built in it — do **not** restyle later.
   derives the ~37 contrast-correct roles per mode (on-\* pairs, container tones, the surface-elevation
   ladder, state layers) that 5 raw colours can't safely cover.
 - **Theme + mode are both user prefs.** [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx) owns the
-  selected `themeId` (`gac:themeId`) and light/dark/system `mode` (`gac:themeMode`) and builds the MUI
-  theme via `createGacTheme(themeId, resolvedMode)`. The picker lives in Settings
+  selected `themeId` (`aprendie:themeId`) and light/dark/system `mode` (`aprendie:themeMode`) and builds the MUI
+  theme via `createAprendieTheme(themeId, resolvedMode)`. The picker lives in Settings
   ([ThemePicker.tsx](src/components/ThemePicker/ThemePicker.tsx)); every theme adapts to light & dark.
   Components must stay theme-agnostic — read roles off `theme.palette.*`, never assume a specific hue.
 - **Read roles off the theme** in styled components: `theme.palette.primary/secondary/error` plus the

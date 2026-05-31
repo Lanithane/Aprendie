@@ -1,14 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ThemeProvider, CssBaseline } from '@mui/material'
-import { createGacTheme, DEFAULT_THEME_ID, THEME_IDS, type ThemeId } from './theme'
+import { createAprendieTheme, DEFAULT_THEME_ID, THEME_IDS, type ThemeId } from './theme'
 import { useAuth } from './auth/AuthContext'
 import { updateUserAppearance } from './api/userApi'
 import type { ThemeMode } from '../shared/appearance'
 
 export type { ThemeMode }
 
-const STORAGE_KEY = 'gac:themeMode'
-const THEME_STORAGE_KEY = 'gac:themeId'
+const STORAGE_KEY = 'aprendie:themeMode'
+const THEME_STORAGE_KEY = 'aprendie:themeId'
 
 interface ThemeModeState {
   mode: ThemeMode
@@ -110,7 +110,7 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
     if (user) void updateUserAppearance({ themeId: next }).catch(() => {})
   }
 
-  const theme = useMemo(() => createGacTheme(themeId, resolvedMode), [themeId, resolvedMode])
+  const theme = useMemo(() => createAprendieTheme(themeId, resolvedMode), [themeId, resolvedMode])
 
   return (
     <ThemeModeContext.Provider

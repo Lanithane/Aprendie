@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 // Persisted text-to-speech playback rate (a SpeechSynthesisUtterance.rate multiplier).
 // Client-side preference, same localStorage pattern as useLanguagePair.
-const STORAGE_KEY = 'gac:speechRate'
+const STORAGE_KEY = 'aprendie:speechRate'
 export const DEFAULT_RATE = 1.0
 export const MIN_RATE = 0.5
 export const MAX_RATE = 1.5

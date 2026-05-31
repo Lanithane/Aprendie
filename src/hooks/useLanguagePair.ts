@@ -13,7 +13,7 @@ import { updateUserLanguagePair } from '../api/userApi'
 // The language pair is owned by the account (server truth). We keep a localStorage
 // cache so a cold load paints the last-known pair instantly, before `/api/me`
 // resolves; the server value wins once it arrives.
-const STORAGE_KEY = 'gac:languagePair'
+const STORAGE_KEY = 'aprendie:languagePair'
 
 function readCache(): LanguagePair | null {
   try {

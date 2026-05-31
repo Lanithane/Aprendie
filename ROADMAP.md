@@ -167,10 +167,10 @@ selection. No backend.
       saved preferred voice when it matches the language); expose `speak(text, locale, rate)`,
       `cancel()`, `speaking`, `supported`, `voices`. Subscribe to `voiceschanged` (voices load
       async — the external-subscription case the hooks rule allows).
-- [x] **src/hooks/useSpeechRate.ts** (new) — persisted pref (`gac:speechRate`, default 1.0),
+- [x] **src/hooks/useSpeechRate.ts** (new) — persisted pref (`aprendie:speechRate`, default 1.0),
       same pattern as `useLevelPreference`.
 - [x] **src/hooks/useSpeechVoice.ts** (new) — persisted preferred-voice pref
-      (`gac:speechVoiceURI`, stores the voice's `voiceURI`; `null` = automatic).
+      (`aprendie:speechVoiceURI`, stores the voice's `voiceURI`; `null` = automatic).
 - [x] **PracticeCard** — speaker/play `IconButton` in the card's top-right + a "1.0×" affordance
       that opens an on-demand rate `Popover` (slider ~0.5–1.5×). Gracefully hidden if `!supported`.
 - [x] **Settings → Pronunciation** — `VoicePicker` lists the device voices for the active learn
@@ -306,7 +306,7 @@ runner in this epic (`npm test`).
       [saveApiKey.ts](server/modules/apiKey/application/saveApiKey.ts),
       [anthropicClientForUser.ts](server/modules/apiKey/application/anthropicClientForUser.ts),
       [adminUsers.ts](server/modules/user/application/adminUsers.ts).
-- [x] **HKDF per-record subkey** — the AES key is `HKDF(master, salt=userId, info='gac/apiKey')`,
+- [x] **HKDF per-record subkey** — the AES key is `HKDF(master, salt=userId, info='aprendie/apiKey')`,
       so the master key never encrypts directly (the "doubly" layer) and the subkey is itself
       user-bound.
 - [x] **Versioned blob format** — blobs are `v3$iv$ct$tag` under a single `ENCRYPTION_KEY`
@@ -479,7 +479,7 @@ encryption/trust copy. Keep it a self-contained component so a real OAuth flow c
 don't architect around one.
 
 **Prereq — persist the language pair server-side.** Today the pair + locale live in localStorage only
-(`gac:languagePair`, [useLanguagePair.ts](src/hooks/useLanguagePair.ts)); `level` and theme already
+(`aprendie:languagePair`, [useLanguagePair.ts](src/hooks/useLanguagePair.ts)); `level` and theme already
 moved onto the `users` row. The server can't prewarm a pool it doesn't know about, so the pair must
 follow the account. (This supersedes the old "prefs stay client-side" decision — already half-reversed
 by `level`/theme.)
@@ -604,8 +604,8 @@ better default voices; the manual speak button already exists. Pure frontend (We
       `useSpeech().speak(...)` after a configurable delay. Keep the timer in a small hook
       (`src/hooks/useAutoSpeak.ts`) per the [CLAUDE.md](CLAUDE.md) useEffect rules; cancel on the next
       sentence / unmount.
-- [ ] **Persisted prefs** — `useAutoSpeakPreference` (`gac:autoSpeak`, default off) + delay
-      (`gac:autoSpeakDelayMs`, **default 1000**), same localStorage pattern as
+- [ ] **Persisted prefs** — `useAutoSpeakPreference` (`aprendie:autoSpeak`, default off) + delay
+      (`aprendie:autoSpeakDelayMs`, **default 1000**), same localStorage pattern as
       [useSpeechRate.ts](src/hooks/useSpeechRate.ts). The 1 s default gives the learner a moment to read
       the sentence before the audio plays.
 - [ ] **Settings audio controls** — extend the **Pronunciation** SectionCard in

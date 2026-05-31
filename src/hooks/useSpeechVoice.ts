@@ -11,7 +11,7 @@ import { useSyncExternalStore } from 'react'
 // would never reach the player. A module-level value + listener set, read via
 // `useSyncExternalStore`, keeps every consumer in the tab in lockstep; the `storage` listener
 // still handles cross-tab sync.
-const STORAGE_KEY = 'gac:speechVoiceURI'
+const STORAGE_KEY = 'aprendie:speechVoiceURI'
 
 function read(): string | null {
   try {

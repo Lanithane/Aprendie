@@ -118,7 +118,7 @@ Use prompt caching on the system prompt (locale, output schema, examples) so rep
 
 **Correction display.** `CorrectionDisplay` shows: (1) user's answer with word-level diff highlight via `diff`; (2) the correct answer; (3) mistakes list — each mistake shows the Spanish source word in a Chip, the user's misinterpretation, and Claude's explanation; (4) "Next" button — clears state, requests next sentence, returns to initial UX.
 
-**History.** Per original requirement: localStorage. Keyed by `gac:history:${userId}:${locale}`. Schema: `{ id, spanish, expectedEnglish, userEnglish, correctionJson, createdAt }`. Append on each completed attempt. `HistoryPage` renders a sortable list; clicking a row re-opens the full correction.
+**History.** Per original requirement: localStorage. Keyed by `aprendie:history:${userId}:${locale}`. Schema: `{ id, spanish, expectedEnglish, userEnglish, correctionJson, createdAt }`. Append on each completed attempt. `HistoryPage` renders a sortable list; clicking a row re-opens the full correction.
 
 **Locale.** v1 supports Spanish variants: `es-MX` (default), `es-ES`, `es-AR`. Stored in localStorage. Passed into both sentence-generation and correction prompts as a regional vocabulary/idiom hint. Sidebar has a `Select` to change it.
 
