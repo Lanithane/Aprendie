@@ -28,6 +28,9 @@ export interface CurrentUserDto {
 // client seed the first sentence without a second round trip.
 export interface MeDto extends CurrentUserDto {
   bootstrapSentence: SentenceDto | null
+  // Absolute expiry of the current session (epoch ms), or null if unknown. The client
+  // mirrors this so it can detect an expired session and prompt the user to sign in again.
+  sessionExpiresAt: number | null
 }
 
 export function fetchCurrentUser(opts?: { bootstrap?: boolean }): Promise<MeDto> {

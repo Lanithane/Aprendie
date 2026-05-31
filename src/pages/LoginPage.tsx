@@ -1,12 +1,19 @@
-import { Button, Container, Stack, Typography } from '@mui/material'
+import { Alert, Button, Container, Stack, Typography } from '@mui/material'
 import GoogleIcon from '@mui/icons-material/Google'
 import BrandWordmark from '../components/Brand/BrandWordmark'
+import { useAuth } from '../auth/AuthContext'
 
 export default function LoginPage() {
+  const { sessionExpired } = useAuth()
   return (
     <Container maxWidth='xs' sx={{ pt: { xs: 10, sm: 14 } }}>
       <Stack spacing={3.5} sx={{ alignItems: 'center', textAlign: 'center' }}>
         <BrandWordmark size='login' />
+        {sessionExpired && (
+          <Alert severity='info' sx={{ width: '100%' }}>
+            Your session expired after 30 days of inactivity. Please sign in again.
+          </Alert>
+        )}
         <Typography color='text.secondary'>
           Practice translating sentences and get instant, friendly corrections.
         </Typography>

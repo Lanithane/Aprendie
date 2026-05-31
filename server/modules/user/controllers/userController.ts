@@ -26,7 +26,10 @@ router.get(
     const user = req.user as UserRow
     const bootstrapSentence =
       req.query.bootstrap === '1' ? await bootstrapSentenceForUser(user) : null
-    res.json({ ...toUserView(user), bootstrapSentence })
+    // Absolute expiry of the current session (epoch ms), mirrored from the httpOnly cookie
+    // so the SPA can show a "session expired" notice once the 30-day window lapses.
+    const sessionExpiresAt = req.session.cookie.expires?.getTime() ?? null
+    res.json({ ...toUserView(user), bootstrapSentence, sessionExpiresAt })
   })
 )
 

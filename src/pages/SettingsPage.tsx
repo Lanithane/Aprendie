@@ -16,6 +16,7 @@ import VoicePicker from '../components/VoicePicker/VoicePicker'
 import AutoSpeakControls from '../components/AutoSpeakControls/AutoSpeakControls'
 import ThemePicker from '../components/ThemePicker/ThemePicker'
 import { useAuth } from '../auth/AuthContext'
+import { clearSessionMarker } from '../auth/sessionMarker'
 import { useLevelPreference } from '../hooks/useLevelPreference'
 import { useThemeMode, type ThemeMode } from '../ThemeModeProvider'
 import { LEVELS, levelLabel } from '../../shared/levels'
@@ -92,7 +93,12 @@ export default function SettingsPage() {
 
         <SectionCard title='Account' description={user?.email}>
           <Box sx={{ mt: 2 }}>
-            <Button color='secondary' component='a' href='/api/auth/logout'>
+            <Button
+              color='secondary'
+              component='a'
+              href='/api/auth/logout'
+              onClick={clearSessionMarker}
+            >
               Sign out
             </Button>
           </Box>

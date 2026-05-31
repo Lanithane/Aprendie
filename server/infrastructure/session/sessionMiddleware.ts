@@ -15,6 +15,11 @@ export const sessionMiddleware = session({
   secret: env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
+  // `rolling: true` resets the cookie's 30-day expiry on every response, so the window is
+  // sliding: activity keeps the session alive and only 30 days of *inactivity* lets it
+  // lapse and returns the user to /login. The client mirrors `cookie.expires` (exposed on
+  // /api/me, which refreshes it each load) so it can show a "session expired" notice once
+  // the window finally passes.
   rolling: true,
   cookie: {
     httpOnly: true,

@@ -19,6 +19,7 @@ import DarkModeIcon from '@mui/icons-material/DarkMode'
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness'
 import { styled } from '@mui/material/styles'
 import { useAuth } from '../../auth/AuthContext'
+import { clearSessionMarker } from '../../auth/sessionMarker'
 import { useThemeMode, type ThemeMode } from '../../ThemeModeProvider'
 import BrandWordmark from '../Brand/BrandWordmark'
 import { ADMIN_NAV_ITEM, isActiveRoute, NAV_ITEMS } from '../AppShell/navigation'
@@ -148,7 +149,12 @@ export default function Sidebar({
           {user && (
             <ListItem disablePadding>
               <Tooltip title={!showLabels ? 'Sign out' : ''} placement='right'>
-                <ListItemButton sx={navSx(!showLabels)} component='a' href='/api/auth/logout'>
+                <ListItemButton
+                  sx={navSx(!showLabels)}
+                  component='a'
+                  href='/api/auth/logout'
+                  onClick={clearSessionMarker}
+                >
                   <ListItemIcon>
                     <LogoutIcon />
                   </ListItemIcon>
