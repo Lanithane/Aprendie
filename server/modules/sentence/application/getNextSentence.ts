@@ -13,6 +13,12 @@ import { toSentenceView, type SentenceView } from '../domain/Sentence'
 // the critical path.
 const REFILL_THRESHOLD = 3
 
+// When the pool is empty we have to generate inline, so generate just one sentence —
+// a single sentence returns from Claude far faster than a full batch, keeping the first
+// load of a new pool (difficulty/language/locale switch) snappy. The rest of the pool is
+// then filled by a background refill so the next Next press is already warm.
+const COLD_START_SIZE = 1
+
 interface GetNextSentenceInput {
   user: UserRow
   learnLanguage: LanguageCode
@@ -31,14 +37,18 @@ function poolKey(input: GetNextSentenceInput): string {
   return `${input.user.id}|${input.learnLanguage}|${input.guessLanguage}|${input.locale}|${input.level ?? ''}`
 }
 
-async function refillPool(input: GetNextSentenceInput): Promise<void> {
+async function refillPool(input: GetNextSentenceInput, count?: number): Promise<void> {
   const anthropic = getOperatorAnthropicClient()
-  const batch = await generateSentenceBatch(anthropic, {
-    learnLanguage: input.learnLanguage,
-    guessLanguage: input.guessLanguage,
-    locale: input.locale,
-    level: input.level,
-  })
+  const batch = await generateSentenceBatch(
+    anthropic,
+    {
+      learnLanguage: input.learnLanguage,
+      guessLanguage: input.guessLanguage,
+      locale: input.locale,
+      level: input.level,
+    },
+    count
+  )
   await sentenceRepository.insertBatch(
     batch.map((s) => ({
       userId: input.user.id,
@@ -82,8 +92,11 @@ export async function getNextSentence(input: GetNextSentenceInput): Promise<Sent
 
   const count = await sentenceRepository.countUnconsumed(filter)
   if (count === 0) {
-    // Cold start / drained pool: nothing to serve, so we must generate inline.
-    await refillPool(input)
+    // Cold start / drained pool: nothing to serve. Generate a single sentence inline so
+    // the user waits as little as possible, then refill the rest of the pool off the
+    // critical path so the next Next press is warm.
+    await refillPool(input, COLD_START_SIZE)
+    triggerBackgroundRefill(input)
   } else if (count < REFILL_THRESHOLD) {
     // Buffer running low but non-empty: serve now, top up in the background.
     triggerBackgroundRefill(input)

@@ -27,7 +27,7 @@ Difficulty levels — use these exact codes for the "level" field:
 ${LEVEL_RUBRIC}
 
 Output requirements:
-- Exactly ${BATCH_SIZE} distinct sentences.
+- Output exactly the number of distinct sentences requested in the user message.
 - "promptText" is the sentence in the LEARN language; "answerText" is a natural translation in the GUESS language.
 - Match the requested difficulty level, or vary across levels if asked to mix. Set "level" to the matching code.
 - Make each sentence natural and idiomatic for the given regional locale.
@@ -96,11 +96,12 @@ function normalize(raw: RawSentence, requestedLevel?: LevelCode): GeneratedSente
 
 export async function generateSentenceBatch(
   anthropic: Anthropic,
-  params: GenerateParams
+  params: GenerateParams,
+  count: number = BATCH_SIZE
 ): Promise<GeneratedSentence[]> {
   const { learnLanguage, guessLanguage, locale, level } = params
   const levelLine = level
-    ? `All ${BATCH_SIZE} sentences at difficulty level "${level}" (${levelByCode(level)?.name ?? level}).`
+    ? `All ${count} sentences at difficulty level "${level}" (${levelByCode(level)?.name ?? level}).`
     : 'Mix difficulty levels across the batch, from starter up to advanced.'
 
   const userText = `Learn language (write the sentences in this): ${languageName(learnLanguage)} (${learnLanguage})
@@ -108,7 +109,7 @@ Guess language (translate into this): ${languageName(guessLanguage)} (${guessLan
 Regional locale: ${locale} — use vocabulary, spelling, and idioms typical of this region.
 ${levelLine}
 
-Generate ${BATCH_SIZE} sentences now.`
+Generate ${count} sentences now.`
 
   const resp = await anthropic.messages.create({
     model: SENTENCE_MODEL,
