@@ -38,7 +38,7 @@ export default function HomePage() {
   const { user, isApproved, bootstrapSentence, consumeBootstrap } = useAuth()
   const { pair } = useLanguagePair()
   const { pref: level, setPref: setLevel } = useLevelPreference()
-  const { needsOnboarding, completing, error: onboardingError, complete } = useOnboarding()
+  const { needsOnboarding, error: onboardingError, complete } = useOnboarding()
   const {
     sentence,
     loading,
@@ -68,7 +68,7 @@ export default function HomePage() {
   if (needsOnboarding)
     return (
       <FlowStage>
-        <OnboardingWizard completing={completing} error={onboardingError} onComplete={complete} />
+        <OnboardingWizard error={onboardingError} onComplete={complete} />
       </FlowStage>
     )
 

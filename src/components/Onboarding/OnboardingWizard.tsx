@@ -9,12 +9,12 @@ import {
   MenuItem,
   Button,
   Alert,
-  CircularProgress,
 } from '@mui/material'
 import SectionCard from '../shared/SectionCard'
 import VoicePicker from '../VoicePicker/VoicePicker'
 import { useLanguagePair } from '../../hooks/useLanguagePair'
 import { useLevelPreference } from '../../hooks/useLevelPreference'
+import { usePoolWarming } from '../../hooks/usePoolWarming'
 import {
   LANGUAGES,
   SUPPORTED_LANGUAGE_CODES,
@@ -26,7 +26,6 @@ import {
 import { LEVELS, levelLabel, type LevelCode } from '../../../shared/levels'
 
 interface OnboardingWizardProps {
-  completing: boolean
   error: string | null
   onComplete: (
     pair: { learnLanguage: LanguageCode; guessLanguage: LanguageCode; locale: LocaleCode },
@@ -34,10 +33,7 @@ interface OnboardingWizardProps {
   ) => void
 }
 
-// First-run setup (Epic 11). Stages the four inputs (learn → guess → locale → level) in LOCAL
-// state — nothing persists until "Start" — so changing a select doesn't dismiss the wizard
-// mid-edit. The single commit point hands them to `onComplete`, which warms the pool and persists.
-export default function OnboardingWizard({ completing, error, onComplete }: OnboardingWizardProps) {
+export default function OnboardingWizard({ error, onComplete }: OnboardingWizardProps) {
   // Seed from the current (cache/default) pair + level so existing accounts see their last choice
   // pre-selected and brand-new ones get a sensible default.
   const { pair } = useLanguagePair()
@@ -48,6 +44,9 @@ export default function OnboardingWizard({ completing, error, onComplete }: Onbo
   const [locale, setLocale] = useState<LocaleCode>(pair.locale)
   const [level, setLevel] = useState<LevelCode | null>(pref)
 
+  // Warm the pool for the current selections so it's ready when the user submits.
+  usePoolWarming(learn, guess, locale, level)
+
   const learnLocales = localesFor(learn)
   const showRegion = learnLocales.length > 1
 
@@ -57,18 +56,6 @@ export default function OnboardingWizard({ completing, error, onComplete }: Onbo
     if (next === guess) setGuess(learn)
     setLearn(next)
     setLocale(defaultLocaleFor(next))
-  }
-
-  if (completing) {
-    return (
-      <Stack spacing={3} sx={{ alignItems: 'center', py: 6 }}>
-        <CircularProgress aria-label='Preparing your first sentences' />
-        <Typography variant='h6'>Preparing your first sentences…</Typography>
-        <Typography variant='body2' color='text.secondary'>
-          This only happens once. Hang tight.
-        </Typography>
-      </Stack>
-    )
   }
 
   return (

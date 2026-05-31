@@ -4,7 +4,7 @@ import type { UserRow } from '../../../infrastructure/db/schema'
 import { requireAuth } from '../../../infrastructure/http/requireAuth'
 import { asyncHandler } from '../../../infrastructure/http/asyncHandler'
 import { getNextSentence } from '../application/getNextSentence'
-import { prewarmPool } from '../application/prewarmPool'
+import { triggerBackgroundRefill } from '../application/sentencePool'
 import {
   isSupportedLanguage,
   isValidLocaleFor,
@@ -68,22 +68,21 @@ router.get(
   })
 )
 
-// Pre-generate sentences for a pool ahead of the first request (Epic 11). The onboarding wizard
-// fires this on completion so the learner lands on a warm pool instead of a spinner.
-router.post(
-  '/prewarm',
-  requireAuth,
-  asyncHandler(async (req, res) => {
-    const parsed = selectorSchema.safeParse(req.body)
-    if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
-    }
-    const pool = parsePoolParams(parsed.data)
-    if ('error' in pool) return res.status(400).json({ error: pool.error })
-
-    const result = await prewarmPool({ user: req.user as UserRow, ...pool })
-    res.json(result)
-  })
-)
+// Kick off a background pool fill with the given selections (no inline generation — returns
+// immediately). Called by the wizard with staged selections so the pool is warm before submit.
+router.post('/prewarm', requireAuth, (req, res) => {
+  const parsed = selectorSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    return
+  }
+  const pool = parsePoolParams(parsed.data)
+  if ('error' in pool) {
+    res.status(400).json({ error: pool.error })
+    return
+  }
+  triggerBackgroundRefill({ user: req.user as UserRow, ...pool })
+  res.json({ ok: true })
+})
 
 export default router
