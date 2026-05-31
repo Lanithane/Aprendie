@@ -39,7 +39,7 @@ const SentenceCenter = styled('div')`
   text-align: center;
   font-size: 2.1rem;
   line-height: 1.35;
-  font-weight: 500;
+  font-weight: 800;
   padding: ${({ theme }) => theme.spacing(5, 2)};
   ${({ theme }) => theme.breakpoints.down('sm')} {
     font-size: 1.65rem;
@@ -206,7 +206,7 @@ export default function PracticeCard({
           onClose={() => setRateAnchor(null)}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
           transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-          slotProps={{ paper: { sx: { p: 2, width: 240 } } }}
+          slotProps={{ paper: { sx: { px: 3, pt: 2.5, pb: 4.5, width: 260 } } }}
         >
           <Typography variant='caption' color='text.secondary'>
             Playback speed

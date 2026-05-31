@@ -37,7 +37,7 @@ export default function HistoryPage() {
 
   return (
     <Box>
-      <Typography variant='h4' sx={{ mb: 2 }}>
+      <Typography variant='h3' sx={{ mb: 1.5 }}>
         History
       </Typography>
       <Typography color='text.secondary' sx={{ mb: 3 }}>

@@ -27,10 +27,10 @@ export default function SettingsPage() {
 
   return (
     <Box sx={{ width: '100%', maxWidth: 540, mx: 'auto' }}>
-      <Typography variant='h4' sx={{ mb: 3 }}>
+      <Typography variant='h3' sx={{ mb: 2 }}>
         Settings
       </Typography>
-      <Stack spacing={3}>
+      <Stack spacing={2}>
         <SectionCard
           title='Appearance'
           description='Pick a color theme and your light/dark preference. Every theme adapts to both.'

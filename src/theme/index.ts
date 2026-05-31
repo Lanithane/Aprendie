@@ -1,4 +1,4 @@
-import '@fontsource-variable/inter'
+import '@fontsource-variable/nunito'
 import { createTheme, type Theme, type TypographyVariantsOptions } from '@mui/material/styles'
 import { THEMES, type Md3Scheme, type ThemeId } from './tokens'
 export { THEMES, THEME_META, THEME_IDS, DEFAULT_THEME_ID, type ThemeId } from './tokens'
@@ -9,7 +9,7 @@ const em = (px: number, sizePx: number) => `${px / sizePx}em`
 
 function md3Typography(): TypographyVariantsOptions {
   return {
-    fontFamily: '"Inter Variable", "Inter", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Nunito Variable", "Nunito", "Helvetica", "Arial", sans-serif',
     fontWeightMedium: 500,
     // display-small
     h3: {
@@ -58,9 +58,9 @@ function md3Typography(): TypographyVariantsOptions {
       letterSpacing: em(0.1, 16),
     },
     // body-large
-    body1: { fontSize: rem(16), lineHeight: 24 / 16, fontWeight: 500, letterSpacing: em(0.5, 16) },
+    body1: { fontSize: rem(16), lineHeight: 24 / 16, fontWeight: 700, letterSpacing: em(0.5, 16) },
     // body-medium
-    body2: { fontSize: rem(14), lineHeight: 20 / 14, fontWeight: 500, letterSpacing: em(0.25, 14) },
+    body2: { fontSize: rem(14), lineHeight: 20 / 14, fontWeight: 700, letterSpacing: em(0.25, 14) },
     // label-large (buttons) — MD3 has no all-caps
     button: {
       fontSize: rem(14),
@@ -80,7 +80,7 @@ function md3Typography(): TypographyVariantsOptions {
     caption: {
       fontSize: rem(14),
       lineHeight: 20 / 14,
-      fontWeight: 500,
+      fontWeight: 700,
       letterSpacing: em(0.4, 14),
     },
   }
@@ -113,7 +113,7 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
       // brighter layer on top — never plain white or neutral grey.
       background: {
         default: mode === 'light' ? s.surfaceDim : s.surface,
-        paper: mode === 'light' ? s.surface : s.surfaceContainerHigh,
+        paper: mode === 'light' ? s.surfaceContainerLow : s.surfaceContainerHigh,
       },
       text: { primary: s.onSurface, secondary: s.onSurfaceVariant },
       divider: s.outlineVariant,
@@ -159,12 +159,20 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
           root: {
             backgroundColor: s.surface,
             color: s.onSurface,
-            borderBottom: `1px solid ${s.outlineVariant}`,
+            borderBottom: `2px solid ${s.outlineVariant}`,
           },
         },
       },
       MuiCard: {
-        styleOverrides: { root: { borderRadius: 16 } },
+        styleOverrides: {
+          root: ({ ownerState }: { ownerState: { variant?: string } }) => ({
+            borderRadius: 16,
+            ...(ownerState.variant === 'outlined' && {
+              borderWidth: 2,
+              borderColor: s.outline,
+            }),
+          }),
+        },
       },
       // Buttons are contained by default site-wide (the standard action style); pages pick a
       // single `primary` main action and drop others to `secondary`/`tertiary`. The MUI ripple is
@@ -184,13 +192,12 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
             // Hold the contained fill steady on hover so the state layer (not a darkened fill)
             // carries the feedback — MD3 expresses states as a translucent on-color overlay.
             const restingFill = ownerState.variant === 'contained' ? paletteColor?.main : undefined
-            // Focus ring: a brighter/darker shade of the button's own color (deeper in light,
-            // brighter in dark). Stays theme-agnostic — derived from whatever palette color the
-            // button carries — yet contrasts against both the fill edge and the page behind it.
-            const focusRing = mode === 'light' ? paletteColor?.dark : paletteColor?.light
-            const focusOutline = focusRing
-              ? { outline: `2.5px solid ${focusRing}`, outlineOffset: 2 }
-              : undefined
+            // Focus ring: tertiary accent ring on all buttons so it pops against any fill,
+            // switching to primary when the button itself is already tertiary.
+            const tertiaryColor = theme.palette.tertiary
+            const primaryColor = theme.palette.primary
+            const focusRing = c === 'tertiary' ? primaryColor.main : tertiaryColor.main
+            const focusOutline = { outline: `2.5px solid ${focusRing}`, outlineOffset: 2 }
             return {
               borderRadius: 999,
               paddingInline: 24,
@@ -215,9 +222,7 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
               // through and the ring reads on every theme/mode. Shown on hover plus any focus (mouse
               // or keyboard) so it persists after a click, and forced on while aria-busy (loading)
               // so phone taps — which give no hover and unreliable focus — still see the ring.
-              ...(focusOutline
-                ? { '&:hover, &:focus, &.Mui-focusVisible, &[aria-busy="true"]': focusOutline }
-                : {}),
+              '&:hover, &:focus, &.Mui-focusVisible, &[aria-busy="true"]': focusOutline,
               ...(restingFill ? { '&:hover': { backgroundColor: restingFill } } : {}),
             }
           },
@@ -229,6 +234,7 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
       MuiToggleButton: {
         styleOverrides: {
           root: {
+            borderWidth: 2,
             textTransform: 'none',
             '&.Mui-selected': {
               backgroundColor: s.secondary,
@@ -239,7 +245,10 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
         },
       },
       MuiOutlinedInput: {
-        styleOverrides: { root: { borderRadius: 8 } },
+        styleOverrides: {
+          root: { borderRadius: 8 },
+          notchedOutline: { borderWidth: 2 },
+        },
       },
       MuiMenu: {
         styleOverrides: {

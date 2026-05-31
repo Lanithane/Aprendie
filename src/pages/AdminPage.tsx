@@ -31,7 +31,7 @@ export default function AdminPage() {
 
   return (
     <Box>
-      <Typography variant='h4' sx={{ mb: 2 }}>
+      <Typography variant='h3' sx={{ mb: 1.5 }}>
         Admin
       </Typography>
       <Typography color='text.secondary' sx={{ mb: 3 }}>

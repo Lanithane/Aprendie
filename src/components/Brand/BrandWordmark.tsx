@@ -18,7 +18,7 @@ const Root = styled('div', {
   line-height: 1;
   white-space: nowrap;
   user-select: none;
-  color: ${({ theme }) => theme.palette.primary.main};
+  color: ${({ theme }) => theme.palette.tertiary.main};
   font-size: ${({ $size }) => ($size === 'login' ? '3.5rem' : '1.5rem')};
 
   ${({ theme }) => theme.breakpoints.down('sm')} {
