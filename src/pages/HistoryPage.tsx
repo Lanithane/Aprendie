@@ -24,6 +24,7 @@ import { useHistory } from '../hooks/useHistory'
 import { useHistoryLanguages } from '../hooks/useHistoryLanguages'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import GradeChip from '../components/shared/GradeChip'
+import AttemptDetail from '../components/History/AttemptDetail'
 import { LANGUAGES } from '../../shared/languages'
 import { LEVELS } from '../../shared/levels'
 import type { LanguagePair } from '../../shared/languages'
@@ -271,48 +272,7 @@ function HistoryRow({ entry, open, onToggle, showDivider }: HistoryRowProps) {
       </ListItemButton>
       <Collapse in={open}>
         <Box sx={{ px: 2, pb: 2, pt: 0.5 }}>
-          <Typography variant='caption' color='text.secondary'>
-            Sentence
-          </Typography>
-          <Typography
-            lang={entry.learnLanguage}
-            sx={{ mb: 1, fontWeight: 400, wordSpacing: '-0.05em' }}
-          >
-            {entry.promptText}
-          </Typography>
-          <Typography variant='caption' color='text.secondary'>
-            Your answer
-          </Typography>
-          <Typography
-            lang={entry.guessLanguage}
-            sx={{ mb: 1, fontWeight: 400, wordSpacing: '-0.05em' }}
-          >
-            {entry.userAnswer}
-          </Typography>
-          <Typography variant='caption' color='text.secondary'>
-            Correct
-          </Typography>
-          <Typography lang={entry.guessLanguage} sx={{ fontWeight: 400, wordSpacing: '-0.05em' }}>
-            {entry.correctedAnswer}
-          </Typography>
-          {entry.mistakes.length > 0 && (
-            <Box sx={{ mt: 1.5 }}>
-              <Typography variant='caption' color='text.secondary'>
-                Mistakes
-              </Typography>
-              {entry.mistakes.map((m, i) => (
-                <Typography key={i} variant='body2' sx={{ mt: 0.5 }}>
-                  <strong lang={entry.learnLanguage}>{m.sourceText}</strong>: {m.explanation}
-                </Typography>
-              ))}
-            </Box>
-          )}
-          <Typography
-            variant='caption'
-            sx={{ mt: 1.5, display: { xs: 'block', sm: 'none' }, color: 'text.secondary' }}
-          >
-            {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
-          </Typography>
+          <AttemptDetail entry={entry} />
         </Box>
       </Collapse>
       {showDivider && <Divider />}
