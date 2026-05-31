@@ -1,9 +1,10 @@
 import { Router } from 'express'
 import { z } from 'zod'
+import { LEVEL_CODES } from '../../../../shared/levels'
 import type { UserRow } from '../../../infrastructure/db/schema'
 import { requireAuth } from '../../../infrastructure/http/requireAuth'
 import { asyncHandler } from '../../../infrastructure/http/asyncHandler'
-import { listHistory, getHistoryEntry } from '../application/listHistory'
+import { listHistory, getHistoryEntry, listDistinctPairs } from '../application/listHistory'
 
 const router = Router()
 
@@ -14,6 +15,8 @@ const querySchema = z
     learnLanguage: z.string().optional(),
     guessLanguage: z.string().optional(),
     locale: z.string().optional(),
+    level: z.enum(LEVEL_CODES as [string, ...string[]]).optional(),
+    sort: z.enum(['newest', 'worst']).optional(),
     limit: z.coerce.number().int().positive().max(200).optional(),
     cursor: z.string().optional(),
   })
@@ -26,6 +29,15 @@ const querySchema = z
     { message: 'learnLanguage, guessLanguage and locale must be provided together' }
   )
 
+// Must be defined before /:id so Express doesn't match "languages" as an id.
+router.get(
+  '/languages',
+  asyncHandler(async (req, res) => {
+    const pairs = await listDistinctPairs((req.user as UserRow).id)
+    res.json(pairs)
+  })
+)
+
 router.get(
   '/',
   asyncHandler(async (req, res) => {
@@ -33,12 +45,12 @@ router.get(
     if (!parsed.success) {
       return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
     }
-    const { learnLanguage, guessLanguage, locale, limit, cursor } = parsed.data
+    const { learnLanguage, guessLanguage, locale, level, sort, limit, cursor } = parsed.data
     const pair =
       learnLanguage && guessLanguage && locale
         ? { learnLanguage, guessLanguage, locale }
         : undefined
-    const page = await listHistory((req.user as UserRow).id, { pair, limit, cursor })
+    const page = await listHistory((req.user as UserRow).id, { pair, level, sort, limit, cursor })
     res.json(page)
   })
 )

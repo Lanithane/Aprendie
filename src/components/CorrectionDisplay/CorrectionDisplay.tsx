@@ -101,7 +101,11 @@ export default function CorrectionDisplay({
             rowGap: 1,
           }}
         >
-          {isCorrect ? <CheckCircleIcon color='success' sx={{ fontSize: '2rem' }} /> : <CancelIcon color='warning' />}
+          {isCorrect ? (
+            <CheckCircleIcon color='success' sx={{ fontSize: '2rem' }} />
+          ) : (
+            <CancelIcon color='warning' />
+          )}
           <Typography variant='h5' sx={{ flex: '1 1 220px', minWidth: 0 }}>
             {isCorrect ? 'Nice!' : "Close! Here's what to fix"}
           </Typography>
@@ -167,7 +171,7 @@ export default function CorrectionDisplay({
                     <Chip size='small' lang={learnLanguage} label={m.sourceText} color='primary' />
                     <Typography variant='body2'>
                       <Removed>{m.userPhrase}</Removed>
-                      {' → '}
+                      {' ⇒ '}
                       <Added>{m.correctPhrase}</Added>
                     </Typography>
                   </Stack>
@@ -194,7 +198,7 @@ export default function CorrectionDisplay({
 
         <Stack direction='row' sx={{ mt: 3, justifyContent: 'flex-end' }}>
           <Button ref={nextRef} color='primary' onClick={onNext} size='large'>
-            Next →
+            Next ›
           </Button>
         </Stack>
       </CardContent>

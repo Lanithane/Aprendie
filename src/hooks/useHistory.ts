@@ -2,6 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchHistory, type AttemptDto } from '../api/historyApi'
 import { ApiError } from '../api/client'
 import type { LanguagePair } from '../../shared/languages'
+import type { LevelCode } from '../../shared/levels'
+
+export interface HistoryOptions {
+  level?: LevelCode | null
+  sort?: 'newest' | 'worst'
+}
 
 interface UseHistoryResult {
   items: AttemptDto[]
@@ -13,12 +19,19 @@ interface UseHistoryResult {
   reload: () => Promise<void>
 }
 
-export function useHistory(userId: string | undefined, pair: LanguagePair): UseHistoryResult {
+export function useHistory(
+  userId: string | undefined,
+  pair: LanguagePair,
+  options?: HistoryOptions
+): UseHistoryResult {
   const [items, setItems] = useState<AttemptDto[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cursor, setCursor] = useState<string | null>(null)
+
+  const level = options?.level ?? null
+  const sort = options?.sort ?? 'newest'
 
   const reload = useCallback(async () => {
     if (!userId) {
@@ -29,7 +42,7 @@ export function useHistory(userId: string | undefined, pair: LanguagePair): UseH
     setLoading(true)
     setError(null)
     try {
-      const page = await fetchHistory(pair)
+      const page = await fetchHistory(pair, { level: level ?? undefined, sort })
       setItems(page.items)
       setCursor(page.nextCursor)
     } catch (err) {
@@ -37,14 +50,14 @@ export function useHistory(userId: string | undefined, pair: LanguagePair): UseH
     } finally {
       setLoading(false)
     }
-  }, [userId, pair])
+  }, [userId, pair, level, sort])
 
   const loadMore = useCallback(async () => {
     if (!userId || !cursor) return
     setLoadingMore(true)
     setError(null)
     try {
-      const page = await fetchHistory(pair, cursor)
+      const page = await fetchHistory(pair, { cursor, level: level ?? undefined, sort })
       setItems((cur) => [...cur, ...page.items])
       setCursor(page.nextCursor)
     } catch (err) {
@@ -52,10 +65,10 @@ export function useHistory(userId: string | undefined, pair: LanguagePair): UseH
     } finally {
       setLoadingMore(false)
     }
-  }, [userId, pair, cursor])
+  }, [userId, pair, cursor, level, sort])
 
-  // Refetch the first page on mount and whenever the user or language pair changes.
-  const depsKey = `${userId ?? ''}|${pair.learnLanguage}|${pair.guessLanguage}|${pair.locale}`
+  // Refetch on mount and whenever the user, language pair, level, or sort changes.
+  const depsKey = `${userId ?? ''}|${pair.learnLanguage}|${pair.guessLanguage}|${pair.locale}|${level ?? ''}|${sort}`
   const prevKey = useRef<string | null>(null)
   useEffect(() => {
     if (prevKey.current === depsKey) return

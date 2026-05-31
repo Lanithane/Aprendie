@@ -36,7 +36,7 @@ export default function UserHistoryPanel({ userId }: UserHistoryPanelProps) {
             {it.promptText}
           </Typography>
           <Typography variant='caption' color='text.secondary'>
-            {languageName(it.learnLanguage)} → {languageName(it.guessLanguage)}
+            {languageName(it.learnLanguage)} ⟶ {languageName(it.guessLanguage)}
           </Typography>
           <Typography variant='caption' color='text.secondary'>
             {format(new Date(it.createdAt), 'MMM d, h:mm a')}
