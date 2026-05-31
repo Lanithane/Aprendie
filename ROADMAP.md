@@ -32,6 +32,12 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
 | 10   | Built-in translator (known → learning+locale, + usage note)                   | ⬜ Not started                      |
 | 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ⬜ Not started (refill shipped)     |
+| 12   | Operator key + access gate + daily cap                                        | ✅ Done (shipped to main)           |
+| 13   | Branding & identity (logo, favicon, PWA icons)                                | ⬜ Not started                      |
+| 14   | Forgiving scoring & letter grades (A+…F)                                       | ⬜ Not started                      |
+| 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                     | ⬜ Not started                      |
+| 16   | Feedback & analytics (self-hosted, in admin)                                   | ⬜ Not started                      |
+| 17   | Single Starter level (drop Foundation) + Starter word-meaning hints            | ⬜ Not started                      |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -549,6 +555,150 @@ override is a later pass); daily cap of **100 graded sentences / user / day** (a
 
 ---
 
+## ⬜ Epic 13 — Branding & identity
+
+A real visual identity to replace the default Vite favicon. Pure frontend + static assets; no backend.
+
+**Decided:** brand asset colours live in committed SVG/PNG files (not `src` hex), so the
+`grep -rE '#[0-9a-f]{3,6}' src` rule in [CLAUDE.md](CLAUDE.md) keeps passing.
+
+- [ ] **Icon/favicon set** — replace the default `vite.svg` referenced in [index.html](index.html):
+      add `favicon.svg` + `favicon.ico` + `apple-touch-icon.png` in a new `public/` folder and link
+      them; add `<meta name="description">` and retune the existing `theme-color` meta (currently
+      `#1976d2`) to the brand.
+- [ ] **PWA manifest** — `public/manifest.webmanifest` + maskable 192/512 icons so "add to home
+      screen" shows the app icon; link it from [index.html](index.html).
+- [ ] **Logo in the app bar** — a reusable `src/components/Logo/Logo.tsx`, rendered where the
+      "Aprendie" wordmark sits today in [AppShell.tsx](src/components/AppShell/AppShell.tsx) (mobile
+      header) and on [LoginPage.tsx](src/pages/LoginPage.tsx). Theme-agnostic chrome, MD3 rounded.
+- [ ] _Note:_ the mark itself may want a designer / AI-generated asset; this epic covers the asset set
+      + wiring, not the visual design exploration.
+
+## ⬜ Epic 14 — Forgiving scoring & letter grades
+
+Grades read as **A+ / A / B / C / D / F**, stay lenient about punctuation and capitalization, and give
+partial credit for accurate-but-stiff phrasing instead of zeroing it. The numeric 0–100 score remains
+the **internal source of truth** (it already drives `attempts.score` and history); the letter is
+**derived** for display.
+
+**Decided:** keep numeric score in the DB; derive the letter via one shared util; punctuation/caps
+never drop a fully-correct answer below A+; a model "naturalness" signal caps an accurate-but-stiff
+answer (e.g. "I am enchanted by you", "How many years do you have") at the **A** band, not A+.
+
+- [ ] **`shared/grades.ts`** (new) — pure `scoreToGrade(score) → 'A+'|'A'|'B'|'C'|'D'|'F'` with the
+      band thresholds as the single source of truth (sibling to [shared/levels.ts](shared/levels.ts)),
+      imported by the frontend display (and reusable server-side).
+- [ ] **Lenient + naturalness-aware grading** — strengthen the correction prompt in
+      [scoreTranslation.ts](server/modules/correction/application/scoreTranslation.ts) (Claude returns
+      the score directly) so punctuation/capitalization never reduce a semantically-correct answer, and
+      have it also return a `naturalness` signal (`natural` | `stiff`). Surface it through
+      [responseParser.ts](server/infrastructure/claude/responseParser.ts)'s `extractJsonText`, add it to
+      `CorrectionResult` in [Correction.ts](server/modules/correction/domain/Correction.ts), and cap a
+      `stiff`-but-fully-correct attempt at the A band (leave the per-word % driving B/C/D/F intact).
+- [ ] **Display the letter** — [scoreColor.ts](src/theme/scoreColor.ts) thresholds re-aligned to the
+      grade bands (keep the success/warning/error ramp), and
+      [CorrectionDisplay.tsx](src/components/CorrectionDisplay/CorrectionDisplay.tsx) shows the
+      **letter** prominently (the `Score {score}/100` chip + `LinearProgress` become secondary).
+- [ ] **Migration (next free number, e.g. `0012`)** — add a nullable `grade text` snapshot column to the
+      denormalized `attempts` table ([schema.ts](server/infrastructure/db/schema.ts); it already holds
+      `score` + `mistakes`), generated through the existing `drizzle/` workflow and backfilled from
+      existing scores, so historical grades don't shift if the bands are later retuned. `score` stays
+      the source of truth.
+
+## ⬜ Epic 15 — Auto-speak on load + smart voice defaults
+
+**Extends Epic 3** — TTS already shipped ([useSpeech.ts](src/hooks/useSpeech.ts),
+[useSpeechRate.ts](src/hooks/useSpeechRate.ts), [useSpeechVoice.ts](src/hooks/useSpeechVoice.ts), the
+[PracticeCard](src/components/PracticeCard/PracticeCard.tsx) speaker button, and
+[VoicePicker](src/components/VoicePicker/VoicePicker.tsx)). This epic adds **automatic** playback and
+better default voices; the manual speak button already exists. Pure frontend (Web Speech API).
+
+- [ ] **Auto-speak on new sentence** — opt-in; when a new sentence renders in
+      [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx) (over
+      [SentenceTokens](src/components/SentenceTokens/SentenceTokens.tsx)), call the existing
+      `useSpeech().speak(...)` after a configurable delay. Keep the timer in a small hook
+      (`src/hooks/useAutoSpeak.ts`) per the [CLAUDE.md](CLAUDE.md) useEffect rules; cancel on the next
+      sentence / unmount.
+- [ ] **Persisted prefs** — `useAutoSpeakPreference` (`gac:autoSpeak`, default off) + delay
+      (`gac:autoSpeakDelayMs`, **default 1000**), same localStorage pattern as
+      [useSpeechRate.ts](src/hooks/useSpeechRate.ts). The 1 s default gives the learner a moment to read
+      the sentence before the audio plays.
+- [ ] **Settings audio controls** — extend the **Pronunciation** SectionCard in
+      [SettingsPage.tsx](src/pages/SettingsPage.tsx) (next to `VoicePicker`) with the auto-speak toggle
+      + a delay control.
+- [ ] **Smart voice defaults (research)** — document the best default voice per OS/browser/locale and
+      encode it in a `src/audio/voiceDefaults.ts` registry that seeds `pickVoice()` in
+      [useSpeech.ts](src/hooks/useSpeech.ts) (only when the user hasn't chosen one in `VoicePicker`).
+- [ ] _Backlog:_ cloud neural TTS for higher, consistent voice quality.
+
+## ⬜ Epic 16 — Feedback & analytics
+
+Users can send feedback and we record lightweight usage metrics — all **self-hosted** in our own
+Postgres (no third-party SDK; fits the operator-key / minimal-deps philosophy), surfaced through the
+existing admin console.
+
+**Decided:** self-hosted tables; feedback is the visible MVP; the metrics view folds into the
+[admin](src/pages/AdminPage.tsx) section (no separate analytics vendor).
+
+- [ ] **`feedback` module** (full DDD, mirroring [history](server/modules/history/)) — a `feedback`
+      table (id, `userId` FK→users cascade, message, category, page/userAgent context, createdAt) +
+      `recordFeedback` / `listFeedback` use cases + controller (`POST /api/feedback` requireAuth; an
+      admin `GET` behind `requireAdmin`).
+- [ ] **`analytics` module** (full DDD) — an `events` table (id, nullable `userId`, name, `props`
+      jsonb, createdAt) + an ingest use case + `POST /api/events`. Instrument key events (sentence
+      shown, guess submitted, grade received).
+- [ ] **Migration (next free number, e.g. `0013`)** — create both tables in
+      [schema.ts](server/infrastructure/db/schema.ts) via the `drizzle/` workflow; applied local + (auto
+      on deploy) prod, per [railway.json](railway.json).
+- [ ] **Feedback button in the sidebar** — an action item (not a route) in the
+      [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx) bottom rail opening a `FeedbackDialog` that posts
+      via a new `src/api/feedbackApi.ts` (built on [client.ts](src/api/client.ts), never raw `fetch`);
+      add `src/api/analyticsApi.ts` for events.
+- [ ] **Admin surfacing** — a feedback list + basic event counts on the admin pages
+      ([AdminPage.tsx](src/pages/AdminPage.tsx) / [AdminUserDetailPage.tsx](src/pages/AdminUserDetailPage.tsx)).
+- [ ] _Backlog:_ richer admin analytics dashboards.
+
+## ⬜ Epic 17 — Single Starter level + Starter word hints
+
+Collapses the two invented pre-A1 levels (`starter` + `foundation`) into **one `starter` level** below
+A1, and gives that level a **little help**: clicking a word at Starter reveals its meaning (a
+guess-language gloss) in the existing word popover. Immersion is preserved everywhere else — A1 and up
+still never translate the word.
+
+**Decided:** keep the `starter` code, drop `foundation`; the gloss shows **on click, at Starter only**;
+gloss is **generated only for Starter sentences**; existing `foundation` data is **remapped → `starter`**.
+
+- [ ] **Levels ladder** — in [shared/levels.ts](shared/levels.ts): remove the `foundation` entry, drop
+      it from the `LevelCode` union, re-number `order`, and fold its calibration into the `starter`
+      `blurb` (single high-frequency words + short set phrases — greetings, numbers, basic needs;
+      present tense, concrete vocabulary, cognates where natural). Update the "two pre-A1 levels" header
+      comment. Downstream auto-updates: the generation `LEVEL_RUBRIC` and the level chip/menu both
+      derive from `LEVELS`.
+- [ ] **Migration (next free number, e.g. `0014`)** — rewrite stored `'foundation'` → `'starter'` across
+      `users.level`, `sentence_cache.level`, and `attempts.level` (all loose text in
+      [schema.ts](server/infrastructure/db/schema.ts)), so no row references the removed code; cached
+      Foundation sentences are remapped in place. Applied local + (auto on deploy) prod.
+- [ ] **Optional gloss on `WordToken`** — add `gloss?: string` (the word's meaning in the guess
+      language) to `WordToken` in [shared/languages.ts](shared/languages.ts), carried through
+      `normalizeToken` in
+      [generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts). It rides
+      in the existing `word_breakdown` JSON — no column change.
+- [ ] **Starter-only gloss generation** — when a **Starter** batch is requested, relax the prompt's
+      "CRITICAL: never give the meaning" rule
+      ([generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts), the
+      `gloss`-forbidding line in `SYSTEM_PROMPT_TEXT`) to require a one-word `gloss` per token; for every
+      other level — and mixed (Any level) batches — keep the immersive rule and omit `gloss`.
+- [ ] **Show the gloss at Starter** — thread the sentence's `level` from
+      [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx) /
+      [SentenceTokens.tsx](src/components/SentenceTokens/SentenceTokens.tsx) into
+      [WordPopover.tsx](src/components/WordPopover/WordPopover.tsx); render `token.gloss` (clearly marked
+      as the meaning, in the guess language) only when `level === 'starter'` and a gloss is present. A1+
+      popovers stay exactly as they are.
+- [ ] _Note:_ the hint applies to explicit Starter selection only; mixed-level batches don't carry
+      Starter glosses. Further assistance ideas (first-letter hint, word bank) are parked in the backlog.
+
+---
+
 ## Verification
 
 Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
@@ -572,6 +722,33 @@ Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
   (sentences + corrections run on the operator key); confirm the access gate blocks a non-approved /
   over-cap account with a clear screen and never silently spends; if hybrid, confirm an own key in
   Settings overrides the operator key.
+- **Epic 13** — favicon shows in the browser tab + bookmarks; "add to home screen" shows the app icon;
+  the logo renders in the app bar/login in light/dark; `grep -rE '#[0-9a-f]{3,6}' src` still only
+  matches `src/theme/tokens.ts`.
+- **Epic 14** — a perfect answer → A+; the same answer with missing punctuation/lowercase → still A+;
+  an accurate-but-stiff phrasing ("I am enchanted by you") → lands at A, not A+; a half-wrong answer →
+  B/C/D/F by word %. Reload history and confirm stored grades are stable.
+- **Epic 15** — enable auto-speak; load a new sentence and confirm it speaks after the configured delay
+  (~1 s default), uses the learn-language voice, and cancels cleanly on "Next"; the manual speaker
+  button still works; the toggle/delay persist across reload.
+- **Epic 16** — click the sidebar Feedback button, submit, and confirm the row persists and appears in
+  the admin view; confirm key events are recorded; QA the dialog in light/dark/system + mobile.
+- **Epic 17** — the level menu shows a single **Starter** below A1 (no Foundation); a pre-existing
+  Foundation account/sentence now reads Starter; at Starter, clicking a word shows its meaning in the
+  popover; switch to A1+ and confirm the popover never shows a meaning (immersion intact).
 
 Use the `/verify` skill for end-to-end confirmation and `/code-review` before declaring an epic
 done. Each epic is a natural PR/commit boundary.
+
+---
+
+## Backlog / parking lot
+
+Ideas captured but not yet scoped into a numbered epic:
+
+- **Cloud neural TTS** — higher-quality, consistent voices via a paid TTS service; adds a server
+  dependency, another key, and per-play cost/caps. The upgrade path beyond Epic 15's browser Web Speech.
+- **Admin feedback inbox + analytics dashboards** — richer aggregation/visualization over Epic 16's
+  `feedback` + `events` tables.
+- **More Starter assistance** — beyond Epic 17's click-to-reveal gloss: a first-letter hint, a
+  word bank / pickable tiles, or a "reveal answer" affordance for the Starter level.
