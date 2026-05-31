@@ -11,10 +11,6 @@ import {
   IconButton,
   Box,
 } from '@mui/material'
-import HomeIcon from '@mui/icons-material/Home'
-import HistoryIcon from '@mui/icons-material/History'
-import SettingsIcon from '@mui/icons-material/Settings'
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import LogoutIcon from '@mui/icons-material/Logout'
 import MenuIcon from '@mui/icons-material/Menu'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
@@ -24,11 +20,9 @@ import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness'
 import { styled } from '@mui/material/styles'
 import { useAuth } from '../../auth/AuthContext'
 import { useThemeMode, type ThemeMode } from '../../ThemeModeProvider'
+import { ADMIN_NAV_ITEM, isActiveRoute, NAV_ITEMS } from '../AppShell/navigation'
 
 interface SidebarProps {
-  isMobile: boolean
-  mobileOpen: boolean
-  onCloseMobile: () => void
   collapsed: boolean
   onToggleCollapsed: () => void
   widthExpanded: number
@@ -68,14 +62,6 @@ const navSx = (rail: boolean) => ({
   '& .MuiListItemIcon-root': { minWidth: rail ? 0 : 40, justifyContent: 'center' },
 })
 
-const NAV_ITEMS = [
-  { to: '/', label: 'Practice', Icon: HomeIcon },
-  { to: '/history', label: 'History', Icon: HistoryIcon },
-  { to: '/settings', label: 'Settings', Icon: SettingsIcon },
-] as const
-
-const ADMIN_NAV_ITEM = { to: '/admin', label: 'Admin', Icon: AdminPanelSettingsIcon } as const
-
 const MODE_META: Record<ThemeMode, { label: string; Icon: typeof LightModeIcon; short: string }> = {
   light: { label: 'Light mode (click to cycle)', Icon: LightModeIcon, short: 'Light' },
   dark: { label: 'Dark mode (click to cycle)', Icon: DarkModeIcon, short: 'Dark' },
@@ -83,9 +69,6 @@ const MODE_META: Record<ThemeMode, { label: string; Icon: typeof LightModeIcon; 
 }
 
 export default function Sidebar({
-  isMobile,
-  mobileOpen,
-  onCloseMobile,
   collapsed,
   onToggleCollapsed,
   widthExpanded,
@@ -97,38 +80,20 @@ export default function Sidebar({
 
   const navItems = isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS
 
-  // Mobile: always full width when open. Desktop: collapsed or expanded.
-  const width = isMobile ? widthExpanded : collapsed ? widthCollapsed : widthExpanded
-  const showLabels = !collapsed || isMobile
+  const width = collapsed ? widthCollapsed : widthExpanded
+  const showLabels = !collapsed
   const ModeIcon = MODE_META[mode].Icon
   const modeLabel = MODE_META[mode].label
-  const variant = isMobile ? 'temporary' : 'permanent'
-
-  // Close mobile drawer when navigating
-  const handleNav = isMobile ? onCloseMobile : undefined
 
   return (
-    <StyledDrawer
-      variant={variant}
-      open={isMobile ? mobileOpen : true}
-      onClose={onCloseMobile}
-      ModalProps={{ keepMounted: true }}
-      $width={width}
-      $reserveSpace={!isMobile}
-    >
+    <StyledDrawer variant='permanent' open $width={width} $reserveSpace>
       <HeaderRow>
-        {isMobile ? (
-          <IconButton onClick={onCloseMobile} aria-label='Close menu'>
-            <ChevronLeftIcon />
-          </IconButton>
-        ) : (
-          <IconButton
-            onClick={onToggleCollapsed}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <MenuIcon /> : <ChevronLeftIcon />}
-          </IconButton>
-        )}
+        <IconButton
+          onClick={onToggleCollapsed}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <MenuIcon /> : <ChevronLeftIcon />}
+        </IconButton>
       </HeaderRow>
       <Divider />
       <List>
@@ -139,8 +104,7 @@ export default function Sidebar({
                 sx={navSx(!showLabels)}
                 component={RouterLink}
                 to={to}
-                selected={loc.pathname === to}
-                onClick={handleNav}
+                selected={isActiveRoute(loc.pathname, to)}
               >
                 <ListItemIcon>
                   <Icon />

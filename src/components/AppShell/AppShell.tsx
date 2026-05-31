@@ -1,8 +1,10 @@
 import { useState, type ReactNode } from 'react'
+import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { styled, useTheme } from '@mui/material/styles'
-import { Box, useMediaQuery, AppBar, Toolbar, IconButton, Typography } from '@mui/material'
-import MenuIcon from '@mui/icons-material/Menu'
+import { Box, useMediaQuery, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material'
+import { useAuth } from '../../auth/AuthContext'
 import Sidebar from '../Sidebar/Sidebar'
+import { ADMIN_NAV_ITEM, isActiveRoute, NAV_ITEMS } from './navigation'
 
 const SIDEBAR_WIDTH = 240
 const SIDEBAR_COLLAPSED_WIDTH = 64
@@ -18,7 +20,7 @@ const Main = styled('main')`
   flex-direction: column;
   padding: ${({ theme }) => theme.spacing(3)};
   ${({ theme }) => theme.breakpoints.down('md')} {
-    padding: ${({ theme }) => theme.spacing(9, 2, 2, 2)};
+    padding: ${({ theme }) => theme.spacing(2, 2, 10, 2)};
   }
 `
 
@@ -51,40 +53,58 @@ const SkipLink = styled('a')`
   }
 `
 
+const MobileNavSurface = styled(Paper)`
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: ${({ theme }) => theme.zIndex.appBar};
+  border-radius: 0;
+  border-top: 1px solid ${({ theme }) => theme.palette.divider};
+  background-image: none;
+  padding-bottom: env(safe-area-inset-bottom);
+`
+
 export default function AppShell({ children }: { children: ReactNode }) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const { isAdmin } = useAuth()
+  const loc = useLocation()
   // Desktop sidebar defaults to the collapsed rail; users expand it on demand.
   const [collapsed, setCollapsed] = useState(true)
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const navItems = isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS
+  const activePath = navItems.find(({ to }) => isActiveRoute(loc.pathname, to))?.to ?? false
 
   return (
     <ShellRoot>
       <SkipLink href='#main-content'>Skip to content</SkipLink>
-      {isMobile && (
-        <AppBar position='fixed'>
-          <Toolbar>
-            <IconButton edge='start' onClick={() => setMobileOpen(true)} aria-label='Open menu'>
-              <MenuIcon />
-            </IconButton>
-            <Typography variant='h6' sx={{ ml: 1 }}>
-              Aprendie
-            </Typography>
-          </Toolbar>
-        </AppBar>
+      {!isMobile && (
+        <Sidebar
+          collapsed={collapsed}
+          onToggleCollapsed={() => setCollapsed((c) => !c)}
+          widthExpanded={SIDEBAR_WIDTH}
+          widthCollapsed={SIDEBAR_COLLAPSED_WIDTH}
+        />
       )}
-      <Sidebar
-        isMobile={isMobile}
-        mobileOpen={mobileOpen}
-        onCloseMobile={() => setMobileOpen(false)}
-        collapsed={collapsed}
-        onToggleCollapsed={() => setCollapsed((c) => !c)}
-        widthExpanded={SIDEBAR_WIDTH}
-        widthCollapsed={SIDEBAR_COLLAPSED_WIDTH}
-      />
       <Main id='main-content' tabIndex={-1}>
         <Content>{children}</Content>
       </Main>
+      {isMobile && (
+        <MobileNavSurface elevation={8}>
+          <BottomNavigation showLabels value={activePath} aria-label='Primary navigation'>
+            {navItems.map(({ to, label, Icon }) => (
+              <BottomNavigationAction
+                key={to}
+                label={label}
+                value={to}
+                icon={<Icon />}
+                component={RouterLink}
+                to={to}
+              />
+            ))}
+          </BottomNavigation>
+        </MobileNavSurface>
+      )}
     </ShellRoot>
   )
 }
