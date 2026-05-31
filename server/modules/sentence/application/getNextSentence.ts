@@ -92,3 +92,26 @@ export async function getNextSentence(input: GetNextSentenceInput): Promise<Sent
   }
   return toSentenceView(sentence)
 }
+
+// Consume-only variant for the /api/me bootstrap (perf #5). It serves a sentence ONLY if
+// the pool is already warm — it never blocks on Claude generation, because /api/me is hit
+// on every app load and must stay fast. Cold pool -> null (the client then falls back to
+// the normal blocking /api/sentence path). Either way it nudges the pool toward full.
+export async function getBootstrapSentence(
+  input: GetNextSentenceInput
+): Promise<SentenceView | null> {
+  const filter = {
+    userId: input.user.id,
+    learnLanguage: input.learnLanguage,
+    guessLanguage: input.guessLanguage,
+    locale: input.locale,
+    level: input.level,
+  }
+
+  const count = await sentenceRepository.countUnconsumed(filter)
+  if (count === 0) return null
+  if (count < REFILL_THRESHOLD) triggerBackgroundRefill(input)
+
+  const sentence = await sentenceRepository.takeNextUnconsumed(filter)
+  return sentence ? toSentenceView(sentence) : null
+}

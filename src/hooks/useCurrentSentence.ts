@@ -7,6 +7,20 @@ interface UseCurrentSentenceArgs {
   enabled: boolean
   pair: LanguagePair
   level: LevelPref
+  // First sentence supplied by the /api/me bootstrap (perf #5); used in place of the
+  // opening fetch when it matches the active pool. `onConsumeInitial` clears it from its
+  // source so it isn't re-seeded on a later remount.
+  initialSentence?: SentenceDto | null
+  onConsumeInitial?: () => void
+}
+
+function matchesPool(s: SentenceDto, pair: LanguagePair, level: LevelPref): boolean {
+  return (
+    s.learnLanguage === pair.learnLanguage &&
+    s.guessLanguage === pair.guessLanguage &&
+    s.locale === pair.locale &&
+    (s.level ?? null) === (level ?? null)
+  )
 }
 
 interface UseCurrentSentenceResult {
@@ -21,12 +35,19 @@ export function useCurrentSentence({
   enabled,
   pair,
   level,
+  initialSentence,
+  onConsumeInitial,
 }: UseCurrentSentenceArgs): UseCurrentSentenceResult {
   const [sentence, setSentence] = useState<SentenceDto | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const { learnLanguage, guessLanguage, locale } = pair
+
+  // One-shot guard for the bootstrap seed. The seed (from /api/me) is null at mount and
+  // arrives a render later, so we read the live prop in the load effect rather than
+  // capturing at mount; this ensures we only ever consume it once.
+  const seedConsumedRef = useRef(false)
 
   // One prefetched "next" sentence, kept off-render so pressing Next can swap to
   // it with zero network wait. It lives in a ref because it isn't displayed until
@@ -88,10 +109,19 @@ export function useCurrentSentence({
 
   // Load on mount and whenever there's nothing to show (mount, fallback clear).
   useEffect(() => {
+    if (!enabled || sentence) return
+    // Consume the bootstrap seed once, if it's arrived and matches the active pool —
+    // skipping the opening fetch. Otherwise fall through to a normal blocking load.
+    if (!seedConsumedRef.current && initialSentence && matchesPool(initialSentence, pair, level)) {
+      seedConsumedRef.current = true
+      onConsumeInitial?.()
+      setSentence(initialSentence)
+      return
+    }
     // load() owns its own loading state; this is a deliberate data fetch.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (enabled && !sentence) void load()
-  }, [enabled, sentence, load])
+    void load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, sentence, load, initialSentence])
 
   // Once a sentence is showing, warm the next one in the background.
   useEffect(() => {

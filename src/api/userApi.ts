@@ -2,6 +2,7 @@ import { api } from './client'
 import type { LevelCode } from '../../shared/levels'
 import type { ThemeMode } from '../../shared/appearance'
 import type { LanguagePair } from '../../shared/languages'
+import type { SentenceDto } from './sentenceApi'
 
 export type UserRole = 'admin' | 'user'
 
@@ -19,8 +20,15 @@ export interface CurrentUserDto {
   locale: string | null
 }
 
-export function fetchCurrentUser(): Promise<CurrentUserDto> {
-  return api<CurrentUserDto>('/api/me')
+// GET /api/me always carries `bootstrapSentence`; it's non-null only when the call opted
+// in via `{ bootstrap: true }` (the initial app load) AND the pool was warm — letting the
+// client seed the first sentence without a second round trip.
+export interface MeDto extends CurrentUserDto {
+  bootstrapSentence: SentenceDto | null
+}
+
+export function fetchCurrentUser(opts?: { bootstrap?: boolean }): Promise<MeDto> {
+  return api<MeDto>(`/api/me${opts?.bootstrap ? '?bootstrap=1' : ''}`)
 }
 
 export function updateUserLevel(level: LevelCode | null): Promise<CurrentUserDto> {

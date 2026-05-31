@@ -7,15 +7,26 @@ import { toUserView } from '../domain/User'
 import { setUserLevel } from '../application/setUserLevel'
 import { setUserAppearance } from '../application/setUserAppearance'
 import { setUserLanguagePair } from '../application/setUserLanguagePair'
+import { bootstrapSentenceForUser } from '../application/bootstrapSentenceForUser'
 import { LEVEL_CODES, type LevelCode } from '../../../../shared/levels'
 import { THEME_MODES } from '../../../../shared/appearance'
 import { isValidLanguagePair } from '../../../../shared/languages'
 
 const router = Router()
 
-router.get('/', requireAuth, (req, res) => {
-  res.json(toUserView(req.user as UserRow))
-})
+// `?bootstrap=1` (only the initial app-load call sends it) additionally returns a warm
+// pool sentence to collapse the /me -> /sentence/next waterfall. It's opt-in so ordinary
+// refresh()es (after a level/theme/pair change) don't drain the pool as a side effect.
+router.get(
+  '/',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const user = req.user as UserRow
+    const bootstrapSentence =
+      req.query.bootstrap === '1' ? await bootstrapSentenceForUser(user) : null
+    res.json({ ...toUserView(user), bootstrapSentence })
+  })
+)
 
 const levelBodySchema = z.object({
   level: z.enum(LEVEL_CODES as [LevelCode, ...LevelCode[]]).nullable(),

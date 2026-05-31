@@ -25,7 +25,7 @@ const Stage = styled('div')`
 `
 
 export default function HomePage() {
-  const { user } = useAuth()
+  const { user, bootstrapSentence, consumeBootstrap } = useAuth()
   const { pair } = useLanguagePair()
   const { pref: level, setPref: setLevel } = useLevelPreference()
   const {
@@ -37,6 +37,8 @@ export default function HomePage() {
     enabled: Boolean(user?.hasApiKey),
     pair,
     level,
+    initialSentence: bootstrapSentence,
+    onConsumeInitial: consumeBootstrap,
   })
   const { correction, submitting, error: submitError, submit, reset } = useCorrectionSubmission()
 
