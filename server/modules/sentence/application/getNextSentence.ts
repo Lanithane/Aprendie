@@ -1,86 +1,16 @@
-import type { UserRow } from '../../../infrastructure/db/schema'
-import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
-import type { LevelCode } from '../../../../shared/levels'
-import { getOperatorAnthropicClient } from '../../../infrastructure/claude/anthropicClient'
 import { assertCanSpend, canSpend } from '../../user/application/access'
 import { assertSpendEnabled } from '../../settings/application/appSettings'
 import * as sentenceRepository from '../persistence/sentenceRepository'
-import { generateSentenceBatch } from './generateSentenceBatch'
+import {
+  COLD_START_SIZE,
+  REFILL_THRESHOLD,
+  refillPool,
+  triggerBackgroundRefill,
+  type PoolInput,
+} from './sentencePool'
 import { toSentenceView, type SentenceView } from '../domain/Sentence'
 
-// Keep a small buffer so we can serve instantly while a refill runs in the
-// background. A request only ever BLOCKS on generation when the pool is empty;
-// below the threshold (but non-empty) we serve from the buffer and top up off
-// the critical path.
-const REFILL_THRESHOLD = 3
-
-// When the pool is empty we have to generate inline, so generate just one sentence —
-// a single sentence returns from Claude far faster than a full batch, keeping the first
-// load of a new pool (difficulty/language/locale switch) snappy. The rest of the pool is
-// then filled by a background refill so the next Next press is already warm.
-const COLD_START_SIZE = 1
-
-interface GetNextSentenceInput {
-  user: UserRow
-  learnLanguage: LanguageCode
-  guessLanguage: LanguageCode
-  locale: LocaleCode
-  level?: LevelCode
-}
-
-// In-process guard so overlapping requests for the same pool don't kick off
-// duplicate background generations. Single-instance deployment, so a plain Set
-// suffices; on multi-instance the worst case is an occasional extra batch
-// (harmless — both batches are usable). Resets on restart, which is fine.
-const refillsInFlight = new Set<string>()
-
-function poolKey(input: GetNextSentenceInput): string {
-  return `${input.user.id}|${input.learnLanguage}|${input.guessLanguage}|${input.locale}|${input.level ?? ''}`
-}
-
-async function refillPool(input: GetNextSentenceInput, count?: number): Promise<void> {
-  const anthropic = getOperatorAnthropicClient()
-  const batch = await generateSentenceBatch(
-    anthropic,
-    {
-      learnLanguage: input.learnLanguage,
-      guessLanguage: input.guessLanguage,
-      locale: input.locale,
-      level: input.level,
-    },
-    count
-  )
-  await sentenceRepository.insertBatch(
-    batch.map((s) => ({
-      userId: input.user.id,
-      learnLanguage: input.learnLanguage,
-      guessLanguage: input.guessLanguage,
-      locale: input.locale,
-      promptText: s.promptText,
-      answerText: s.answerText,
-      level: s.level,
-      wordBreakdown: s.wordBreakdown,
-    }))
-  )
-}
-
-// Fire-and-forget refill, off the request's critical path. Never rejects — a
-// failed background refill just leaves the pool low, and the next request retries
-// (or, if it drains the pool, generates inline).
-function triggerBackgroundRefill(input: GetNextSentenceInput): void {
-  const key = poolKey(input)
-  if (refillsInFlight.has(key)) return
-  refillsInFlight.add(key)
-  void refillPool(input)
-    .catch((err) => {
-      console.error('[sentence/refill] background refill failed', err)
-    })
-    .finally(() => {
-      refillsInFlight.delete(key)
-    })
-}
-
-export async function getNextSentence(input: GetNextSentenceInput): Promise<SentenceView> {
+export async function getNextSentence(input: PoolInput): Promise<SentenceView> {
   // A non-approved account may not spend the operator key, and the global spend pause
   // blocks everyone but admins.
   assertCanSpend(input.user)
@@ -116,9 +46,7 @@ export async function getNextSentence(input: GetNextSentenceInput): Promise<Sent
 // the pool is already warm — it never blocks on Claude generation, because /api/me is hit
 // on every app load and must stay fast. Cold pool -> null (the client then falls back to
 // the normal blocking /api/sentence path). Either way it nudges the pool toward full.
-export async function getBootstrapSentence(
-  input: GetNextSentenceInput
-): Promise<SentenceView | null> {
+export async function getBootstrapSentence(input: PoolInput): Promise<SentenceView | null> {
   // Bootstrap rides on /api/me, so degrade silently (no sentence) for a non-approved
   // account rather than throwing — the gate is enforced loudly on /api/sentence.
   if (!canSpend(input.user)) return null
@@ -131,7 +59,15 @@ export async function getBootstrapSentence(
   }
 
   const count = await sentenceRepository.countUnconsumed(filter)
-  if (count === 0) return null
+  if (count === 0) {
+    // Cold saved pool on app boot: warm it in the background so practice stops being cold a
+    // beat sooner (Epic 11's "fire on boot for the returning user's saved pair"). We still
+    // return null — there's nothing to serve yet — and the client falls back to the blocking
+    // /api/sentence path, which inline-generates one immediately. The in-flight guard dedupes
+    // this against that fallback's own refill, so the pool tops up to full just once.
+    triggerBackgroundRefill(input)
+    return null
+  }
   if (count < REFILL_THRESHOLD) triggerBackgroundRefill(input)
 
   const sentence = await sentenceRepository.takeNextUnconsumed(filter)

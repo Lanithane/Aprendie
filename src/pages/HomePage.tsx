@@ -3,10 +3,12 @@ import { styled } from '@mui/material/styles'
 import PracticeCard from '../components/PracticeCard/PracticeCard'
 import CorrectionDisplay from '../components/CorrectionDisplay/CorrectionDisplay'
 import AccessGate from '../components/AccessGate/AccessGate'
+import OnboardingWizard from '../components/Onboarding/OnboardingWizard'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useLevelPreference } from '../hooks/useLevelPreference'
+import { useOnboarding } from '../hooks/useOnboarding'
 import { useCurrentSentence } from '../hooks/useCurrentSentence'
 import { useCorrectionSubmission } from '../hooks/useCorrectionSubmission'
 
@@ -36,14 +38,17 @@ export default function HomePage() {
   const { user, isApproved, bootstrapSentence, consumeBootstrap } = useAuth()
   const { pair } = useLanguagePair()
   const { pref: level, setPref: setLevel } = useLevelPreference()
+  const { needsOnboarding, completing, error: onboardingError, complete } = useOnboarding()
   const {
     sentence,
     loading,
     error: sentenceError,
     clear,
   } = useCurrentSentence({
-    // Under the operator-key model practice is gated on approval, not on a personal key.
-    enabled: isApproved,
+    // Under the operator-key model practice is gated on approval, not on a personal key. Hold off
+    // while onboarding is still pending so we don't fetch a sentence for the default pool before
+    // the learner has chosen (and warmed) their own.
+    enabled: isApproved && !needsOnboarding,
     pair,
     level,
     initialSentence: bootstrapSentence,
@@ -56,6 +61,14 @@ export default function HomePage() {
     return (
       <FlowStage>
         <AccessGate access={user.access} email={user.email} />
+      </FlowStage>
+    )
+
+  // First run: guide the learner's first choice and warm the pool before practice (Epic 11).
+  if (needsOnboarding)
+    return (
+      <FlowStage>
+        <OnboardingWizard completing={completing} error={onboardingError} onComplete={complete} />
       </FlowStage>
     )
 

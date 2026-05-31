@@ -34,7 +34,9 @@ function readCache(): LanguagePair | null {
   return null
 }
 
-function writeCache(pair: LanguagePair) {
+// Exported so the onboarding flow can prime the cold-paint cache when it persists the pair
+// directly (it writes the account value itself rather than going through `commit`).
+export function writeLanguagePairCache(pair: LanguagePair) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(pair))
   } catch {
@@ -61,7 +63,7 @@ export function useLanguagePair() {
 
   const commit = useCallback(
     (next: LanguagePair) => {
-      writeCache(next)
+      writeLanguagePairCache(next)
       setOverride(next)
       void (async () => {
         try {

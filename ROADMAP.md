@@ -31,7 +31,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started                      |
 | 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
 | 10   | Built-in translator (known → learning+locale, + usage note)                   | ⬜ Not started                      |
-| 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ⬜ Not started (refill shipped)     |
+| 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ✅ Done (local; QA pending)         |
 | 12   | Operator key + access gate + daily cap                                        | ✅ Done (shipped to main)           |
 | 13   | Branding & identity (logo, favicon, PWA icons)                                | ⬜ Not started                      |
 | 14   | Forgiving scoring & letter grades (A+…F)                                       | ✅ Done (shipped to main)           |
@@ -87,9 +87,12 @@ Epics are listed by number (a stable identifier); see the intro for the current 
   — see [docs/key-rotation-runbook.md](docs/key-rotation-runbook.md).
 - **Epic 5:** ~~import existing localStorage history vs. start fresh~~ — **resolved: start fresh
   server-side, no one-time import.** _(Epic 5 shipped: cursor pagination, denormalized `attempts`.)_
-- **Epic 11:** keep a localStorage **mirror** of the now-server-side language pair (instant first
+- **Epic 11:** ~~keep a localStorage **mirror** of the now-server-side language pair (instant first
   paint, but two sources can diverge) or read it from `/api/me` only (one source of truth, at the cost
-  of a brief flash before it loads)?
+  of a brief flash before it loads)?~~ — **resolved: keep the mirror.**
+  [useLanguagePair.ts](src/hooks/useLanguagePair.ts) paints from the localStorage cache on a cold
+  load and lets the server value win once `/api/me` resolves (`override ?? serverPair ?? cache ??
+  DEFAULT_PAIR`); the onboarding flow primes the cache via the exported `writeLanguagePairCache`.
 
 ---
 
@@ -434,7 +437,7 @@ locked); output = translation + one optional usage note (no `WordToken` breakdow
 
 ---
 
-## ⬜ Epic 11 — First-run onboarding + always-warm preload
+## ✅ Epic 11 — First-run onboarding + always-warm preload
 
 Goal: **every flow feels instant** — new login, a language/locale/level switch, and "Next" alike.
 The steady-state half already shipped (2026-05-30):
@@ -484,24 +487,33 @@ moved onto the `users` row. The server can't prewarm a pool it doesn't know abou
 follow the account. (This supersedes the old "prefs stay client-side" decision — already half-reversed
 by `level`/theme.)
 
-- [ ] **Schema + persistence** — add `learn_language`, `guess_language`, `locale` to `users`
-      ([schema.ts](server/infrastructure/db/schema.ts), loose-typed text like `level`), a migration,
-      and an update use case + route mirroring `updateUserLevel`
-      ([userApi.ts](src/api/userApi.ts)). Rework [useLanguagePair.ts](src/hooks/useLanguagePair.ts) to
-      read/write the account value (see the open question on whether to keep a localStorage mirror),
-      mirroring [useLevelPreference.ts](src/hooks/useLevelPreference.ts)'s optimistic-override pattern.
-- [ ] **Onboarding wizard** — replaces the current bare `!user.hasApiKey` gate on
-      [HomePage.tsx](src/pages/HomePage.tsx#L43-L48). Shown on first run when the account is missing
-      the language pair **or** the API key. **Step 1:** the learn → guess → locale → level picker
-      (reusing the Settings controls), persisted server-side. **Step 2:** absorb the existing
-      [ApiKeySetup.tsx](src/components/ApiKeySetup/ApiKeySetup.tsx) /
-      [useApiKey.ts](src/hooks/useApiKey.ts) as the key-entry step (it stays usable standalone for
-      Settings' "replace key"). A thin `useOnboarding` gate drives the step sequence.
-- [ ] **Optimistic warm** — a small-batch warm path (give `generateSentenceBatch` a size arg, or a
-      dedicated `prewarmPool` use case) + `POST /api/sentence/prewarm` that fires a background refill
-      for the chosen pool. Fire it the instant the key validates at the end of step 2 (overlapping the
-      transition to Practice), and on app boot for the returning user's saved pair — so Practice is
-      never cold.
+- [x] **Schema + persistence** — `learn_language`, `guess_language`, `locale` added to `users`
+      ([schema.ts](server/infrastructure/db/schema.ts), loose-typed text like `level`; migration
+      [0009_blue_mimic.sql](drizzle/0009_blue_mimic.sql)), with
+      [setUserLanguagePair.ts](server/modules/user/application/setUserLanguagePair.ts) +
+      `PATCH /api/me/language-pair` ([userController.ts](server/modules/user/controllers/userController.ts))
+      mirroring `updateUserLevel`. [useLanguagePair.ts](src/hooks/useLanguagePair.ts) reads/writes the
+      account value with the same optimistic-override pattern as
+      [useLevelPreference.ts](src/hooks/useLevelPreference.ts), keeping a localStorage mirror for
+      cold-paint (see resolved open question).
+- [x] **Onboarding wizard** — the old `!user.hasApiKey` gate is gone (operator-key pivot, Epic 12).
+      New [OnboardingWizard.tsx](src/components/Onboarding/OnboardingWizard.tsx) gates
+      [HomePage.tsx](src/pages/HomePage.tsx) for an **approved account that hasn't chosen its
+      language pair** (the server columns are null), after the access gate. **Single meaningful step
+      — no key step:** stages learn → guess → locale → level in local state (changing a select
+      doesn't dismiss the wizard), persisted server-side only on "Start". A thin
+      [useOnboarding.ts](src/hooks/useOnboarding.ts) drives the gate + completion; while completing it
+      shows a "Preparing your first sentences…" transition. `useCurrentSentence` is disabled while
+      onboarding is pending so practice doesn't fetch the default pool first.
+- [x] **Optimistic warm** — dedicated [prewarmPool.ts](server/modules/sentence/application/prewarmPool.ts)
+      use case (small inline batch of 3 + background top-up to full) behind
+      `POST /api/sentence/prewarm` ([sentenceController.ts](server/modules/sentence/controllers/sentenceController.ts)).
+      The pool primitives were extracted into
+      [sentencePool.ts](server/modules/sentence/application/sentencePool.ts) so prewarm, the blocking
+      path, and bootstrap share one in-flight refill guard. The wizard fires prewarm **before**
+      persisting the pair (so the gate doesn't flip to a cold screen mid-warm); for returning users,
+      [getBootstrapSentence](server/modules/sentence/application/getNextSentence.ts) now also kicks a
+      background refill when the saved pool is cold on app boot.
 
 ## ✅ Epic 12 — Operator key + access gate + daily cap
 
