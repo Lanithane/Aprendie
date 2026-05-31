@@ -24,6 +24,13 @@ function callbackUrlFor(req: Request): string {
   return `${proto}://${host}/api/auth/google/callback`
 }
 
+// Where to send the browser once the handshake resolves. In prod the SPA is served from
+// this same origin, so relative paths ('' + '/path') keep the user on whichever host they
+// came in on (www vs apex). In dev the SPA runs on the Vite origin (BASE_URL) — a different
+// port from this API — so redirects must target it, otherwise the browser lands on the
+// API's bare 404 ("Cannot GET /") instead of the app.
+const appBase = env.NODE_ENV === 'production' ? '' : env.BASE_URL
+
 router.get('/google', (req, res, next) => {
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
     return res.status(500).json({ error: 'Google OAuth is not configured on this server' })
@@ -38,13 +45,12 @@ router.get('/google', (req, res, next) => {
 router.get(
   '/google/callback',
   (req, res, next) =>
-    authenticateGoogle({ failureRedirect: '/login', callbackURL: callbackUrlFor(req) })(
-      req,
-      res,
-      next
-    ),
+    authenticateGoogle({
+      failureRedirect: `${appBase}/login`,
+      callbackURL: callbackUrlFor(req),
+    })(req, res, next),
   (_req, res) => {
-    res.redirect('/')
+    res.redirect(`${appBase}/`)
   }
 )
 
