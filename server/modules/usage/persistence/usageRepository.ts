@@ -15,6 +15,17 @@ export async function countToday(userId: string): Promise<number> {
   return rows[0]?.count ?? 0
 }
 
+// Today's graded-sentence count for every user that has one, keyed by user id. Users
+// with no activity today are simply absent (callers default them to 0). Backs the admin
+// usage view so the list renders each account's load without an N+1 of countToday.
+export async function countTodayForAll(): Promise<Map<string, number>> {
+  const rows = await db
+    .select({ userId: usageDaily.userId, count: usageDaily.count })
+    .from(usageDaily)
+    .where(eq(usageDaily.day, utcDay()))
+  return new Map(rows.map((r) => [r.userId, r.count]))
+}
+
 // Atomically increment (or seed) today's counter and return the new total.
 export async function incrementToday(userId: string): Promise<number> {
   const rows = await db

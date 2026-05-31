@@ -1,14 +1,18 @@
+import type { UserRow } from '../../../infrastructure/db/schema'
 import * as usageRepository from '../persistence/usageRepository'
+import { getDailyCapFor } from '../../settings/application/appSettings'
 import { DailyCapExceededError } from '../domain/errors'
 
-// Per-user daily ceiling on graded sentences (corrections) — operator-key spend
-// backstop. Generous for a real learner; only stops runaway/abuse loops.
-export const DAILY_GRADED_CAP = 100
-
-// Throws DailyCapExceededError if the user has already hit today's cap.
-export async function assertWithinDailyCap(userId: string): Promise<void> {
-  const used = await usageRepository.countToday(userId)
-  if (used >= DAILY_GRADED_CAP) throw new DailyCapExceededError(DAILY_GRADED_CAP)
+// Throws DailyCapExceededError if the user has already hit today's cap. A `capExemptUntil`
+// in the future is a temporary "uncap for a bit" and skips the check entirely; otherwise the
+// applicable cap is the per-user override (if any) or the global cap from settings.
+export async function assertWithinDailyCap(
+  user: Pick<UserRow, 'id' | 'capExemptUntil' | 'dailyCapOverride'>
+): Promise<void> {
+  if (user.capExemptUntil && user.capExemptUntil.getTime() > Date.now()) return
+  const cap = await getDailyCapFor(user)
+  const used = await usageRepository.countToday(user.id)
+  if (used >= cap) throw new DailyCapExceededError(cap)
 }
 
 // Records one graded sentence against today's counter.

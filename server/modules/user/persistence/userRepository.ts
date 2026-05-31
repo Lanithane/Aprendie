@@ -32,6 +32,24 @@ export async function updateAccess(id: string, access: AccessState): Promise<Use
   return updated[0]
 }
 
+export async function updateCapExempt(id: string, until: Date | null): Promise<UserRow> {
+  const updated = await db
+    .update(users)
+    .set({ capExemptUntil: until, updatedAt: new Date() })
+    .where(eq(users.id, id))
+    .returning()
+  return updated[0]
+}
+
+export async function updateCapOverride(id: string, cap: number | null): Promise<UserRow> {
+  const updated = await db
+    .update(users)
+    .set({ dailyCapOverride: cap, updatedAt: new Date() })
+    .where(eq(users.id, id))
+    .returning()
+  return updated[0]
+}
+
 export async function countAdmins(): Promise<number> {
   const rows = await db.select({ value: count() }).from(users).where(eq(users.role, 'admin'))
   return rows[0]?.value ?? 0

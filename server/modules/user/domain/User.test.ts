@@ -16,6 +16,8 @@ function fakeRow(): UserRow {
     learnLanguage: null,
     guessLanguage: null,
     locale: null,
+    capExemptUntil: null,
+    dailyCapOverride: null,
     createdAt: new Date('2026-01-01T00:00:00Z'),
     updatedAt: new Date('2026-01-01T00:00:00Z'),
   }
@@ -30,10 +32,26 @@ describe('user view projections', () => {
     expect(view.access).toBe('approved')
   })
 
-  it('toAdminUserView maps the core fields', () => {
-    const view = toAdminUserView(fakeRow())
+  it('toAdminUserView maps the core fields and resolves the effective cap', () => {
+    const view = toAdminUserView(fakeRow(), { usedToday: 3, globalCap: 100 })
     expect(view.id).toBe('user-1')
     expect(view.email).toBe('a@b.com')
     expect(view.createdAt).toBe('2026-01-01T00:00:00.000Z')
+    expect(view.usedToday).toBe(3)
+    expect(view.effectiveCap).toBe(100)
+    expect(view.dailyCapOverride).toBeNull()
+    expect(view.capExemptUntil).toBeNull()
+  })
+
+  it('toAdminUserView lets a per-user override win over the global cap', () => {
+    const view = toAdminUserView(
+      { ...fakeRow(), dailyCapOverride: 250 },
+      {
+        usedToday: 0,
+        globalCap: 100,
+      }
+    )
+    expect(view.effectiveCap).toBe(250)
+    expect(view.dailyCapOverride).toBe(250)
   })
 })

@@ -45,6 +45,11 @@ export const users = pgTable('users', {
   learnLanguage: text('learn_language'),
   guessLanguage: text('guess_language'),
   locale: text('locale'),
+  // Per-user daily-cap controls (operator-key spend). `capExemptUntil`, when in the future,
+  // skips the cap entirely (a temporary "uncap for a bit"); `dailyCapOverride`, when set,
+  // replaces the global cap for this account. Both null by default → global cap applies.
+  capExemptUntil: timestamp('cap_exempt_until', { withTimezone: true }),
+  dailyCapOverride: integer('daily_cap_override'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
@@ -131,6 +136,18 @@ export const usageDaily = pgTable(
   (table) => [primaryKey({ columns: [table.userId, table.day] })]
 )
 
+// Singleton operator/site settings (one row, fixed id = 1). Holds the global daily graded-sentence
+// cap plus two site-wide kill switches: `signupsPaused` (reject brand-new account creation) and
+// `spendPaused` (block all operator-key spend / maintenance). Read on every spend path, so it's a
+// cheap single-row lookup. The row is seeded in the migration so `get()` always finds it.
+export const appSettings = pgTable('app_settings', {
+  id: integer('id').primaryKey().default(1),
+  dailyGradedCap: integer('daily_graded_cap').notNull().default(100),
+  signupsPaused: boolean('signups_paused').notNull().default(false),
+  spendPaused: boolean('spend_paused').notNull().default(false),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export const session = pgTable(
   'session',
   {
@@ -148,3 +165,5 @@ export type NewSentenceRow = typeof sentenceCache.$inferInsert
 export type AttemptRow = typeof attempts.$inferSelect
 export type NewAttemptRow = typeof attempts.$inferInsert
 export type UsageDailyRow = typeof usageDaily.$inferSelect
+export type AppSettingsRow = typeof appSettings.$inferSelect
+export type NewAppSettingsRow = typeof appSettings.$inferInsert

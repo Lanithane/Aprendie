@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
 import { AccessDeniedError } from '../../modules/user/domain/errors'
 import { DailyCapExceededError } from '../../modules/usage/domain/errors'
+import { SpendPausedError } from '../../modules/settings/domain/errors'
 
 export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) {
   // Non-approved accounts can't spend the operator key. The client normally renders the
@@ -11,6 +12,10 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
   // Daily per-user spend cap reached.
   if (err instanceof DailyCapExceededError) {
     return res.status(429).json({ error: err.message, code: 'daily_cap' })
+  }
+  // Global spend pause (maintenance) is on. Non-admins are blocked from all operator-key spend.
+  if (err instanceof SpendPausedError) {
+    return res.status(503).json({ error: err.message, code: 'spend_paused' })
   }
   console.error('[server] unhandled error:', err)
   res.status(500).json({ error: 'internal server error' })

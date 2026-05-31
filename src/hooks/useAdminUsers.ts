@@ -4,6 +4,8 @@ import {
   fetchUsers,
   setUserRole as apiSetUserRole,
   setUserAccess as apiSetUserAccess,
+  setCapExempt as apiSetCapExempt,
+  setCapOverride as apiSetCapOverride,
   deleteUser as apiDeleteUser,
   type AdminUser,
 } from '../api/adminApi'
@@ -16,6 +18,8 @@ interface UseAdminUsersResult {
   reload: () => Promise<void>
   setRole: (id: string, role: UserRole) => Promise<boolean>
   setAccess: (id: string, access: AccessState) => Promise<boolean>
+  setCapExempt: (id: string, until: string | null) => Promise<boolean>
+  setCapOverride: (id: string, cap: number | null) => Promise<boolean>
   deleteUser: (id: string) => Promise<boolean>
 }
 
@@ -66,6 +70,30 @@ export function useAdminUsers(): UseAdminUsersResult {
     }
   }, [])
 
+  const setCapExempt = useCallback(async (id: string, until: string | null) => {
+    setError(null)
+    try {
+      const updated = await apiSetCapExempt(id, until)
+      setUsers((cur) => cur.map((u) => (u.id === id ? updated : u)))
+      return true
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to update uncap')
+      return false
+    }
+  }, [])
+
+  const setCapOverride = useCallback(async (id: string, cap: number | null) => {
+    setError(null)
+    try {
+      const updated = await apiSetCapOverride(id, cap)
+      setUsers((cur) => cur.map((u) => (u.id === id ? updated : u)))
+      return true
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to update cap')
+      return false
+    }
+  }, [])
+
   const deleteUser = useCallback(async (id: string) => {
     setError(null)
     try {
@@ -78,5 +106,15 @@ export function useAdminUsers(): UseAdminUsersResult {
     }
   }, [])
 
-  return { users, loading, error, reload, setRole, setAccess, deleteUser }
+  return {
+    users,
+    loading,
+    error,
+    reload,
+    setRole,
+    setAccess,
+    setCapExempt,
+    setCapOverride,
+    deleteUser,
+  }
 }

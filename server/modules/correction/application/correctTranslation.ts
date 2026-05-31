@@ -3,6 +3,7 @@ import type { LanguageCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
 import { getOperatorAnthropicClient } from '../../../infrastructure/claude/anthropicClient'
 import { assertCanSpend } from '../../user/application/access'
+import { assertSpendEnabled } from '../../settings/application/appSettings'
 import { assertWithinDailyCap, recordGradedSentence } from '../../usage/application/dailyCap'
 import * as sentenceRepository from '../../sentence/persistence/sentenceRepository'
 import { recordAttempt } from '../../history/application/recordAttempt'
@@ -23,11 +24,12 @@ export class SentenceNotFoundError extends Error {
 }
 
 export async function correctTranslation(input: CorrectInput): Promise<CorrectionView> {
-  // Grading spends the operator key: assert the account is allowed to spend, then
-  // enforce the daily cap (admins are exempt).
+  // Grading spends the operator key: assert the account is allowed to spend, that the
+  // global spend pause is off, then enforce the daily cap (admins are exempt).
   assertCanSpend(input.user)
+  await assertSpendEnabled(input.user)
   const capped = input.user.role !== 'admin'
-  if (capped) await assertWithinDailyCap(input.user.id)
+  if (capped) await assertWithinDailyCap(input.user)
 
   const sentence: SentenceRow | null = await sentenceRepository.findForUser(
     input.user.id,

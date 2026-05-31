@@ -28,7 +28,7 @@ export interface UserView {
   locale: string | null
 }
 
-// Admin-facing projection of another user.
+// Admin-facing projection of another user, including their daily-limit posture.
 export interface AdminUserView {
   id: string
   email: string
@@ -36,6 +36,13 @@ export interface AdminUserView {
   role: UserRole
   access: AccessState
   createdAt: string
+  // Graded sentences used today (UTC) and the cap that applies to this account
+  // (per-user override if set, otherwise the global cap).
+  usedToday: number
+  effectiveCap: number
+  dailyCapOverride: number | null
+  // ISO timestamp of a temporary uncap, or null. The client treats a future value as "uncapped".
+  capExemptUntil: string | null
 }
 
 export function toUserView(row: UserRow): UserView {
@@ -54,7 +61,13 @@ export function toUserView(row: UserRow): UserView {
   }
 }
 
-export function toAdminUserView(row: UserRow): AdminUserView {
+// Usage/cap context resolved by the application layer (today's count + the global cap).
+export interface AdminUserUsage {
+  usedToday: number
+  globalCap: number
+}
+
+export function toAdminUserView(row: UserRow, usage: AdminUserUsage): AdminUserView {
   return {
     id: row.id,
     email: row.email,
@@ -62,5 +75,9 @@ export function toAdminUserView(row: UserRow): AdminUserView {
     role: row.role,
     access: row.access,
     createdAt: row.createdAt.toISOString(),
+    usedToday: usage.usedToday,
+    effectiveCap: row.dailyCapOverride ?? usage.globalCap,
+    dailyCapOverride: row.dailyCapOverride ?? null,
+    capExemptUntil: row.capExemptUntil ? row.capExemptUntil.toISOString() : null,
   }
 }

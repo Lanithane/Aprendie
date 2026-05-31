@@ -5,6 +5,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { format } from 'date-fns'
 import SectionCard from '../components/shared/SectionCard'
+import DailyLimitSection from '../components/Admin/DailyLimitSection'
 import UserHistoryPanel from '../components/Admin/UserHistoryPanel'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAdminContext } from '../components/Admin/AdminLayout'
@@ -15,7 +16,8 @@ export default function AdminUserDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user: currentUser } = useAuth()
-  const { users, loading, error, setRole, setAccess, deleteUser } = useAdminContext()
+  const { users, loading, error, setRole, setAccess, setCapExempt, setCapOverride, deleteUser } =
+    useAdminContext()
   const user = users.find((u) => u.id === id)
 
   const [busy, setBusy] = useState(false)
@@ -41,10 +43,10 @@ export default function AdminUserDetailPage() {
       </Box>
     )
 
-  const run = async (fn: () => Promise<unknown>) => {
+  const run = async <T,>(fn: () => Promise<T>): Promise<T> => {
     setBusy(true)
     try {
-      await fn()
+      return await fn()
     } finally {
       setBusy(false)
     }
@@ -120,6 +122,13 @@ export default function AdminUserDetailPage() {
             <MenuItem value='blocked'>Blocked</MenuItem>
           </Select>
         </SectionCard>
+
+        <DailyLimitSection
+          user={user}
+          busy={busy}
+          setCapExempt={(id, until) => run(() => setCapExempt(id, until))}
+          setCapOverride={(id, cap) => run(() => setCapOverride(id, cap))}
+        />
 
         <SectionCard
           title='Account'
