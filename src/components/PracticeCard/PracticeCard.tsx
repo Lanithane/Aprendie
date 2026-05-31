@@ -32,6 +32,8 @@ import SentenceTokens from '../SentenceTokens/SentenceTokens'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
 import { useSpeech } from '../../hooks/useSpeech'
 import { useSpeechRate, MIN_RATE, MAX_RATE } from '../../hooks/useSpeechRate'
+import { useAutoSpeak } from '../../hooks/useAutoSpeak'
+import { useAutoSpeakPreference } from '../../hooks/useAutoSpeakPreference'
 
 const SentenceCenter = styled('div')`
   text-align: center;
@@ -105,6 +107,16 @@ export default function PracticeCard({
   const rateOpen = Boolean(rateAnchor)
   const { speak, cancel, speaking, supported: speechSupported } = useSpeech()
   const { rate, setRate } = useSpeechRate()
+  const { autoSpeak, delayMs } = useAutoSpeakPreference()
+  // Opt-in auto-playback: read each new sentence aloud after the configured delay (Epic 15).
+  useAutoSpeak({
+    text: promptText,
+    locale,
+    rate,
+    enabled: autoSpeak && speechSupported,
+    delayMs,
+    speak,
+  })
 
   const submit = () => {
     const trimmed = guess.trim()

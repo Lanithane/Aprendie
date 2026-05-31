@@ -16,6 +16,8 @@ function fakeRow(): UserRow {
     learnLanguage: null,
     guessLanguage: null,
     locale: null,
+    autoSpeak: null,
+    autoSpeakDelayMs: null,
     capExemptUntil: null,
     dailyCapOverride: null,
     createdAt: new Date('2026-01-01T00:00:00Z'),

@@ -6,10 +6,12 @@ import { asyncHandler } from '../../../infrastructure/http/asyncHandler'
 import { toUserView } from '../domain/User'
 import { setUserLevel } from '../application/setUserLevel'
 import { setUserAppearance } from '../application/setUserAppearance'
+import { setUserAutoSpeak } from '../application/setUserAutoSpeak'
 import { setUserLanguagePair } from '../application/setUserLanguagePair'
 import { bootstrapSentenceForUser } from '../application/bootstrapSentenceForUser'
 import { LEVEL_CODES, type LevelCode } from '../../../../shared/levels'
 import { THEME_MODES } from '../../../../shared/appearance'
+import { AUTO_SPEAK_DELAY_MIN_MS, AUTO_SPEAK_DELAY_MAX_MS } from '../../../../shared/speech'
 import { isValidLanguagePair } from '../../../../shared/languages'
 
 const router = Router()
@@ -88,6 +90,34 @@ router.patch(
       return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
     }
     const view = await setUserAppearance((req.user as UserRow).id, parsed.data)
+    res.json(view)
+  })
+)
+
+// Either field may be sent; delay is validated against the shared bounds (client clamps too).
+const autoSpeakBodySchema = z
+  .object({
+    autoSpeak: z.boolean().optional(),
+    autoSpeakDelayMs: z
+      .number()
+      .int()
+      .min(AUTO_SPEAK_DELAY_MIN_MS)
+      .max(AUTO_SPEAK_DELAY_MAX_MS)
+      .optional(),
+  })
+  .refine((b) => b.autoSpeak !== undefined || b.autoSpeakDelayMs !== undefined, {
+    message: 'Provide autoSpeak and/or autoSpeakDelayMs',
+  })
+
+router.patch(
+  '/auto-speak',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const parsed = autoSpeakBodySchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const view = await setUserAutoSpeak((req.user as UserRow).id, parsed.data)
     res.json(view)
   })
 )

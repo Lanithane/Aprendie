@@ -35,7 +35,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 12   | Operator key + access gate + daily cap                                        | ✅ Done (shipped to main)           |
 | 13   | Branding & identity (logo, favicon, PWA icons)                                | ⬜ Not started                      |
 | 14   | Forgiving scoring & letter grades (A+…F)                                       | ✅ Done (shipped to main)           |
-| 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                     | ⬜ Not started                      |
+| 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                     | ✅ Done                             |
 | 16   | Feedback & analytics (self-hosted, in admin)                                   | ⬜ Not started                      |
 | 17   | Single Starter level (drop Foundation) + Starter word-meaning hints            | ✅ Done                             |
 
@@ -602,7 +602,7 @@ answer (e.g. "I am enchanted by you", "How many years do you have") at the **A**
 - [x] **Display the letter** — `scoreColor.ts` thresholds re-aligned; `CorrectionDisplay`, `HistoryPage`, `HomePage` all show the letter grade.
 - [x] **Migration `0013`** — nullable `grade text` column added to `attempts` via `drizzle/0013_pink_archangel.sql`.
 
-## ⬜ Epic 15 — Auto-speak on load + smart voice defaults
+## ✅ Epic 15 — Auto-speak on load + smart voice defaults
 
 **Extends Epic 3** — TTS already shipped ([useSpeech.ts](src/hooks/useSpeech.ts),
 [useSpeechRate.ts](src/hooks/useSpeechRate.ts), [useSpeechVoice.ts](src/hooks/useSpeechVoice.ts), the
@@ -610,22 +610,34 @@ answer (e.g. "I am enchanted by you", "How many years do you have") at the **A**
 [VoicePicker](src/components/VoicePicker/VoicePicker.tsx)). This epic adds **automatic** playback and
 better default voices; the manual speak button already exists. Pure frontend (Web Speech API).
 
-- [ ] **Auto-speak on new sentence** — opt-in; when a new sentence renders in
-      [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx) (over
-      [SentenceTokens](src/components/SentenceTokens/SentenceTokens.tsx)), call the existing
-      `useSpeech().speak(...)` after a configurable delay. Keep the timer in a small hook
-      (`src/hooks/useAutoSpeak.ts`) per the [CLAUDE.md](CLAUDE.md) useEffect rules; cancel on the next
-      sentence / unmount.
-- [ ] **Persisted prefs** — `useAutoSpeakPreference` (`aprendie:autoSpeak`, default off) + delay
-      (`aprendie:autoSpeakDelayMs`, **default 1000**), same localStorage pattern as
-      [useSpeechRate.ts](src/hooks/useSpeechRate.ts). The 1 s default gives the learner a moment to read
-      the sentence before the audio plays.
-- [ ] **Settings audio controls** — extend the **Pronunciation** SectionCard in
-      [SettingsPage.tsx](src/pages/SettingsPage.tsx) (next to `VoicePicker`) with the auto-speak toggle
-      + a delay control.
-- [ ] **Smart voice defaults (research)** — document the best default voice per OS/browser/locale and
-      encode it in a `src/audio/voiceDefaults.ts` registry that seeds `pickVoice()` in
-      [useSpeech.ts](src/hooks/useSpeech.ts) (only when the user hasn't chosen one in `VoicePicker`).
+- [x] **Auto-speak on new sentence** — opt-in; when a new sentence renders in
+      [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx), it calls the existing
+      `useSpeech().speak(...)` after the configured delay. The timer lives in
+      [useAutoSpeak.ts](src/hooks/useAutoSpeak.ts) per the [CLAUDE.md](CLAUDE.md) useEffect rules; it
+      re-arms only on a new sentence (`text`) — a rate tweak or async voice load won't restart it —
+      and a pending timer is cleared on the next sentence / unmount (in-flight audio is cancelled by
+      `speak()` itself and by useSpeech's unmount cleanup).
+- [x] **Persisted prefs (per account, in Postgres)** — the toggle + delay are owned by the account,
+      not localStorage: nullable `users.auto_speak` / `users.auto_speak_delay_ms` columns (migration
+      `drizzle/0015_old_lionheart.sql`), a `PATCH /api/me/auto-speak` route
+      (`setUserAutoSpeak` → `userRepository.updateAutoSpeak`), and
+      [useAutoSpeakPreference.ts](src/hooks/useAutoSpeakPreference.ts) reading server truth via
+      `useAuth().user` with the same optimistic-override pattern as
+      [useLevelPreference.ts](src/hooks/useLevelPreference.ts). Defaults + bounds live in
+      [shared/speech.ts](shared/speech.ts) (**default on, 500 ms**, clamped 0–3000, validated both
+      ends); a null column falls back to those, so a new account gets auto-speak on by default. The
+      0.5 s default gives the learner a beat to glance at the sentence before the audio plays.
+- [x] **Settings audio controls** — the **Pronunciation** SectionCard in
+      [SettingsPage.tsx](src/pages/SettingsPage.tsx) now stacks `VoicePicker` with a new
+      [AutoSpeakControls.tsx](src/components/AutoSpeakControls/AutoSpeakControls.tsx) (a toggle + a
+      delay slider that dims/disables while the toggle is off).
+- [x] **Smart voice defaults (research)** — [src/audio/voiceDefaults.ts](src/audio/voiceDefaults.ts)
+      encodes the best-sounding voices per platform/locale (Apple named + Enhanced/Premium, Windows
+      "… Online (Natural)", Android/Chrome "Google <language>"), demotes Apple novelty voices, and
+      exposes `bestDefaultVoice()` which seeds `pickVoice()` in
+      [useSpeech.ts](src/hooks/useSpeech.ts) — used only when the user hasn't pinned a voice in
+      `VoicePicker`. Scoring keeps locale specificity dominant (exact dialect still wins) with quality
+      as a tiebreak.
 - [ ] _Backlog:_ cloud neural TTS for higher, consistent voice quality.
 
 ## ⬜ Epic 16 — Feedback & analytics
@@ -747,9 +759,10 @@ Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
 - **Epic 14** — a perfect answer → A+; the same answer with missing punctuation/lowercase → still A+;
   an accurate-but-stiff phrasing ("I am enchanted by you") → lands at A, not A+; a half-wrong answer →
   B/C/D/F by word %. Reload history and confirm stored grades are stable.
-- **Epic 15** — enable auto-speak; load a new sentence and confirm it speaks after the configured delay
-  (~1 s default), uses the learn-language voice, and cancels cleanly on "Next"; the manual speaker
-  button still works; the toggle/delay persist across reload.
+- **Epic 15** — on a fresh account, load a new sentence and confirm it speaks on its own after ~0.5 s
+  (auto-speak defaults on), uses the learn-language voice, and cancels cleanly on "Next"; the manual
+  speaker button still works. Toggle it off / change the delay in Settings → Pronunciation, then
+  reload (and sign in elsewhere) and confirm it persists from the account, not just the browser.
 - **Epic 16** — click the sidebar Feedback button, submit, and confirm the row persists and appears in
   the admin view; confirm key events are recorded; QA the dialog in light/dark/system + mobile.
 - **Epic 17** — the level menu shows a single **Starter** below A1 (no Foundation); a pre-existing

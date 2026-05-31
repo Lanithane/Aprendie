@@ -19,6 +19,8 @@ export interface CurrentUserDto {
   learnLanguage: string | null
   guessLanguage: string | null
   locale: string | null
+  autoSpeak: boolean | null
+  autoSpeakDelayMs: number | null
 }
 
 // GET /api/me always carries `bootstrapSentence`; it's non-null only when the call opted
@@ -55,6 +57,19 @@ export interface AppearancePatch {
 
 export function updateUserAppearance(patch: AppearancePatch): Promise<CurrentUserDto> {
   return api<CurrentUserDto>('/api/me/appearance', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  })
+}
+
+export interface AutoSpeakPatch {
+  autoSpeak?: boolean
+  autoSpeakDelayMs?: number
+}
+
+export function updateUserAutoSpeak(patch: AutoSpeakPatch): Promise<CurrentUserDto> {
+  return api<CurrentUserDto>('/api/me/auto-speak', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patch),

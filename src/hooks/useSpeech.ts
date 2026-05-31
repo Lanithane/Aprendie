@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSpeechVoice } from './useSpeechVoice'
+import { bestDefaultVoice } from '../audio/voiceDefaults'
 
 // Wraps the Web Speech API (`speechSynthesis` + `SpeechSynthesisUtterance`) for reading a
 // learn-language sentence aloud. Voices load asynchronously and fire `voiceschanged` — the
 // external-subscription case the repo's useEffect rules allow a hook to own. Voice selection
-// honours the user's saved preferred voice when it exists and matches the language, then falls
-// back to an exact locale match (es-MX), then any voice in the base language (es), else lets the
-// browser pick. `speak` accepts a per-call rate so the caller's slider takes effect live.
+// honours the user's saved preferred voice when it exists and matches the language; absent a valid
+// choice it defers to the smart-defaults registry (src/audio/voiceDefaults.ts), which scores the
+// language's voices by locale specificity then known quality, else lets the browser pick. `speak`
+// accepts a per-call rate so the caller's slider takes effect live.
 
 const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -17,24 +19,23 @@ function matchesLanguage(voice: SpeechSynthesisVoice, base: string): boolean {
 
 // Picks the best available voice for a BCP-47 locale. The user's explicitly chosen voice wins,
 // but only while it still exists and speaks the active language — so switching learn languages
-// quietly falls back instead of reading, say, French in a Spanish voice. After that: exact locale
-// match (es-MX), then base-language match (es-*), else undefined (browser default).
+// quietly falls back instead of reading, say, French in a Spanish voice. Absent a valid choice,
+// the smart-defaults registry scores the language's voices (locale specificity, then known
+// quality), returning undefined only when no voice speaks the language (browser default).
 function pickVoice(
   voices: SpeechSynthesisVoice[],
   locale: string,
   preferredURI: string | null
 ): SpeechSynthesisVoice | undefined {
   if (voices.length === 0) return undefined
-  const target = locale.toLowerCase()
-  const base = target.split('-')[0]
+  const base = locale.toLowerCase().split('-')[0]
   if (preferredURI) {
     const chosen = voices.find((v) => v.voiceURI === preferredURI)
     if (chosen && matchesLanguage(chosen, base)) return chosen
   }
-  return (
-    voices.find((v) => v.lang.toLowerCase() === target) ??
-    voices.find((v) => v.lang.toLowerCase().startsWith(`${base}-`)) ??
-    voices.find((v) => v.lang.toLowerCase() === base)
+  return bestDefaultVoice(
+    voices.filter((v) => matchesLanguage(v, base)),
+    locale
   )
 }
 
