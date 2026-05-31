@@ -1,0 +1,144 @@
+import { useState } from 'react'
+import { Stack, TextField, Button, Typography, Chip } from '@mui/material'
+import { format } from 'date-fns'
+import SectionCard from '../shared/SectionCard'
+import { useNow } from '../../hooks/useNow'
+import type { AdminUser } from '../../api/adminApi'
+
+interface DailyLimitSectionProps {
+  user: AdminUser
+  busy: boolean
+  setCapExempt: (id: string, until: string | null) => Promise<boolean>
+  setCapOverride: (id: string, cap: number | null) => Promise<boolean>
+}
+
+// Next UTC midnight — when the daily counter resets, so "rest of today" lines up with the cap.
+function nextUtcReset(): string {
+  const d = new Date()
+  d.setUTCHours(24, 0, 0, 0)
+  return d.toISOString()
+}
+
+function hoursFromNow(hours: number): string {
+  return new Date(Date.now() + hours * 3600_000).toISOString()
+}
+
+// Per-user daily-limit controls: a custom cap override plus a temporary "uncap for a bit".
+export default function DailyLimitSection({
+  user,
+  busy,
+  setCapExempt,
+  setCapOverride,
+}: DailyLimitSectionProps) {
+  const [capField, setCapField] = useState(
+    user.dailyCapOverride != null ? String(user.dailyCapOverride) : ''
+  )
+  const [customUntil, setCustomUntil] = useState('')
+  const now = useNow()
+
+  const exemptActive = user.capExemptUntil != null && new Date(user.capExemptUntil).getTime() > now
+
+  const trimmed = capField.trim()
+  const parsedCap = trimmed === '' ? null : Number(trimmed)
+  const capValid = parsedCap === null || (Number.isInteger(parsedCap) && parsedCap >= 1)
+  const capDirty = (user.dailyCapOverride ?? null) !== parsedCap
+
+  return (
+    <SectionCard
+      title='Daily limit'
+      description='Used today resets at 00:00 UTC. A custom cap overrides the global one; an uncap lifts the cap entirely until it expires.'
+    >
+      <Stack spacing={2}>
+        <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+          <Chip label={`Used today: ${user.usedToday} / ${user.effectiveCap}`} />
+          {exemptActive && user.capExemptUntil && (
+            <Chip
+              color='info'
+              variant='outlined'
+              label={`Uncapped until ${format(new Date(user.capExemptUntil), 'MMM d, HH:mm')}`}
+            />
+          )}
+        </Stack>
+
+        <Stack direction='row' spacing={1.5} sx={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <TextField
+            size='small'
+            type='number'
+            label='Custom cap'
+            placeholder='Global'
+            value={capField}
+            disabled={busy}
+            error={!capValid}
+            onChange={(e) => setCapField(e.target.value)}
+            helperText='Blank uses the global cap'
+            slotProps={{ htmlInput: { min: 1, max: 10000, step: 1 } }}
+            sx={{ maxWidth: 180 }}
+          />
+          <Button
+            sx={{ mt: 0.5 }}
+            disabled={busy || !capValid || !capDirty}
+            onClick={() => void setCapOverride(user.id, parsedCap)}
+          >
+            Save cap
+          </Button>
+        </Stack>
+
+        <Stack spacing={1}>
+          <Typography variant='subtitle2'>Temporary uncap</Typography>
+          <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+            <Button
+              color='secondary'
+              disabled={busy}
+              onClick={() => void setCapExempt(user.id, nextUtcReset())}
+            >
+              Rest of today
+            </Button>
+            <Button
+              color='secondary'
+              disabled={busy}
+              onClick={() => void setCapExempt(user.id, hoursFromNow(24))}
+            >
+              24 hours
+            </Button>
+            <Button
+              color='secondary'
+              disabled={busy}
+              onClick={() => void setCapExempt(user.id, hoursFromNow(24 * 7))}
+            >
+              7 days
+            </Button>
+            <Button
+              color='error'
+              disabled={busy || !exemptActive}
+              onClick={() => void setCapExempt(user.id, null)}
+            >
+              Re-cap now
+            </Button>
+          </Stack>
+          <Stack direction='row' spacing={1.5} sx={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <TextField
+              size='small'
+              type='datetime-local'
+              label='Until (custom)'
+              value={customUntil}
+              disabled={busy}
+              onChange={(e) => setCustomUntil(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <Button
+              color='secondary'
+              sx={{ mt: 0.5 }}
+              disabled={busy || customUntil === ''}
+              onClick={() => {
+                const iso = new Date(customUntil).toISOString()
+                void setCapExempt(user.id, iso).then((ok) => ok && setCustomUntil(''))
+              }}
+            >
+              Apply
+            </Button>
+          </Stack>
+        </Stack>
+      </Stack>
+    </SectionCard>
+  )
+}

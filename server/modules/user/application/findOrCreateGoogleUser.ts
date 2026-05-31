@@ -2,6 +2,8 @@ import * as userRepository from '../persistence/userRepository'
 import type { UserRole } from '../domain/User'
 import { env } from '../../../env'
 import type { UserRow } from '../../../infrastructure/db/schema'
+import { getSettings } from '../../settings/application/appSettings'
+import { SignupsPausedError } from '../../settings/domain/errors'
 
 interface GoogleProfileInput {
   googleSub: string
@@ -22,6 +24,10 @@ export async function findOrCreateGoogleUser(profile: GoogleProfileInput): Promi
       return userRepository.updateRole(existing.id, 'admin')
     }
     return existing
+  }
+  // Brand-new identity: honor the global signup pause, but never lock out the operator.
+  if (desiredRole !== 'admin' && (await getSettings()).signupsPaused) {
+    throw new SignupsPausedError()
   }
   return userRepository.create({
     email: profile.email,

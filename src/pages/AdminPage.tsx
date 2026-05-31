@@ -13,11 +13,15 @@ import {
 } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
+import LimitsPanel from '../components/Admin/LimitsPanel'
 import { useAdminContext } from '../components/Admin/AdminLayout'
+import { useNow } from '../hooks/useNow'
+import { scoreColor } from '../theme/scoreColor'
 
 // Admin landing: a tappable list of accounts. Each opens a detail route to edit the user.
 export default function AdminPage() {
   const { users, loading, error, reload } = useAdminContext()
+  const now = useNow()
 
   return (
     <Box>
@@ -25,8 +29,11 @@ export default function AdminPage() {
         Admin
       </Typography>
       <Typography color='text.secondary' sx={{ mb: 3 }}>
-        Manage accounts and API-key support. {users.length} user{users.length === 1 ? '' : 's'}.
+        Manage accounts and spend. {users.length} user{users.length === 1 ? '' : 's'}.
       </Typography>
+      <Box sx={{ mb: 3 }}>
+        <LimitsPanel users={users} />
+      </Box>
       {error && (
         <Stack spacing={2} sx={{ mb: 2, alignItems: 'flex-start' }}>
           <Alert severity='error' sx={{ width: '100%' }}>
@@ -61,6 +68,18 @@ export default function AdminPage() {
                         {user.email}
                       </Typography>
                     </Box>
+                    {user.capExemptUntil && new Date(user.capExemptUntil).getTime() > now ? (
+                      <Chip size='small' variant='outlined' color='info' label='uncapped' />
+                    ) : (
+                      <Chip
+                        size='small'
+                        variant='outlined'
+                        color={scoreColor(
+                          100 - (user.usedToday / Math.max(user.effectiveCap, 1)) * 100
+                        )}
+                        label={`${user.usedToday}/${user.effectiveCap}`}
+                      />
+                    )}
                     <Chip
                       size='small'
                       label={user.role}

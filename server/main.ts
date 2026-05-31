@@ -10,6 +10,7 @@ import { securityHeaders } from './infrastructure/http/securityHeaders'
 import authController from './modules/auth/controllers/authController'
 import userController from './modules/user/controllers/userController'
 import adminUserController from './modules/user/controllers/adminUserController'
+import adminSettingsController from './modules/settings/controllers/adminSettingsController'
 import sentenceController from './modules/sentence/controllers/sentenceController'
 import correctionController from './modules/correction/controllers/correctionController'
 import historyController from './modules/history/controllers/historyController'
@@ -34,6 +35,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authController)
 app.use('/api/me', userController)
 app.use('/api/admin/users', adminUserController)
+app.use('/api/admin/settings', adminSettingsController)
 app.use('/api/sentence', sentenceController)
 app.use('/api/correct', correctionController)
 app.use('/api/history', historyController)

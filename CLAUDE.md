@@ -118,6 +118,17 @@ and every new screen/component must be built in it — do **not** restyle later.
 
 `shared/` holds types imported by both `src/` and `server/`. Keep it small — only what genuinely crosses the wire or is a shared registry: `shared/languages.ts` (the language/locale registry, `LanguagePair`, `WordToken`) and `shared/levels.ts` (the CEFR-aligned `LEVELS` ladder). Don't put domain logic here.
 
+## Database migrations (Drizzle)
+
+Schema lives in [server/infrastructure/db/schema.ts](server/infrastructure/db/schema.ts). Migrations live in `drizzle/` as numbered `NNNN_name.sql` files, with a parallel **snapshot** per migration in `drizzle/meta/NNNN_snapshot.json` and an entry in `drizzle/meta/_journal.json`. The snapshot chain is the baseline `db:generate` diffs against — and it is easy to silently break.
+
+**The rule: never hand-author a migration `.sql` without its matching snapshot.** Always go through `npm run db:generate` after editing `schema.ts` — it writes the `.sql`, the `meta/NNNN_snapshot.json`, and the journal entry together, keeping the chain continuous. Then apply with `npm run db:migrate` (local) — prod migrates automatically on deploy.
+
+- If you must hand-edit the generated SQL (custom data backfill, a seed `INSERT`, `IF NOT EXISTS` guards), still run `db:generate` first so the snapshot + journal are produced, then edit only the `.sql` body. Do not write a `.sql` + journal entry by hand and skip the snapshot.
+- A **missing snapshot poisons `db:generate` for everyone after it**: with the latest snapshot stale, the next diff bundles unrelated drops+adds and trips drizzle-kit's interactive rename prompt, which dies without a TTY (`promptColumnsConflicts`). This happened to `0011`/`0012` and had to be repaired by regenerating the missing snapshots. Don't reintroduce it.
+- The journal's `when` timestamps **must increase monotonically** — the migrator skips any entry older than the last-applied one, silently applying nothing (see the roadmap memory's "migration gotcha"). `db:generate` handles this; if you ever hand-set a `when`, keep it larger than the previous entry's.
+- Verify after generating: `git status drizzle/` should show the new `.sql`, the new `meta/NNNN_snapshot.json`, and the `_journal.json` change — three artifacts, never just the `.sql`. A clean re-run of `db:generate` should then report "No schema changes".
+
 ## Lint / format
 
 Code style is enforced by ESLint + Prettier (config in `eslint.config.js`, `prettier.config.cjs`): single quotes, no semicolons, 2-space indent, 100-col width. Run `npm run typecheck` and `npm run lint` before declaring work done.

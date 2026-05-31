@@ -3,6 +3,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { env } from '../../../env'
 import * as userRepository from '../../user/persistence/userRepository'
 import { findOrCreateGoogleUser } from '../../user/application/findOrCreateGoogleUser'
+import { SignupsPausedError } from '../../settings/domain/errors'
 
 if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
   console.warn('[auth] GOOGLE_CLIENT_ID/SECRET not set — /api/auth/google will 500')
@@ -29,6 +30,10 @@ passport.use(
           })
           done(null, user)
         } catch (err) {
+          // Signups paused: treat as an auth failure (no account created) so the
+          // callback's failureRedirect bounces the new user back to /login, rather
+          // than surfacing a 500.
+          if (err instanceof SignupsPausedError) return done(null, false)
           done(err)
         }
       })()

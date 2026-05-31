@@ -3,6 +3,7 @@ import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
 import { getOperatorAnthropicClient } from '../../../infrastructure/claude/anthropicClient'
 import { assertCanSpend, canSpend } from '../../user/application/access'
+import { assertSpendEnabled } from '../../settings/application/appSettings'
 import * as sentenceRepository from '../persistence/sentenceRepository'
 import { generateSentenceBatch } from './generateSentenceBatch'
 import { toSentenceView, type SentenceView } from '../domain/Sentence'
@@ -80,8 +81,10 @@ function triggerBackgroundRefill(input: GetNextSentenceInput): void {
 }
 
 export async function getNextSentence(input: GetNextSentenceInput): Promise<SentenceView> {
-  // A non-approved account may not spend the operator key.
+  // A non-approved account may not spend the operator key, and the global spend pause
+  // blocks everyone but admins.
   assertCanSpend(input.user)
+  await assertSpendEnabled(input.user)
   const filter = {
     userId: input.user.id,
     learnLanguage: input.learnLanguage,
