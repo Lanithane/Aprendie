@@ -44,7 +44,7 @@ export default function HistoryPage() {
       </Typography>
       <Typography color='text.secondary' sx={{ mb: 3 }}>
         {languageName(pair.learnLanguage)} (<code>{pair.locale}</code>) →{' '}
-        {languageName(pair.guessLanguage)}. {loading ? 'Loading attempts…' : attemptCountLabel}.
+        {languageName(pair.guessLanguage)}.
       </Typography>
       {error && (
         <Stack spacing={2} sx={{ mb: 2, alignItems: 'flex-start' }}>
@@ -89,6 +89,11 @@ export default function HistoryPage() {
             >
               {loadingMore ? 'Loading…' : 'Load more'}
             </Button>
+          )}
+          {items.length > 0 && !loading && (
+            <Typography variant='caption' color='text.secondary' sx={{ textAlign: 'left' }}>
+              {attemptCountLabel}
+            </Typography>
           )}
         </Stack>
       )}
