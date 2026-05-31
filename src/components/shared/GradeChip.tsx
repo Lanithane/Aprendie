@@ -7,8 +7,8 @@ const GRADE_COLORS: Record<string, { main: string; dark: string }> = {
   'A+': { main: '#C9980A', dark: '#7A5400' }, // goldenrod
   A: { main: '#388E3C', dark: '#1B5E20' }, // green
   B: { main: '#1976D2', dark: '#0D47A1' }, // blue
-  C: { main: '#F9A825', dark: '#E65100' }, // yellow
-  D: { main: '#F9A825', dark: '#E65100' }, // yellow
+  C: { main: '#F9A825', dark: '#F9A825' }, // yellow
+  D: { main: '#F9A825', dark: '#F9A825' }, // yellow
   F: { main: '#D32F2F', dark: '#7F0000' }, // red
 }
 
