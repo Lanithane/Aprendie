@@ -14,12 +14,12 @@ const Root = styled('div', {
 })<{ $size: BrandWordmarkSize }>`
   font-family: 'Lilita One', system-ui, sans-serif;
   font-weight: 400;
-  letter-spacing: 0.005em;
+  letter-spacing: 0.05em;
   line-height: 1;
   white-space: nowrap;
   user-select: none;
   color: ${({ theme }) => theme.palette.tertiary.main};
-  font-size: ${({ $size }) => ($size === 'login' ? '3.5rem' : '1.5rem')};
+  font-size: ${({ $size }) => ($size === 'login' ? '3.5rem' : '2rem')};
 
   ${({ theme }) => theme.breakpoints.down('sm')} {
     font-size: ${({ $size }) => ($size === 'login' ? '2.8rem' : '1.5rem')};

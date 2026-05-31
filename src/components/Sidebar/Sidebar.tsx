@@ -44,15 +44,19 @@ const StyledDrawer = styled(Drawer, {
 const HeaderRow = styled(Box)`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   min-height: 56px;
   padding: ${({ theme }) => theme.spacing(1)};
+  position: relative;
 `
 
 const BrandSlot = styled(Box)`
-  min-width: 0;
-  padding-left: ${({ theme }) => theme.spacing(1)};
-  overflow: hidden;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  -webkit-text-stroke: 4.5px ${({ theme }) => theme.palette.secondary.main};
+  paint-order: stroke fill;
 `
 
 const BottomRail = styled(Box)`
