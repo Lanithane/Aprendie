@@ -20,6 +20,7 @@ import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness'
 import { styled } from '@mui/material/styles'
 import { useAuth } from '../../auth/AuthContext'
 import { useThemeMode, type ThemeMode } from '../../ThemeModeProvider'
+import BrandWordmark from '../Brand/BrandWordmark'
 import { ADMIN_NAV_ITEM, isActiveRoute, NAV_ITEMS } from '../AppShell/navigation'
 
 interface SidebarProps {
@@ -42,8 +43,16 @@ const StyledDrawer = styled(Drawer, {
 
 const HeaderRow = styled(Box)`
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
   padding: ${({ theme }) => theme.spacing(1)};
+`
+
+const BrandSlot = styled(Box)`
+  min-width: 0;
+  padding-left: ${({ theme }) => theme.spacing(1)};
+  overflow: hidden;
 `
 
 const BottomRail = styled(Box)`
@@ -88,6 +97,11 @@ export default function Sidebar({
   return (
     <StyledDrawer variant='permanent' open $width={width} $reserveSpace>
       <HeaderRow>
+        {showLabels && (
+          <BrandSlot>
+            <BrandWordmark size='sidebar' />
+          </BrandSlot>
+        )}
         <IconButton
           onClick={onToggleCollapsed}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}

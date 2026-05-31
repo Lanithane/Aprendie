@@ -112,6 +112,12 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
 
   const theme = useMemo(() => createAprendieTheme(themeId, resolvedMode), [themeId, resolvedMode])
 
+  // Keep the mobile browser chrome (address bar) in sync with the selected theme.
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]')
+    if (meta) meta.setAttribute('content', theme.palette.background.default)
+  }, [theme])
+
   return (
     <ThemeModeContext.Provider
       value={{ mode, resolvedMode, setMode, cycleMode, themeId, setThemeId }}
