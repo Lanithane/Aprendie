@@ -31,10 +31,10 @@ export default function AdminPage() {
 
   return (
     <Box>
-      <Typography variant='h3' sx={{ mb: 1.5 }}>
+      <Typography variant='h3' sx={{ mb: 0.5 }}>
         Admin
       </Typography>
-      <Typography color='text.secondary' sx={{ mb: 3 }}>
+      <Typography color='text.secondary' sx={{ mb: 2 }}>
         Manage accounts and spend. {users.length} user{users.length === 1 ? '' : 's'}.
       </Typography>
       <Box sx={{ mb: 3 }}>
@@ -50,6 +50,9 @@ export default function AdminPage() {
           </Button>
         </Stack>
       )}
+      <Typography variant='h6' sx={{ mb: 1 }}>
+        Users
+      </Typography>
       {loading ? (
         <LoadingSpinner />
       ) : (

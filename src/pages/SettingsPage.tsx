@@ -26,7 +26,7 @@ export default function SettingsPage() {
   const { mode, setMode } = useThemeMode()
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 540, mx: 'auto' }}>
+    <Box>
       <Typography variant='h3' sx={{ mb: 2 }}>
         Settings
       </Typography>
