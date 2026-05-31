@@ -12,6 +12,7 @@ import {
   CircularProgress,
 } from '@mui/material'
 import SectionCard from '../shared/SectionCard'
+import VoicePicker from '../VoicePicker/VoicePicker'
 import { useLanguagePair } from '../../hooks/useLanguagePair'
 import { useLevelPreference } from '../../hooks/useLevelPreference'
 import {
@@ -150,6 +151,21 @@ export default function OnboardingWizard({ completing, error, onComplete }: Onbo
               ))}
             </Select>
           </FormControl>
+
+          {/* Voice is a per-device setting (localStorage, not the account), so unlike the staged
+              fields above it persists immediately via the shared store — which also lets the
+              preview button reflect the choice right away. It tracks the staged `learn`/`locale`
+              rather than the saved pair, since neither is committed until "Start". */}
+          <Box>
+            <VoicePicker locale={locale} learnLanguage={learn} size='medium' />
+            <Typography
+              variant='caption'
+              color='text.secondary'
+              sx={{ display: 'block', mt: 0.75 }}
+            >
+              Saved on this device. Available voices depend on what’s installed.
+            </Typography>
+          </Box>
 
           {error && <Alert severity='error'>{error}</Alert>}
 
