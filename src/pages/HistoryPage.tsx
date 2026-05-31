@@ -254,7 +254,10 @@ function HistoryRow({ entry, open, onToggle, showDivider }: HistoryRowProps) {
             },
           }}
         />
-        <Typography variant='caption' sx={{ flexShrink: 0, color: 'text.secondary' }}>
+        <Typography
+          variant='caption'
+          sx={{ flexShrink: 0, color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
+        >
           {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
         </Typography>
         <ExpandMoreIcon
@@ -268,6 +271,15 @@ function HistoryRow({ entry, open, onToggle, showDivider }: HistoryRowProps) {
       </ListItemButton>
       <Collapse in={open}>
         <Box sx={{ px: 2, pb: 2, pt: 0.5 }}>
+          <Typography variant='caption' color='text.secondary'>
+            Sentence
+          </Typography>
+          <Typography
+            lang={entry.learnLanguage}
+            sx={{ mb: 1, fontWeight: 400, wordSpacing: '-0.05em' }}
+          >
+            {entry.promptText}
+          </Typography>
           <Typography variant='caption' color='text.secondary'>
             Your answer
           </Typography>
@@ -295,6 +307,12 @@ function HistoryRow({ entry, open, onToggle, showDivider }: HistoryRowProps) {
               ))}
             </Box>
           )}
+          <Typography
+            variant='caption'
+            sx={{ mt: 1.5, display: { xs: 'block', sm: 'none' }, color: 'text.secondary' }}
+          >
+            {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
+          </Typography>
         </Box>
       </Collapse>
       {showDivider && <Divider />}
