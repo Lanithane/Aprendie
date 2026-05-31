@@ -34,10 +34,10 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ✅ Done (local; QA pending)         |
 | 12   | Operator key + access gate + daily cap                                        | ✅ Done (shipped to main)           |
 | 13   | Branding & identity (logo, favicon, PWA icons)                                | ⬜ Not started                      |
-| 14   | Forgiving scoring & letter grades (A+…F)                                       | ✅ Done (shipped to main)           |
-| 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                     | ✅ Done                             |
-| 16   | Feedback & analytics (self-hosted, in admin)                                   | ⬜ Not started                      |
-| 17   | Single Starter level (drop Foundation) + Starter word-meaning hints            | ✅ Done                             |
+| 14   | Forgiving scoring & letter grades (A+…F)                                      | ✅ Done (shipped to main)           |
+| 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                    | ⬜ Not started                      |
+| 16   | Feedback & analytics (self-hosted, in admin)                                  | ⬜ Not started                      |
+| 17   | Single Starter level (drop Foundation) + Starter word-meaning hints           | ✅ Done                             |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -92,7 +92,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
   of a brief flash before it loads)?~~ — **resolved: keep the mirror.**
   [useLanguagePair.ts](src/hooks/useLanguagePair.ts) paints from the localStorage cache on a cold
   load and lets the server value win once `/api/me` resolves (`override ?? serverPair ?? cache ??
-  DEFAULT_PAIR`); the onboarding flow primes the cache via the exported `writeLanguagePairCache`.
+DEFAULT_PAIR`); the onboarding flow primes the cache via the exported `writeLanguagePairCache`.
 
 ---
 
@@ -487,33 +487,24 @@ moved onto the `users` row. The server can't prewarm a pool it doesn't know abou
 follow the account. (This supersedes the old "prefs stay client-side" decision — already half-reversed
 by `level`/theme.)
 
-- [x] **Schema + persistence** — `learn_language`, `guess_language`, `locale` added to `users`
-      ([schema.ts](server/infrastructure/db/schema.ts), loose-typed text like `level`; migration
-      [0009_blue_mimic.sql](drizzle/0009_blue_mimic.sql)), with
-      [setUserLanguagePair.ts](server/modules/user/application/setUserLanguagePair.ts) +
-      `PATCH /api/me/language-pair` ([userController.ts](server/modules/user/controllers/userController.ts))
-      mirroring `updateUserLevel`. [useLanguagePair.ts](src/hooks/useLanguagePair.ts) reads/writes the
-      account value with the same optimistic-override pattern as
-      [useLevelPreference.ts](src/hooks/useLevelPreference.ts), keeping a localStorage mirror for
-      cold-paint (see resolved open question).
-- [x] **Onboarding wizard** — the old `!user.hasApiKey` gate is gone (operator-key pivot, Epic 12).
-      New [OnboardingWizard.tsx](src/components/Onboarding/OnboardingWizard.tsx) gates
-      [HomePage.tsx](src/pages/HomePage.tsx) for an **approved account that hasn't chosen its
-      language pair** (the server columns are null), after the access gate. **Single meaningful step
-      — no key step:** stages learn → guess → locale → level in local state (changing a select
-      doesn't dismiss the wizard), persisted server-side only on "Start". A thin
-      [useOnboarding.ts](src/hooks/useOnboarding.ts) drives the gate + completion; while completing it
-      shows a "Preparing your first sentences…" transition. `useCurrentSentence` is disabled while
-      onboarding is pending so practice doesn't fetch the default pool first.
-- [x] **Optimistic warm** — dedicated [prewarmPool.ts](server/modules/sentence/application/prewarmPool.ts)
-      use case (small inline batch of 3 + background top-up to full) behind
-      `POST /api/sentence/prewarm` ([sentenceController.ts](server/modules/sentence/controllers/sentenceController.ts)).
-      The pool primitives were extracted into
-      [sentencePool.ts](server/modules/sentence/application/sentencePool.ts) so prewarm, the blocking
-      path, and bootstrap share one in-flight refill guard. The wizard fires prewarm **before**
-      persisting the pair (so the gate doesn't flip to a cold screen mid-warm); for returning users,
-      [getBootstrapSentence](server/modules/sentence/application/getNextSentence.ts) now also kicks a
-      background refill when the saved pool is cold on app boot.
+- [ ] **Schema + persistence** — add `learn_language`, `guess_language`, `locale` to `users`
+      ([schema.ts](server/infrastructure/db/schema.ts), loose-typed text like `level`), a migration,
+      and an update use case + route mirroring `updateUserLevel`
+      ([userApi.ts](src/api/userApi.ts)). Rework [useLanguagePair.ts](src/hooks/useLanguagePair.ts) to
+      read/write the account value (see the open question on whether to keep a localStorage mirror),
+      mirroring [useLevelPreference.ts](src/hooks/useLevelPreference.ts)'s optimistic-override pattern.
+- [ ] **Onboarding wizard** — replaces the current bare `!user.hasApiKey` gate on
+      [HomePage.tsx](src/pages/HomePage.tsx#L43-L48). Shown on first run when the account is missing
+      the language pair **or** the API key. **Step 1:** the learn → guess → locale → level picker
+      (reusing the Settings controls), persisted server-side. **Step 2:** absorb the existing
+      [ApiKeySetup.tsx](src/components/ApiKeySetup/ApiKeySetup.tsx) /
+      [useApiKey.ts](src/hooks/useApiKey.ts) as the key-entry step (it stays usable standalone for
+      Settings' "replace key"). A thin `useOnboarding` gate drives the step sequence.
+- [ ] **Optimistic warm** — a small-batch warm path (give `generateSentenceBatch` a size arg, or a
+      dedicated `prewarmPool` use case) + `POST /api/sentence/prewarm` that fires a background refill
+      for the chosen pool. Fire it the instant the key validates at the end of step 2 (overlapping the
+      transition to Practice), and on app boot for the returning user's saved pair — so Practice is
+      never cold.
 
 ## ✅ Epic 12 — Operator key + access gate + daily cap
 
@@ -583,8 +574,7 @@ A real visual identity to replace the default Vite favicon. Pure frontend + stat
 - [ ] **Logo in the app bar** — a reusable `src/components/Logo/Logo.tsx`, rendered where the
       "Aprendie" wordmark sits today in [AppShell.tsx](src/components/AppShell/AppShell.tsx) (mobile
       header) and on [LoginPage.tsx](src/pages/LoginPage.tsx). Theme-agnostic chrome, MD3 rounded.
-- [ ] _Note:_ the mark itself may want a designer / AI-generated asset; this epic covers the asset set
-      + wiring, not the visual design exploration.
+- [ ] _Note:_ the mark itself may want a designer / AI-generated asset; this epic covers the asset set + wiring, not the visual design exploration.
 
 ## ✅ Epic 14 — Forgiving scoring & letter grades (merged to main)
 
@@ -602,7 +592,7 @@ answer (e.g. "I am enchanted by you", "How many years do you have") at the **A**
 - [x] **Display the letter** — `scoreColor.ts` thresholds re-aligned; `CorrectionDisplay`, `HistoryPage`, `HomePage` all show the letter grade.
 - [x] **Migration `0013`** — nullable `grade text` column added to `attempts` via `drizzle/0013_pink_archangel.sql`.
 
-## ✅ Epic 15 — Auto-speak on load + smart voice defaults
+## ⬜ Epic 15 — Auto-speak on load + smart voice defaults
 
 **Extends Epic 3** — TTS already shipped ([useSpeech.ts](src/hooks/useSpeech.ts),
 [useSpeechRate.ts](src/hooks/useSpeechRate.ts), [useSpeechVoice.ts](src/hooks/useSpeechVoice.ts), the
@@ -610,34 +600,21 @@ answer (e.g. "I am enchanted by you", "How many years do you have") at the **A**
 [VoicePicker](src/components/VoicePicker/VoicePicker.tsx)). This epic adds **automatic** playback and
 better default voices; the manual speak button already exists. Pure frontend (Web Speech API).
 
-- [x] **Auto-speak on new sentence** — opt-in; when a new sentence renders in
-      [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx), it calls the existing
-      `useSpeech().speak(...)` after the configured delay. The timer lives in
-      [useAutoSpeak.ts](src/hooks/useAutoSpeak.ts) per the [CLAUDE.md](CLAUDE.md) useEffect rules; it
-      re-arms only on a new sentence (`text`) — a rate tweak or async voice load won't restart it —
-      and a pending timer is cleared on the next sentence / unmount (in-flight audio is cancelled by
-      `speak()` itself and by useSpeech's unmount cleanup).
-- [x] **Persisted prefs (per account, in Postgres)** — the toggle + delay are owned by the account,
-      not localStorage: nullable `users.auto_speak` / `users.auto_speak_delay_ms` columns (migration
-      `drizzle/0015_old_lionheart.sql`), a `PATCH /api/me/auto-speak` route
-      (`setUserAutoSpeak` → `userRepository.updateAutoSpeak`), and
-      [useAutoSpeakPreference.ts](src/hooks/useAutoSpeakPreference.ts) reading server truth via
-      `useAuth().user` with the same optimistic-override pattern as
-      [useLevelPreference.ts](src/hooks/useLevelPreference.ts). Defaults + bounds live in
-      [shared/speech.ts](shared/speech.ts) (**default on, 500 ms**, clamped 0–3000, validated both
-      ends); a null column falls back to those, so a new account gets auto-speak on by default. The
-      0.5 s default gives the learner a beat to glance at the sentence before the audio plays.
-- [x] **Settings audio controls** — the **Pronunciation** SectionCard in
-      [SettingsPage.tsx](src/pages/SettingsPage.tsx) now stacks `VoicePicker` with a new
-      [AutoSpeakControls.tsx](src/components/AutoSpeakControls/AutoSpeakControls.tsx) (a toggle + a
-      delay slider that dims/disables while the toggle is off).
-- [x] **Smart voice defaults (research)** — [src/audio/voiceDefaults.ts](src/audio/voiceDefaults.ts)
-      encodes the best-sounding voices per platform/locale (Apple named + Enhanced/Premium, Windows
-      "… Online (Natural)", Android/Chrome "Google <language>"), demotes Apple novelty voices, and
-      exposes `bestDefaultVoice()` which seeds `pickVoice()` in
-      [useSpeech.ts](src/hooks/useSpeech.ts) — used only when the user hasn't pinned a voice in
-      `VoicePicker`. Scoring keeps locale specificity dominant (exact dialect still wins) with quality
-      as a tiebreak.
+- [ ] **Auto-speak on new sentence** — opt-in; when a new sentence renders in
+      [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx) (over
+      [SentenceTokens](src/components/SentenceTokens/SentenceTokens.tsx)), call the existing
+      `useSpeech().speak(...)` after a configurable delay. Keep the timer in a small hook
+      (`src/hooks/useAutoSpeak.ts`) per the [CLAUDE.md](CLAUDE.md) useEffect rules; cancel on the next
+      sentence / unmount.
+- [ ] **Persisted prefs** — `useAutoSpeakPreference` (`aprendie:autoSpeak`, default off) + delay
+      (`aprendie:autoSpeakDelayMs`, **default 1000**), same localStorage pattern as
+      [useSpeechRate.ts](src/hooks/useSpeechRate.ts). The 1 s default gives the learner a moment to read
+      the sentence before the audio plays.
+- [ ] **Settings audio controls** — extend the **Pronunciation** SectionCard in
+      [SettingsPage.tsx](src/pages/SettingsPage.tsx) (next to `VoicePicker`) with the auto-speak toggle + a delay control.
+- [ ] **Smart voice defaults (research)** — document the best default voice per OS/browser/locale and
+      encode it in a `src/audio/voiceDefaults.ts` registry that seeds `pickVoice()` in
+      [useSpeech.ts](src/hooks/useSpeech.ts) (only when the user hasn't chosen one in `VoicePicker`).
 - [ ] _Backlog:_ cloud neural TTS for higher, consistent voice quality.
 
 ## ⬜ Epic 16 — Feedback & analytics
@@ -712,7 +689,7 @@ any level. Two changes, expanding off the work above:
 - [x] **Glosses generated at every level** — the `SYSTEM_PROMPT_STANDARD` / `SYSTEM_PROMPT_STARTER`
       split in [generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts)
       collapses to **one `SYSTEM_PROMPT`** that always requests a one-word `gloss` per token, for
-      every level and mixed batches. The cached system block stays byte-identical across pairs *and*
+      every level and mixed batches. The cached system block stays byte-identical across pairs _and_
       levels. Immersion is now purely a UI gate, not a generation one. (`WordToken.gloss` comment in
       [shared/languages.ts](shared/languages.ts) updated; old A1+ rows simply lack the gloss and
       degrade gracefully.)
@@ -725,7 +702,7 @@ any level. Two changes, expanding off the work above:
       headline now renders clickable [SentenceTokens.tsx](src/components/SentenceTokens/SentenceTokens.tsx).
 - [x] **Reveal the gloss at all levels there** — new `alwaysShowGloss` prop on `SentenceTokens` /
       [WordPopover.tsx](src/components/WordPopover/WordPopover.tsx) (`showGloss = (alwaysShowGloss ||
-      sentenceLevel === 'starter') && …`). The results screen passes it; `PracticeCard` does not, so
+    sentenceLevel === 'starter') && …`). The results screen passes it; `PracticeCard` does not, so
       practice keeps the Starter-only gate.
 
 ---
@@ -759,15 +736,14 @@ Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
 - **Epic 14** — a perfect answer → A+; the same answer with missing punctuation/lowercase → still A+;
   an accurate-but-stiff phrasing ("I am enchanted by you") → lands at A, not A+; a half-wrong answer →
   B/C/D/F by word %. Reload history and confirm stored grades are stable.
-- **Epic 15** — on a fresh account, load a new sentence and confirm it speaks on its own after ~0.5 s
-  (auto-speak defaults on), uses the learn-language voice, and cancels cleanly on "Next"; the manual
-  speaker button still works. Toggle it off / change the delay in Settings → Pronunciation, then
-  reload (and sign in elsewhere) and confirm it persists from the account, not just the browser.
+- **Epic 15** — enable auto-speak; load a new sentence and confirm it speaks after the configured delay
+  (~1 s default), uses the learn-language voice, and cancels cleanly on "Next"; the manual speaker
+  button still works; the toggle/delay persist across reload.
 - **Epic 16** — click the sidebar Feedback button, submit, and confirm the row persists and appears in
   the admin view; confirm key events are recorded; QA the dialog in light/dark/system + mobile.
 - **Epic 17** — the level menu shows a single **Starter** below A1 (no Foundation); a pre-existing
   Foundation account/sentence now reads Starter; at Starter, clicking a word shows its meaning in the
-  popover; switch to A1+ and confirm the popover never shows a meaning *while practicing* (immersion
+  popover; switch to A1+ and confirm the popover never shows a meaning _while practicing_ (immersion
   intact). Then submit an A1+ answer and on the results screen confirm the prompt's words are
   clickable and **do** show their meaning (new sentence needed for a gloss to exist above Starter).
 
