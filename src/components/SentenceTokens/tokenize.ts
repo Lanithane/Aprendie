@@ -18,8 +18,7 @@ const normalize = (s: string) => s.normalize('NFC').toLowerCase().trim()
 // Surface strings from the AI may include attached punctuation (e.g. "¿Cómo", "llamas?")
 // because the prompt asks for the word "as it appears in promptText". Strip leading/trailing
 // non-letter/mark chars so the key matches what WORD_RE extracts from the sentence text.
-const surfaceKey = (s: string) =>
-  normalize(s).replace(/^[^\p{L}\p{M}]+|[^\p{L}\p{M}]+$/gu, '')
+const surfaceKey = (s: string) => normalize(s).replace(/^[^\p{L}\p{M}]+|[^\p{L}\p{M}]+$/gu, '')
 
 // Split `text` into ordered segments, attaching a WordToken to each word run whose
 // surface matches (case-insensitively). Punctuation and whitespace are preserved as
