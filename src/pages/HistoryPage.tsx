@@ -140,13 +140,15 @@ function HistoryRow({ entry, open, onToggle, showDivider }: HistoryRowProps) {
           <Typography variant='caption' color='text.secondary'>
             Your answer
           </Typography>
-          <Typography lang={entry.guessLanguage} sx={{ mb: 1 }}>
+          <Typography lang={entry.guessLanguage} sx={{ mb: 1, fontWeight: 400 }}>
             {entry.userAnswer}
           </Typography>
           <Typography variant='caption' color='text.secondary'>
             Correct
           </Typography>
-          <Typography lang={entry.guessLanguage}>{entry.correctedAnswer}</Typography>
+          <Typography lang={entry.guessLanguage} sx={{ fontWeight: 400 }}>
+            {entry.correctedAnswer}
+          </Typography>
           {entry.mistakes.length > 0 && (
             <Box sx={{ mt: 1.5 }}>
               <Typography variant='caption' color='text.secondary'>
