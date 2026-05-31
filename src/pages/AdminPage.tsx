@@ -57,7 +57,9 @@ export default function AdminPage() {
                       sx={{
                         bgcolor: 'secondaryContainer',
                         color: 'onSecondaryContainer',
-                        fontSize: '1rem',
+                        fontSize: '1.25rem',
+                        width: 56,
+                        height: 56,
                       }}
                     >
                       {(user.name || user.email).charAt(0).toUpperCase()}
@@ -67,36 +69,38 @@ export default function AdminPage() {
                       <Typography variant='caption' noWrap sx={{ display: 'block' }}>
                         {user.email}
                       </Typography>
-                    </Box>
-                    {user.capExemptUntil && new Date(user.capExemptUntil).getTime() > now ? (
-                      <Chip size='small' variant='outlined' color='info' label='uncapped' />
-                    ) : (
-                      <Chip
-                        size='small'
-                        variant='outlined'
-                        color={scoreColor(
-                          100 - (user.usedToday / Math.max(user.effectiveCap, 1)) * 100
+                      <Stack direction='row' spacing={0.5} sx={{ mt: 0.75, flexWrap: 'wrap' }}>
+                        {user.capExemptUntil && new Date(user.capExemptUntil).getTime() > now ? (
+                          <Chip size='small' variant='outlined' color='info' label='uncapped' />
+                        ) : (
+                          <Chip
+                            size='small'
+                            variant='outlined'
+                            color={scoreColor(
+                              100 - (user.usedToday / Math.max(user.effectiveCap, 1)) * 100
+                            )}
+                            label={`${user.usedToday}/${user.effectiveCap}`}
+                          />
                         )}
-                        label={`${user.usedToday}/${user.effectiveCap}`}
-                      />
-                    )}
-                    <Chip
-                      size='small'
-                      label={user.role}
-                      color={user.role === 'admin' ? 'primary' : 'default'}
-                    />
-                    <Chip
-                      size='small'
-                      variant={user.access === 'approved' ? 'filled' : 'outlined'}
-                      label={user.access}
-                      color={
-                        user.access === 'approved'
-                          ? 'success'
-                          : user.access === 'blocked'
-                            ? 'error'
-                            : 'warning'
-                      }
-                    />
+                        <Chip
+                          size='small'
+                          label={user.role}
+                          color={user.role === 'admin' ? 'primary' : 'default'}
+                        />
+                        <Chip
+                          size='small'
+                          variant={user.access === 'approved' ? 'filled' : 'outlined'}
+                          label={user.access}
+                          color={
+                            user.access === 'approved'
+                              ? 'success'
+                              : user.access === 'blocked'
+                                ? 'error'
+                                : 'warning'
+                          }
+                        />
+                      </Stack>
+                    </Box>
                     <ChevronRightIcon sx={{ color: 'action.active', flexShrink: 0 }} />
                   </Stack>
                 </CardContent>

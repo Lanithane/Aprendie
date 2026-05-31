@@ -1,17 +1,22 @@
 import { useState } from 'react'
 import { styled } from '@mui/material/styles'
 import {
+  Box,
   Card,
   CardContent,
+  CircularProgress,
+  InputAdornment,
   Typography,
   Stack,
   TextField,
-  Button,
   Switch,
   FormControlLabel,
   Alert,
   Divider,
+  Snackbar,
 } from '@mui/material'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined'
+import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import { useAdminSettings } from '../../hooks/useAdminSettings'
 import { useNow } from '../../hooks/useNow'
@@ -33,6 +38,8 @@ const StatTile = styled('div')`
   color: ${({ theme }) => theme.palette.text.primary};
 `
 
+type CapSaveState = 'idle' | 'saving' | 'success' | 'error'
+
 interface LimitsPanelProps {
   users: AdminUser[]
 }
@@ -42,7 +49,8 @@ interface LimitsPanelProps {
 export default function LimitsPanel({ users }: LimitsPanelProps) {
   const { settings, loading, error, update } = useAdminSettings()
   const [capInput, setCapInput] = useState('')
-  const [savingCap, setSavingCap] = useState(false)
+  const [capSaveState, setCapSaveState] = useState<CapSaveState>('idle')
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
 
   const now = useNow()
   const pending = users.filter((u) => u.access === 'pending').length
@@ -51,18 +59,39 @@ export default function LimitsPanel({ users }: LimitsPanelProps) {
     (u) => u.capExemptUntil && new Date(u.capExemptUntil).getTime() > now
   ).length
 
-  // Seed the cap field from settings once they load (and whenever they change underneath us).
   const capValue = capInput !== '' ? capInput : settings ? String(settings.dailyGradedCap) : ''
   const capDirty = settings != null && capValue !== String(settings.dailyGradedCap)
 
   const saveCap = async () => {
     const next = Number(capValue)
-    if (!Number.isInteger(next) || next < 1) return
-    setSavingCap(true)
+    if (!Number.isInteger(next) || next < 1 || !capDirty || capSaveState === 'saving') return
+    setCapSaveState('saving')
     const ok = await update({ dailyGradedCap: next })
-    setSavingCap(false)
-    if (ok) setCapInput('')
+    if (ok) {
+      setCapInput('')
+      setCapSaveState('success')
+      setTimeout(() => setCapSaveState('idle'), 5000)
+    } else {
+      setCapSaveState('error')
+      setSnackbarOpen(true)
+      setTimeout(() => setCapSaveState('idle'), 5000)
+    }
   }
+
+  const capAdornment =
+    capSaveState === 'saving' ? (
+      <InputAdornment position='end'>
+        <CircularProgress size={16} />
+      </InputAdornment>
+    ) : capSaveState === 'success' ? (
+      <InputAdornment position='end'>
+        <CheckCircleOutlineIcon color='success' fontSize='small' />
+      </InputAdornment>
+    ) : capSaveState === 'error' ? (
+      <InputAdornment position='end'>
+        <HighlightOffIcon color='error' fontSize='small' />
+      </InputAdornment>
+    ) : null
 
   return (
     <Card variant='outlined'>
@@ -107,58 +136,73 @@ export default function LimitsPanel({ users }: LimitsPanelProps) {
 
             <Divider />
 
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={1.5}
-              sx={{ alignItems: { sm: 'flex-end' } }}
-            >
+            <Stack spacing={0.5}>
               <TextField
                 size='small'
                 type='number'
                 label='Daily graded cap'
                 value={capValue}
-                disabled={savingCap}
+                disabled={capSaveState === 'saving'}
                 onChange={(e) => setCapInput(e.target.value)}
-                helperText='Graded sentences per user per day'
-                slotProps={{ htmlInput: { min: 1, max: 10000, step: 1 } }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void saveCap()
+                }}
+                slotProps={{
+                  htmlInput: { min: 1, max: 10000, step: 1 },
+                  input: { endAdornment: capAdornment },
+                }}
                 sx={{ maxWidth: 220 }}
               />
-              <Button onClick={() => void saveCap()} disabled={!capDirty} loading={savingCap}>
-                Save cap
-              </Button>
+              <Typography variant='caption' color='text.secondary'>
+                Graded sentences per user per day
+              </Typography>
             </Stack>
 
-            <Stack spacing={0.5}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={settings.signupsPaused}
-                    onChange={(e) => void update({ signupsPaused: e.target.checked })}
-                  />
-                }
-                label='Pause new signups'
-              />
-              <Typography variant='caption' color='text.secondary' sx={{ pl: 6, mt: -0.5 }}>
-                New accounts are turned away at sign-in. Existing users are unaffected.
-              </Typography>
-              <FormControlLabel
-                sx={{ mt: 1 }}
-                control={
-                  <Switch
-                    color='warning'
-                    checked={settings.spendPaused}
-                    onChange={(e) => void update({ spendPaused: e.target.checked })}
-                  />
-                }
-                label='Pause all practice (maintenance)'
-              />
-              <Typography variant='caption' color='text.secondary' sx={{ pl: 6, mt: -0.5 }}>
-                Stops every account from spending the key. Use for cost spikes or incidents.
-              </Typography>
+            <Stack spacing={1.5}>
+              <Box>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.signupsPaused}
+                      onChange={(e) => void update({ signupsPaused: e.target.checked })}
+                    />
+                  }
+                  label='Pause new signups'
+                />
+                <Typography variant='caption' color='text.secondary' sx={{ display: 'block' }}>
+                  New accounts are turned away at sign-in. Existing users are unaffected.
+                </Typography>
+              </Box>
+              <Box>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      color='warning'
+                      checked={settings.spendPaused}
+                      onChange={(e) => void update({ spendPaused: e.target.checked })}
+                    />
+                  }
+                  label='Pause all practice (maintenance)'
+                />
+                <Typography variant='caption' color='text.secondary' sx={{ display: 'block' }}>
+                  Stops every account from spending the key. Use for cost spikes or incidents.
+                </Typography>
+              </Box>
             </Stack>
           </Stack>
         )}
       </CardContent>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={5000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity='error' onClose={() => setSnackbarOpen(false)}>
+          Failed to save cap
+        </Alert>
+      </Snackbar>
     </Card>
   )
 }

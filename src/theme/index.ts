@@ -1,3 +1,4 @@
+import '@fontsource-variable/inter'
 import { createTheme, type Theme, type TypographyVariantsOptions } from '@mui/material/styles'
 import { THEMES, type Md3Scheme, type ThemeId } from './tokens'
 export { THEMES, THEME_META, THEME_IDS, DEFAULT_THEME_ID, type ThemeId } from './tokens'
@@ -8,7 +9,7 @@ const em = (px: number, sizePx: number) => `${px / sizePx}em`
 
 function md3Typography(): TypographyVariantsOptions {
   return {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter Variable", "Inter", "Helvetica", "Arial", sans-serif',
     fontWeightMedium: 500,
     // display-small
     h3: { fontSize: rem(36), lineHeight: 44 / 36, fontWeight: 400, letterSpacing: 0 },
@@ -27,15 +28,15 @@ function md3Typography(): TypographyVariantsOptions {
     },
     // title-small
     subtitle2: {
-      fontSize: rem(14),
-      lineHeight: 20 / 14,
+      fontSize: rem(16),
+      lineHeight: 22 / 16,
       fontWeight: 500,
-      letterSpacing: em(0.1, 14),
+      letterSpacing: em(0.1, 16),
     },
     // body-large
-    body1: { fontSize: rem(16), lineHeight: 24 / 16, fontWeight: 400, letterSpacing: em(0.5, 16) },
+    body1: { fontSize: rem(16), lineHeight: 24 / 16, fontWeight: 500, letterSpacing: em(0.5, 16) },
     // body-medium
-    body2: { fontSize: rem(14), lineHeight: 20 / 14, fontWeight: 400, letterSpacing: em(0.25, 14) },
+    body2: { fontSize: rem(14), lineHeight: 20 / 14, fontWeight: 500, letterSpacing: em(0.25, 14) },
     // label-large (buttons) — MD3 has no all-caps
     button: {
       fontSize: rem(14),
@@ -53,10 +54,10 @@ function md3Typography(): TypographyVariantsOptions {
     },
     // body-small
     caption: {
-      fontSize: rem(12),
-      lineHeight: 16 / 12,
-      fontWeight: 400,
-      letterSpacing: em(0.4, 12),
+      fontSize: rem(14),
+      lineHeight: 20 / 14,
+      fontWeight: 500,
+      letterSpacing: em(0.4, 14),
     },
   }
 }

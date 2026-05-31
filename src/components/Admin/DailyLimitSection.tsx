@@ -60,32 +60,35 @@ export default function DailyLimitSection({
           )}
         </Stack>
 
-        <Stack direction='row' spacing={1.5} sx={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <TextField
-            size='small'
-            type='number'
-            label='Custom cap'
-            placeholder='Global'
-            value={capField}
-            disabled={busy}
-            error={!capValid}
-            onChange={(e) => setCapField(e.target.value)}
-            helperText='Blank uses the global cap'
-            slotProps={{ htmlInput: { min: 1, max: 10000, step: 1 } }}
-            sx={{ maxWidth: 180 }}
-          />
-          <Button
-            sx={{ mt: 0.5 }}
-            disabled={busy || !capValid || !capDirty}
-            onClick={() => void setCapOverride(user.id, parsedCap)}
-          >
-            Save cap
-          </Button>
+        <Stack spacing={0.5}>
+          <Stack direction='row' spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+            <TextField
+              size='small'
+              type='number'
+              label='Custom cap'
+              placeholder='Global'
+              value={capField}
+              disabled={busy}
+              error={!capValid}
+              onChange={(e) => setCapField(e.target.value)}
+              slotProps={{ htmlInput: { min: 1, max: 10000, step: 1 } }}
+              sx={{ maxWidth: 180 }}
+            />
+            <Button
+              disabled={busy || !capValid || !capDirty}
+              onClick={() => void setCapOverride(user.id, parsedCap)}
+            >
+              Save cap
+            </Button>
+          </Stack>
+          <Typography variant='caption' color='text.secondary'>
+            Blank uses the global cap
+          </Typography>
         </Stack>
 
         <Stack spacing={1}>
           <Typography variant='subtitle2'>Temporary uncap</Typography>
-          <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+          <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 1 }}>
             <Button
               color='secondary'
               disabled={busy}
@@ -115,7 +118,7 @@ export default function DailyLimitSection({
               Re-cap now
             </Button>
           </Stack>
-          <Stack direction='row' spacing={1.5} sx={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <Stack direction='row' spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
             <TextField
               size='small'
               type='datetime-local'
@@ -124,10 +127,10 @@ export default function DailyLimitSection({
               disabled={busy}
               onChange={(e) => setCustomUntil(e.target.value)}
               slotProps={{ inputLabel: { shrink: true } }}
+              sx={{ maxWidth: 240 }}
             />
             <Button
               color='secondary'
-              sx={{ mt: 0.5 }}
               disabled={busy || customUntil === ''}
               onClick={() => {
                 const iso = new Date(customUntil).toISOString()
