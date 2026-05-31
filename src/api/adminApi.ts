@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { UserRole } from './userApi'
+import type { UserRole, AccessState } from './userApi'
 import type { HistoryPageDto } from './historyApi'
 
 export interface AdminUser {
@@ -7,6 +7,7 @@ export interface AdminUser {
   email: string
   name: string
   role: UserRole
+  access: AccessState
   hasApiKey: boolean
   createdAt: string
 }
@@ -24,6 +25,13 @@ export function setUserRole(id: string, role: UserRole): Promise<AdminUser> {
   return api<AdminUser>(`/api/admin/users/${id}/role`, {
     method: 'PATCH',
     body: JSON.stringify({ role }),
+  })
+}
+
+export function setUserAccess(id: string, access: AccessState): Promise<AdminUser> {
+  return api<AdminUser>(`/api/admin/users/${id}/access`, {
+    method: 'PATCH',
+    body: JSON.stringify({ access }),
   })
 }
 

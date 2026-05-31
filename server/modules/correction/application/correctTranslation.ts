@@ -1,7 +1,9 @@
 import type { UserRow, SentenceRow } from '../../../infrastructure/db/schema'
 import type { LanguageCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
-import { anthropicClientForUser } from '../../apiKey/application/anthropicClientForUser'
+import { resolveAnthropicClient } from '../../apiKey/application/resolveAnthropicClient'
+import { assertCanSpend } from '../../user/application/access'
+import { assertWithinDailyCap, recordGradedSentence } from '../../usage/application/dailyCap'
 import * as sentenceRepository from '../../sentence/persistence/sentenceRepository'
 import { recordAttempt } from '../../history/application/recordAttempt'
 import { scoreTranslation } from './scoreTranslation'
@@ -21,6 +23,12 @@ export class SentenceNotFoundError extends Error {
 }
 
 export async function correctTranslation(input: CorrectInput): Promise<CorrectionView> {
+  // Access gate + spend backstop (Epic 12): grading spends the operator key. The admin
+  // (operator) is exempt from the cap; everyone else is capped per UTC day.
+  assertCanSpend(input.user)
+  const capped = input.user.role !== 'admin'
+  if (capped) await assertWithinDailyCap(input.user.id)
+
   const sentence: SentenceRow | null = await sentenceRepository.findForUser(
     input.user.id,
     input.sentenceId
@@ -32,7 +40,7 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
   const locale = sentence.locale
   const level = (sentence.level as LevelCode | null) ?? null
 
-  const anthropic = anthropicClientForUser(input.user)
+  const anthropic = resolveAnthropicClient(input.user)
   const result = await scoreTranslation(anthropic, {
     learnLanguage,
     guessLanguage,
@@ -61,6 +69,9 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
     notes: result.notes,
     wordBreakdown: sentence.wordBreakdown ?? [],
   })
+
+  // Count this graded sentence against the daily cap (admins excluded above).
+  if (capped) await recordGradedSentence(input.user.id)
 
   return {
     sentenceId: sentence.id,

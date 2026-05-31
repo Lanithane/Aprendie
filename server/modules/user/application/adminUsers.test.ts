@@ -28,6 +28,7 @@ function userWithKey(): UserRow {
     googleSub: 's',
     encryptedAnthropicKey: encrypt(PLAINTEXT, USER_ID),
     role: 'user',
+    access: 'approved',
     level: null,
     themeId: null,
     themeMode: null,

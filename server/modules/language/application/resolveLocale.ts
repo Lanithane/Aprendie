@@ -1,7 +1,8 @@
 import type { UserRow } from '../../../infrastructure/db/schema'
 import { SENTENCE_MODEL } from '../../../infrastructure/claude/anthropicClient'
 import { extractJsonText } from '../../../infrastructure/claude/responseParser'
-import { anthropicClientForUser } from '../../apiKey/application/anthropicClientForUser'
+import { resolveAnthropicClient } from '../../apiKey/application/resolveAnthropicClient'
+import { canSpend } from '../../user/application/access'
 import {
   LANGUAGES,
   defaultLocaleFor,
@@ -26,6 +27,9 @@ export async function resolveLocale(input: ResolveLocaleInput): Promise<{ locale
   const fallback = defaultLocaleFor(learnLanguage)
   // Languages without regional variants have nothing to resolve.
   if (!def || def.locales.length === 0) return { locale: fallback }
+  // A non-approved account can't spend the operator key (Epic 12); degrade to the
+  // default locale rather than failing onboarding's location step.
+  if (!canSpend(input.user)) return { locale: fallback }
 
   const allowed = def.locales.map((l) => `${l.code} = ${l.label}`).join('\n')
   const userText = `Language: ${languageName(learnLanguage)} (${learnLanguage})
@@ -36,7 +40,7 @@ Location: "${location}"
 Return the best-matching locale code now.`
 
   try {
-    const anthropic = anthropicClientForUser(input.user)
+    const anthropic = resolveAnthropicClient(input.user)
     const resp = await anthropic.messages.create({
       model: SENTENCE_MODEL,
       max_tokens: 100,

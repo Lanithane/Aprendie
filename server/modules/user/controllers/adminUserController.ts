@@ -7,6 +7,7 @@ import { UserNotFoundError, LastAdminError } from '../domain/errors'
 import {
   listUsers,
   setUserRole,
+  setUserAccess,
   adminRevokeUserKey,
   adminRevalidateUserKey,
   adminDeleteUser,
@@ -18,6 +19,7 @@ const router = Router()
 router.use(requireAuth, requireAdmin)
 
 const roleBodySchema = z.object({ role: z.enum(['admin', 'user']) })
+const accessBodySchema = z.object({ access: z.enum(['pending', 'approved', 'blocked']) })
 
 const historyQuerySchema = z
   .object({
@@ -54,6 +56,22 @@ router.patch(
     } catch (err) {
       if (err instanceof UserNotFoundError) return res.status(404).json({ error: err.message })
       if (err instanceof LastAdminError) return res.status(409).json({ error: err.message })
+      throw err
+    }
+  })
+)
+
+router.patch(
+  '/:id/access',
+  asyncHandler(async (req, res) => {
+    const parsed = accessBodySchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    try {
+      res.json(await setUserAccess(req.params.id, parsed.data.access))
+    } catch (err) {
+      if (err instanceof UserNotFoundError) return res.status(404).json({ error: err.message })
       throw err
     }
   })

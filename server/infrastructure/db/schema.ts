@@ -8,6 +8,7 @@ import {
   integer,
   boolean,
   index,
+  primaryKey,
 } from 'drizzle-orm/pg-core'
 import type { WordToken } from '../../../shared/languages'
 import type { LevelCode } from '../../../shared/levels'
@@ -30,6 +31,11 @@ export const users = pgTable('users', {
   encryptedAnthropicKey: text('encrypted_anthropic_key'),
   // Loose-typed like `level` on sentence_cache to avoid pg-enum alter friction.
   role: text('role').$type<'admin' | 'user'>().notNull().default('user'),
+  // Access gate (Epic 12). Under the operator-key model every account spends the one
+  // operator key, so a new account starts `pending` and cannot spend until the operator
+  // approves it; `blocked` revokes access. Loose-typed text like `role`. Existing rows
+  // (which predate the gate) are backfilled to `approved` in the migration.
+  access: text('access').$type<'pending' | 'approved' | 'blocked'>().notNull().default('pending'),
   level: text('level').$type<LevelCode | null>(),
   // Appearance prefs, persisted per account. Loose-typed text like `level`/`role` to avoid
   // pg-enum friction; `theme_id` is an opaque registry id (unknown -> client falls back).
@@ -111,6 +117,22 @@ export const attempts = pgTable(
   ]
 )
 
+// Per-user daily spend counter backing the operator-key cap (Epic 12). One row per
+// (user, UTC day); `count` is the number of graded sentences (corrections) that day.
+// `day` is a 'YYYY-MM-DD' UTC string so the boundary is timezone-stable and the row is
+// a cheap upsert target. Rows cascade-delete with the user; old days are harmless to keep.
+export const usageDaily = pgTable(
+  'usage_daily',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    day: text('day').notNull(),
+    count: integer('count').notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.day] })]
+)
+
 export const session = pgTable(
   'session',
   {
@@ -127,3 +149,4 @@ export type SentenceRow = typeof sentenceCache.$inferSelect
 export type NewSentenceRow = typeof sentenceCache.$inferInsert
 export type AttemptRow = typeof attempts.$inferSelect
 export type NewAttemptRow = typeof attempts.$inferInsert
+export type UsageDailyRow = typeof usageDaily.$inferSelect

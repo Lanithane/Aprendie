@@ -10,13 +10,14 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAdminContext } from '../components/Admin/AdminLayout'
 import { useAuth } from '../auth/AuthContext'
 import type { RevalidateResult } from '../api/adminApi'
-import type { UserRole } from '../api/userApi'
+import type { UserRole, AccessState } from '../api/userApi'
 
 export default function AdminUserDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user: currentUser } = useAuth()
-  const { users, loading, error, setRole, revokeKey, revalidateKey, deleteUser } = useAdminContext()
+  const { users, loading, error, setRole, setAccess, revokeKey, revalidateKey, deleteUser } =
+    useAdminContext()
   const user = users.find((u) => u.id === id)
 
   const [busy, setBusy] = useState(false)
@@ -49,6 +50,11 @@ export default function AdminUserDetailPage() {
   const handleRole = (role: UserRole) => {
     if (role === user.role) return
     void run(() => setRole(user.id, role))
+  }
+
+  const handleAccess = (access: AccessState) => {
+    if (access === user.access) return
+    void run(() => setAccess(user.id, access))
   }
 
   const handleRevoke = () => {
@@ -104,6 +110,23 @@ export default function AdminUserDetailPage() {
           >
             <MenuItem value='user'>User</MenuItem>
             <MenuItem value='admin'>Admin</MenuItem>
+          </Select>
+        </SectionCard>
+
+        <SectionCard
+          title='Access'
+          description='Approved accounts may practice on the operator key. Pending accounts wait at a holding screen; blocked accounts are turned off.'
+        >
+          <Select
+            size='small'
+            value={user.access}
+            disabled={busy}
+            onChange={(e) => handleAccess(e.target.value)}
+            sx={{ minWidth: 160 }}
+          >
+            <MenuItem value='pending'>Pending</MenuItem>
+            <MenuItem value='approved'>Approved</MenuItem>
+            <MenuItem value='blocked'>Blocked</MenuItem>
           </Select>
         </SectionCard>
 

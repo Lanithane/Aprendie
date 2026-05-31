@@ -497,6 +497,56 @@ by `level`/theme.)
       transition to Practice), and on app boot for the returning user's saved pair — so Practice is
       never cold.
 
+## ✅ Epic 12 — Operator key + access gate + daily cap
+
+Goal: make the **operator-supplied key** model (Epic 11 pivot) safe. Non-techy users won't create
+Anthropic accounts, so every approved user spends a single server-side operator key. That can't be
+open: an uncapped key behind public Google sign-in invites runaway spend and shared rate-limit
+exhaustion. This epic adds the key plumbing, an **approval gate**, and a **per-user daily cap**.
+
+**Decided (2026-05-30):** new accounts default to **`pending`** and can't spend until the operator
+(`ADMIN_EMAIL`) approves them; **operator-only** key resolution this epic (the per-user
+`encryptedAnthropicKey` / `ApiKeySetup` stay in place but dormant — a hybrid "use my own key"
+override is a later pass); daily cap of **100 graded sentences / user / day** (admins exempt).
+
+- [x] **Operator-key resolution** — `OPERATOR_ANTHROPIC_KEY` in [env.ts](server/env.ts);
+      `anthropicClientForUser` → [resolveAnthropicClient.ts](server/modules/apiKey/application/resolveAnthropicClient.ts)
+      prefers the operator key when configured, falls back to the user's own encrypted key (so local
+      dev keeps working), else `MissingApiKeyError`. All three spend paths
+      ([getNextSentence](server/modules/sentence/application/getNextSentence.ts),
+      [correctTranslation](server/modules/correction/application/correctTranslation.ts),
+      [resolveLocale](server/modules/language/application/resolveLocale.ts)) route through it.
+- [x] **Access gate** — `users.access` (`pending`/`approved`/`blocked`, loose text, default
+      `pending`); `findOrCreateGoogleUser` creates the admin `approved`, everyone else `pending`.
+      `canSpend`/`assertCanSpend` ([user/application/access.ts](server/modules/user/application/access.ts))
+      gate the spend use cases (correction throws `AccessDeniedError` → 403 `access_*`; getNext throws;
+      bootstrap + resolveLocale degrade silently so /api/me and onboarding don't break). `/api/me`
+      exposes `access`; [AuthContext](src/auth/AuthContext.tsx) derives `isApproved`;
+      [HomePage](src/pages/HomePage.tsx) shows [AccessGate](src/components/AccessGate/AccessGate.tsx)
+      (pending/blocked) instead of Practice when not approved.
+- [x] **Admin approve/deny** — `setUserAccess` + `PATCH /api/admin/users/:id/access`; an Access
+      `Select` on the user detail page and an access-status chip on the admin list.
+- [x] **Daily cap** — `usage` module (`usage_daily` table, one row per user+UTC-day) with
+      `assertWithinDailyCap`/`recordGradedSentence` ([usage/application/dailyCap.ts](server/modules/usage/application/dailyCap.ts));
+      `correctTranslation` asserts before and records after grading (admins exempt).
+      `DailyCapExceededError` → 429 `daily_cap`; [client.ts](src/api/client.ts) now parses the JSON
+      error body (`{ error, code }`) so the message surfaces cleanly.
+- [x] **Migration `0010`** — adds `users.access` + `usage_daily`; backfills existing rows to
+      `approved` (they predate the gate). Applied LOCAL; **prod runs automatically on deploy** —
+      [railway.json](railway.json)'s start command is `db:migrate:deploy && npm start`, so the prod
+      migrate (which also catches the still-pending `0009`) runs before the server boots.
+
+**Go-live config (do in Railway after the deploy):**
+
+- [ ] Set **`OPERATOR_ANTHROPIC_KEY`** in the Railway service env. Until it's set, `resolveAnthropicClient`
+      falls back to each user's own key — and since Epic 7 wiped stored keys, **approved users with no own
+      key will hit `MissingApiKeyError` (412)** when they try to practice. Setting it switches everyone to
+      the operator key.
+- [ ] Confirm **`ADMIN_EMAIL`** is set so your account auto-approves on login and you can approve others
+      from `/admin` (new accounts land `pending`).
+- [ ] **Runtime QA** (not yet done): sign in fresh → pending screen; approve from `/admin` → practice
+      works on the operator key; exercise the 100/day cap → 429 surfaces cleanly.
+
 ---
 
 ## Verification

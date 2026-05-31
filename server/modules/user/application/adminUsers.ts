@@ -1,5 +1,10 @@
 import * as userRepository from '../persistence/userRepository'
-import { toAdminUserView, type AdminUserView, type UserRole } from '../domain/User'
+import {
+  toAdminUserView,
+  type AdminUserView,
+  type UserRole,
+  type AccessState,
+} from '../domain/User'
 import { UserNotFoundError, LastAdminError } from '../domain/errors'
 import { decrypt } from '../../../infrastructure/crypto/encryption'
 import { validateApiKey } from '../../apiKey/application/validateApiKey'
@@ -18,6 +23,14 @@ export async function setUserRole(id: string, role: UserRole): Promise<AdminUser
     if (admins <= 1) throw new LastAdminError()
   }
   const updated = await userRepository.updateRole(id, role)
+  return toAdminUserView(updated)
+}
+
+// Approve / deny / block an account's access to the operator key (Epic 12).
+export async function setUserAccess(id: string, access: AccessState): Promise<AdminUserView> {
+  const target = await userRepository.findById(id)
+  if (!target) throw new UserNotFoundError(id)
+  const updated = await userRepository.updateAccess(id, access)
   return toAdminUserView(updated)
 }
 

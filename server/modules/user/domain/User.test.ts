@@ -12,6 +12,7 @@ function fakeRow(): UserRow {
     googleSub: 'sub-1',
     encryptedAnthropicKey: SECRET_BLOB,
     role: 'user',
+    access: 'approved',
     level: null,
     themeId: null,
     themeMode: null,

@@ -2,7 +2,7 @@ import { Alert } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import PracticeCard from '../components/PracticeCard/PracticeCard'
 import CorrectionDisplay from '../components/CorrectionDisplay/CorrectionDisplay'
-import ApiKeySetup from '../components/ApiKeySetup/ApiKeySetup'
+import AccessGate from '../components/AccessGate/AccessGate'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguagePair } from '../hooks/useLanguagePair'
@@ -25,7 +25,7 @@ const Stage = styled('div')`
 `
 
 export default function HomePage() {
-  const { user, bootstrapSentence, consumeBootstrap } = useAuth()
+  const { user, isApproved, bootstrapSentence, consumeBootstrap } = useAuth()
   const { pair } = useLanguagePair()
   const { pref: level, setPref: setLevel } = useLevelPreference()
   const {
@@ -34,7 +34,8 @@ export default function HomePage() {
     error: sentenceError,
     clear,
   } = useCurrentSentence({
-    enabled: Boolean(user?.hasApiKey),
+    // Under the operator-key model practice is gated on approval, not on a personal key.
+    enabled: isApproved,
     pair,
     level,
     initialSentence: bootstrapSentence,
@@ -42,10 +43,11 @@ export default function HomePage() {
   })
   const { correction, submitting, error: submitError, submit, reset } = useCorrectionSubmission()
 
-  if (!user?.hasApiKey)
+  // Access gate (Epic 12): a pending/blocked account can't spend the operator key.
+  if (user && !isApproved)
     return (
       <Stage>
-        <ApiKeySetup />
+        <AccessGate access={user.access} email={user.email} />
       </Stage>
     )
 

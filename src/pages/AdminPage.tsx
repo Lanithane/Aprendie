@@ -62,9 +62,15 @@ export default function AdminPage() {
                     />
                     <Chip
                       size='small'
-                      variant='outlined'
-                      label={user.hasApiKey ? 'Key' : 'No key'}
-                      color={user.hasApiKey ? 'success' : 'default'}
+                      variant={user.access === 'approved' ? 'filled' : 'outlined'}
+                      label={user.access}
+                      color={
+                        user.access === 'approved'
+                          ? 'success'
+                          : user.access === 'blocked'
+                            ? 'error'
+                            : 'warning'
+                      }
                     />
                     <ChevronRightIcon sx={{ color: 'action.active', flexShrink: 0 }} />
                   </Stack>

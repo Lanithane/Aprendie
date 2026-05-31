@@ -8,6 +8,9 @@ export type CurrentUser = CurrentUserDto
 interface AuthState {
   user: CurrentUser | null
   isAdmin: boolean
+  // May the account spend the operator key (Epic 12)? Admins always; everyone else
+  // only once approved. Drives the practice gate vs the pending/blocked screen.
+  isApproved: boolean
   loading: boolean
   refresh: () => Promise<void>
   // First sentence delivered alongside the initial /api/me (perf #5: collapses the
@@ -55,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isAdmin: user?.role === 'admin',
+        isApproved: user?.role === 'admin' || user?.access === 'approved',
         loading,
         refresh,
         bootstrapSentence,

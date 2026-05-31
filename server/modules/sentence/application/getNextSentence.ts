@@ -1,7 +1,8 @@
 import type { UserRow } from '../../../infrastructure/db/schema'
 import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
-import { anthropicClientForUser } from '../../apiKey/application/anthropicClientForUser'
+import { resolveAnthropicClient } from '../../apiKey/application/resolveAnthropicClient'
+import { assertCanSpend, canSpend } from '../../user/application/access'
 import * as sentenceRepository from '../persistence/sentenceRepository'
 import { generateSentenceBatch } from './generateSentenceBatch'
 import { toSentenceView, type SentenceView } from '../domain/Sentence'
@@ -31,7 +32,7 @@ function poolKey(input: GetNextSentenceInput): string {
 }
 
 async function refillPool(input: GetNextSentenceInput): Promise<void> {
-  const anthropic = anthropicClientForUser(input.user)
+  const anthropic = resolveAnthropicClient(input.user)
   const batch = await generateSentenceBatch(anthropic, {
     learnLanguage: input.learnLanguage,
     guessLanguage: input.guessLanguage,
@@ -69,6 +70,8 @@ function triggerBackgroundRefill(input: GetNextSentenceInput): void {
 }
 
 export async function getNextSentence(input: GetNextSentenceInput): Promise<SentenceView> {
+  // Access gate: a non-approved account may not spend the operator key (Epic 12).
+  assertCanSpend(input.user)
   const filter = {
     userId: input.user.id,
     learnLanguage: input.learnLanguage,
@@ -100,6 +103,9 @@ export async function getNextSentence(input: GetNextSentenceInput): Promise<Sent
 export async function getBootstrapSentence(
   input: GetNextSentenceInput
 ): Promise<SentenceView | null> {
+  // Bootstrap rides on /api/me, so degrade silently (no sentence) for a non-approved
+  // account rather than throwing — the gate is enforced loudly on /api/sentence.
+  if (!canSpend(input.user)) return null
   const filter = {
     userId: input.user.id,
     learnLanguage: input.learnLanguage,

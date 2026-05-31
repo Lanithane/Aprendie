@@ -3,13 +3,14 @@ import { ApiError } from '../api/client'
 import {
   fetchUsers,
   setUserRole as apiSetUserRole,
+  setUserAccess as apiSetUserAccess,
   revokeUserKey as apiRevokeUserKey,
   revalidateUserKey as apiRevalidateUserKey,
   deleteUser as apiDeleteUser,
   type AdminUser,
   type RevalidateResult,
 } from '../api/adminApi'
-import type { UserRole } from '../api/userApi'
+import type { UserRole, AccessState } from '../api/userApi'
 
 interface UseAdminUsersResult {
   users: AdminUser[]
@@ -17,6 +18,7 @@ interface UseAdminUsersResult {
   error: string | null
   reload: () => Promise<void>
   setRole: (id: string, role: UserRole) => Promise<boolean>
+  setAccess: (id: string, access: AccessState) => Promise<boolean>
   revokeKey: (id: string) => Promise<boolean>
   revalidateKey: (id: string) => Promise<RevalidateResult | null>
   deleteUser: (id: string) => Promise<boolean>
@@ -57,6 +59,18 @@ export function useAdminUsers(): UseAdminUsersResult {
     }
   }, [])
 
+  const setAccess = useCallback(async (id: string, access: AccessState) => {
+    setError(null)
+    try {
+      const updated = await apiSetUserAccess(id, access)
+      setUsers((cur) => cur.map((u) => (u.id === id ? updated : u)))
+      return true
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to update access')
+      return false
+    }
+  }, [])
+
   const revokeKey = useCallback(async (id: string) => {
     setError(null)
     try {
@@ -91,5 +105,5 @@ export function useAdminUsers(): UseAdminUsersResult {
     }
   }, [])
 
-  return { users, loading, error, reload, setRole, revokeKey, revalidateKey, deleteUser }
+  return { users, loading, error, reload, setRole, setAccess, revokeKey, revalidateKey, deleteUser }
 }

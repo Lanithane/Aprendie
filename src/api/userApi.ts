@@ -5,12 +5,14 @@ import type { LanguagePair } from '../../shared/languages'
 import type { SentenceDto } from './sentenceApi'
 
 export type UserRole = 'admin' | 'user'
+export type AccessState = 'pending' | 'approved' | 'blocked'
 
 export interface CurrentUserDto {
   id: string
   email: string
   name: string
   role: UserRole
+  access: AccessState
   hasApiKey: boolean
   level: LevelCode | null
   themeId: string | null

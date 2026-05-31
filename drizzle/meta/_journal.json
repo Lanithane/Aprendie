@@ -71,6 +71,13 @@
       "when": 1780184549133,
       "tag": "0009_blue_mimic",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1780188478712,
+      "tag": "0010_rainy_invaders",
+      "breakpoints": true
     }
   ]
 }

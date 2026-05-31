@@ -1,7 +1,7 @@
 import { eq, count, desc } from 'drizzle-orm'
 import { db } from '../../../infrastructure/db/client'
 import { users, type UserRow, type NewUserRow } from '../../../infrastructure/db/schema'
-import type { UserRole } from '../domain/User'
+import type { UserRole, AccessState } from '../domain/User'
 import type { LevelCode } from '../../../../shared/levels'
 import type { ThemeMode } from '../../../../shared/appearance'
 
@@ -18,6 +18,15 @@ export async function updateRole(id: string, role: UserRole): Promise<UserRow> {
   const updated = await db
     .update(users)
     .set({ role, updatedAt: new Date() })
+    .where(eq(users.id, id))
+    .returning()
+  return updated[0]
+}
+
+export async function updateAccess(id: string, access: AccessState): Promise<UserRow> {
+  const updated = await db
+    .update(users)
+    .set({ access, updatedAt: new Date() })
     .where(eq(users.id, id))
     .returning()
   return updated[0]
