@@ -29,7 +29,7 @@ export async function findOrCreateGoogleUser(profile: GoogleProfileInput): Promi
     googleSub: profile.googleSub,
     role: desiredRole,
     // The operator (admin) is auto-approved; every other new account starts pending
-    // and must be approved before it can spend the operator key (Epic 12).
+    // and must be approved before it can spend the operator key.
     access: desiredRole === 'admin' ? 'approved' : 'pending',
     level: 'starter',
   })

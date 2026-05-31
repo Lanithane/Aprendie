@@ -3,7 +3,7 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'
 import BlockIcon from '@mui/icons-material/Block'
 import type { AccessState } from '../../api/userApi'
 
-// Shown in place of Practice when the account may not yet spend the operator key (Epic 12):
+// Shown in place of Practice when the account may not yet spend the operator key:
 // `pending` awaits operator approval, `blocked` has been revoked. Theme-agnostic — reads
 // roles off the palette, no hardcoded color.
 export default function AccessGate({ access, email }: { access: AccessState; email?: string }) {

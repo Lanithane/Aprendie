@@ -21,8 +21,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-// Epic 7 leak contract: a 500 must return a generic body — never echo the error
-// (which could carry a secret) to the client.
+// A 500 must return a generic body — never echo the error (which could carry a secret) to the client.
 describe('errorHandler', () => {
   it('returns a generic 500 body and does not echo error details', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})

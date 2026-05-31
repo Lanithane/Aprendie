@@ -1,8 +1,8 @@
 import * as usageRepository from '../persistence/usageRepository'
 import { DailyCapExceededError } from '../domain/errors'
 
-// Per-user daily ceiling on graded sentences (corrections) — the operator-key spend
-// backstop (Epic 12). Generous for a real learner; only stops runaway/abuse loops.
+// Per-user daily ceiling on graded sentences (corrections) — operator-key spend
+// backstop. Generous for a real learner; only stops runaway/abuse loops.
 export const DAILY_GRADED_CAP = 100
 
 // Throws DailyCapExceededError if the user has already hit today's cap.

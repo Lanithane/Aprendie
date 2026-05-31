@@ -24,7 +24,7 @@ export async function setUserRole(id: string, role: UserRole): Promise<AdminUser
   return toAdminUserView(updated)
 }
 
-// Approve / deny / block an account's access to the operator key (Epic 12).
+// Approve / deny / block an account's access to the operator key.
 export async function setUserAccess(id: string, access: AccessState): Promise<AdminUserView> {
   const target = await userRepository.findById(id)
   if (!target) throw new UserNotFoundError(id)

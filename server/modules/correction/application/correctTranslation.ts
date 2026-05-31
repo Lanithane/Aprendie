@@ -23,8 +23,8 @@ export class SentenceNotFoundError extends Error {
 }
 
 export async function correctTranslation(input: CorrectInput): Promise<CorrectionView> {
-  // Access gate + spend backstop (Epic 12): grading spends the operator key. The admin
-  // (operator) is exempt from the cap; everyone else is capped per UTC day.
+  // Grading spends the operator key: assert the account is allowed to spend, then
+  // enforce the daily cap (admins are exempt).
   assertCanSpend(input.user)
   const capped = input.user.role !== 'admin'
   if (capped) await assertWithinDailyCap(input.user.id)
@@ -50,8 +50,7 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
     userAnswer: input.userAnswer,
   })
 
-  // Persist a denormalized snapshot of this attempt (the single source for the
-  // History view and the Epic 8 Pokédex).
+  // Persist a denormalized snapshot of this attempt (the single source for the history view).
   await recordAttempt({
     userId: input.user.id,
     sentenceId: sentence.id,

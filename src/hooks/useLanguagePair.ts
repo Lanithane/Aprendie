@@ -10,9 +10,9 @@ import {
 import { useAuth } from '../auth/AuthContext'
 import { updateUserLanguagePair } from '../api/userApi'
 
-// The language pair is owned by the account (server truth, Epic 11). We keep a
-// localStorage cache so a cold load paints the last-known pair instantly, before
-// `/api/me` resolves; the server value wins once it arrives.
+// The language pair is owned by the account (server truth). We keep a localStorage
+// cache so a cold load paints the last-known pair instantly, before `/api/me`
+// resolves; the server value wins once it arrives.
 const STORAGE_KEY = 'gac:languagePair'
 
 function readCache(): LanguagePair | null {

@@ -27,8 +27,8 @@ export async function resolveLocale(input: ResolveLocaleInput): Promise<{ locale
   const fallback = defaultLocaleFor(learnLanguage)
   // Languages without regional variants have nothing to resolve.
   if (!def || def.locales.length === 0) return { locale: fallback }
-  // A non-approved account can't spend the operator key (Epic 12); degrade to the
-  // default locale rather than failing onboarding's location step.
+  // A non-approved account can't spend the operator key; degrade to the default locale
+  // rather than failing onboarding's location step.
   if (!canSpend(input.user)) return { locale: fallback }
 
   const allowed = def.locales.map((l) => `${l.code} = ${l.label}`).join('\n')

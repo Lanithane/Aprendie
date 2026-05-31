@@ -70,7 +70,7 @@ function triggerBackgroundRefill(input: GetNextSentenceInput): void {
 }
 
 export async function getNextSentence(input: GetNextSentenceInput): Promise<SentenceView> {
-  // Access gate: a non-approved account may not spend the operator key (Epic 12).
+  // A non-approved account may not spend the operator key.
   assertCanSpend(input.user)
   const filter = {
     userId: input.user.id,

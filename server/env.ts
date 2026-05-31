@@ -23,10 +23,9 @@ const envSchema = z.object({
   // The account whose email matches this is promoted to `admin` on login.
   // Optional: when unset, no account is auto-promoted.
   ADMIN_EMAIL: z.string().email().optional(),
-  // The single operator-supplied Anthropic key all approved users spend against
-  // (Epic 12). When set, it is used for every request regardless of the user's own
-  // stored key; when unset (e.g. early local dev), the resolver falls back to the
-  // user's own encrypted key so local work keeps functioning.
+  // The single operator-supplied Anthropic key all approved users spend against.
+  // When set, it is used for every request; when unset (e.g. early local dev), the
+  // resolver falls back to the user's own encrypted key so local work keeps functioning.
   OPERATOR_ANTHROPIC_KEY: z.string().optional(),
   // Session cookie domain. Set to a registrable domain with a leading dot
   // (e.g. `.aprendie.com`) to share the login across the apex and `www` (and any

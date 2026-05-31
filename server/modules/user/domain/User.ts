@@ -4,7 +4,7 @@ import type { ThemeMode } from '../../../../shared/appearance'
 
 export type UserRole = 'admin' | 'user'
 
-// Access-gate state (Epic 12): a new account is `pending` until the operator approves it,
+// Access-gate state: a new account is `pending` until the operator approves it,
 // `approved` may spend the operator key, `blocked` is revoked.
 export type AccessState = 'pending' | 'approved' | 'blocked'
 
@@ -29,7 +29,6 @@ export interface UserView {
 }
 
 // Admin-facing projection of another user.
-// `totalCostUsd` is added once Epic 6 (usage showback) lands.
 export interface AdminUserView {
   id: string
   email: string

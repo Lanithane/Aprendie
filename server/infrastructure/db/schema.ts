@@ -30,19 +30,18 @@ export const users = pgTable('users', {
   googleSub: text('google_sub').notNull().unique(),
   // Loose-typed like `level` on sentence_cache to avoid pg-enum alter friction.
   role: text('role').$type<'admin' | 'user'>().notNull().default('user'),
-  // Access gate (Epic 12). Under the operator-key model every account spends the one
-  // operator key, so a new account starts `pending` and cannot spend until the operator
-  // approves it; `blocked` revokes access. Loose-typed text like `role`. Existing rows
-  // (which predate the gate) are backfilled to `approved` in the migration.
+  // Access gate: every account spends the operator key, so a new account starts
+  // `pending` and cannot spend until the operator approves it; `blocked` revokes access.
+  // Loose-typed text like `role`. Existing rows are backfilled to `approved` in the migration.
   access: text('access').$type<'pending' | 'approved' | 'blocked'>().notNull().default('pending'),
   level: text('level').$type<LevelCode | null>(),
   // Appearance prefs, persisted per account. Loose-typed text like `level`/`role` to avoid
   // pg-enum friction; `theme_id` is an opaque registry id (unknown -> client falls back).
   themeId: text('theme_id'),
   themeMode: text('theme_mode').$type<ThemeMode | null>(),
-  // Language pair + locale, persisted per account (Epic 11). Loose-typed text like
-  // `level`/`role`; nullable until the user picks during onboarding (the client falls
-  // back to DEFAULT_PAIR), and so the server can prewarm the chosen pool.
+  // Language pair + locale, persisted per account. Loose-typed text like `level`/`role`;
+  // nullable until the user picks during onboarding (the client falls back to DEFAULT_PAIR),
+  // so the server can prewarm the chosen pool.
   learnLanguage: text('learn_language'),
   guessLanguage: text('guess_language'),
   locale: text('locale'),
@@ -80,8 +79,8 @@ export const sentenceCache = pgTable(
 
 // Per-user attempt history. Fully denormalized (a snapshot per attempt) so it
 // survives `sentence_cache` pruning and serves as the single aggregation source
-// for the Epic 8 Pokédex. `sentenceId` is a soft reference (no FK) for the same
-// reason — the source sentence may be pruned while the attempt lives on.
+// for history/vocabulary features. `sentenceId` is a soft reference (no FK) for the
+// same reason — the source sentence may be pruned while the attempt lives on.
 export const attempts = pgTable(
   'attempts',
   {
@@ -116,10 +115,10 @@ export const attempts = pgTable(
   ]
 )
 
-// Per-user daily spend counter backing the operator-key cap (Epic 12). One row per
-// (user, UTC day); `count` is the number of graded sentences (corrections) that day.
-// `day` is a 'YYYY-MM-DD' UTC string so the boundary is timezone-stable and the row is
-// a cheap upsert target. Rows cascade-delete with the user; old days are harmless to keep.
+// Per-user daily spend counter backing the operator-key cap. One row per (user, UTC day);
+// `count` is the number of graded sentences (corrections) that day. `day` is a
+// 'YYYY-MM-DD' UTC string so the boundary is timezone-stable and the row is a cheap
+// upsert target. Rows cascade-delete with the user; old days are harmless to keep.
 export const usageDaily = pgTable(
   'usage_daily',
   {

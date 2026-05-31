@@ -43,7 +43,7 @@ export default function HomePage() {
   })
   const { correction, submitting, error: submitError, submit, reset } = useCorrectionSubmission()
 
-  // Access gate (Epic 12): a pending/blocked account can't spend the operator key.
+  // A pending/blocked account can't spend the operator key.
   if (user && !isApproved)
     return (
       <Stage>

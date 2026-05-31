@@ -8,8 +8,8 @@ export type CurrentUser = CurrentUserDto
 interface AuthState {
   user: CurrentUser | null
   isAdmin: boolean
-  // May the account spend the operator key (Epic 12)? Admins always; everyone else
-  // only once approved. Drives the practice gate vs the pending/blocked screen.
+  // May the account spend the operator key? Admins always; everyone else only once
+  // approved. Drives the practice gate vs the pending/blocked screen.
   isApproved: boolean
   loading: boolean
   refresh: () => Promise<void>

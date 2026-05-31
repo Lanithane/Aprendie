@@ -3,8 +3,8 @@ import { AccessDeniedError } from '../../modules/user/domain/errors'
 import { DailyCapExceededError } from '../../modules/usage/domain/errors'
 
 export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) {
-  // Access gate (Epic 12): non-approved accounts can't spend the operator key. The client
-  // normally renders the gate from /api/me, so this is a backstop — `code` lets it react.
+  // Non-approved accounts can't spend the operator key. The client normally renders the
+  // gate from /api/me, so this is a backstop — `code` lets it react.
   if (err instanceof AccessDeniedError) {
     return res.status(403).json({ error: err.message, code: `access_${err.access}` })
   }
