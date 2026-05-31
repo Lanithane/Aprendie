@@ -28,7 +28,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 5    | History → Postgres, per user account                                          | ✅ Done (local migrated)            |
 | 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started                      |
 | 7    | API-key security hardening                                                    | ✅ Done (AAD+HKDF+vitest)           |
-| 8    | Word "Pokédex" (seen roots + variants)                                        | ⬜ Not started                      |
+| 8    | Word "Pokédex" (seen roots + variants)                                        | ✅ Done (lexeme_stats + backfill)   |
 | 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
 | 10   | Built-in translator (known → learning+locale, + usage note)                   | ⬜ Not started                      |
 | 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ✅ Done (local; QA pending)         |
@@ -331,7 +331,7 @@ runner in this epic (`npm test`).
       see Open questions**); ciphertext in a dedicated table; rate-limit key endpoints + a small
       `key_audit` log of admin key ops.
 
-## ⬜ Epic 8 — Word "Pokédex"
+## ✅ Epic 8 — Word "Pokédex"
 
 A per-user "seen root words" page with correct/incorrect counts; drilling into a root reveals its
 variants with their own seen counts.
@@ -344,25 +344,43 @@ table.
 **Decided:** correct/incorrect derive from `mistakes[].sourceText` — a lemma is "incorrect" for an
 attempt when it appears in that attempt's mistakes, else "correct"; every appearance counts "seen".
 
-- [ ] **DB migration `0005`** — two grains, both per user + learnLanguage. `lexeme_stats` (root):
-      id, userId FK, learnLanguage, lemma, partOfSpeech, seenCount, correctCount, incorrectCount,
-      firstSeenAt, lastSeenAt, unique `(userId, learnLanguage, lemma)`. `lexeme_variant_stats`
-      (variant): id, userId FK, learnLanguage, lemma, surface, seenCount, lastSeenAt, unique
-      `(userId, learnLanguage, lemma, surface)`. Apply to **local + Railway prod**.
-- [ ] **New `modules/pokedex/`** (full DDD) — application
-      `recordSeenWords(userId, learnLanguage, wordBreakdown, mistakes)` called from Epic 5's
-      `recordAttempt` (cross-module history→pokedex): per `WordToken`, upsert root + variant seenCount;
-      a lemma/surface appearing (case-insensitive, word-boundary) in any `mistakes[].sourceText` →
-      incorrectCount, else correctCount (reuse the surface-matching idea from
-      [tokenize.ts](src/components/SentenceTokens/tokenize.ts); document the heuristic). Persistence
-      `pokedexRepository.ts` (upsertLexeme / upsertVariant / listLexemes(sort) / getLexemeWithVariants);
-      read application `listPokedex`, `getRootDetail`; controllers `/api/pokedex` (`GET /` by
-      learnLanguage + sortable, `GET /:lemma`), requireAuth.
-- [ ] **Backfill** existing `attempts` (one-off script) to seed the Pokédex from prior history.
-- [ ] **Frontend** — new `src/api/pokedexApi.ts`; `src/hooks/usePokedex.ts` +
-      `src/hooks/usePokedexEntry.ts`; `src/pages/PokedexPage.tsx` (thin) + `src/components/Pokedex/`
-      (RootList, RootCard, VariantList) reusing `components/shared/`; `/pokedex` route + Sidebar nav
-      item.
+- [x] **DB migration `0017`** ([drizzle/0017_wakeful_argent.sql](drizzle/0017_wakeful_argent.sql)) —
+      two grains, both per user + learnLanguage. `lexeme_stats` (root): id, userId FK cascade,
+      learnLanguage, lemma, partOfSpeech, seenCount, correctCount, incorrectCount, firstSeenAt,
+      lastSeenAt, unique `(userId, learnLanguage, lemma)` + index `(userId, learnLanguage)`.
+      `lexeme_variant_stats` (variant): id, userId FK cascade, learnLanguage, lemma, surface,
+      seenCount, lastSeenAt, unique `(userId, learnLanguage, lemma, surface)`. Applied to **local +
+      Railway prod**. (Numbered 0017, not the roadmap's stale "0005" — that was the migration count
+      when this epic was scoped.)
+- [x] **New `modules/pokedex/`** (full DDD) — pure heuristic in
+      [domain/seenWords.ts](server/modules/pokedex/domain/seenWords.ts) (`computeSeenDeltas`):
+      tokenizes every `mistakes[].sourceText` into a normalized word-set (NFC + lowercase,
+      word-boundary via the same `WORD_RE` idea as
+      [tokenize.ts](src/components/SentenceTokens/tokenize.ts), reimplemented server-side), then per
+      `WordToken` counts one "seen" and routes it to incorrect when the edge-stripped surface is in
+      that set, else correct; grouped per lemma + per (lemma, surface). Views in
+      [domain/Lexeme.ts](server/modules/pokedex/domain/Lexeme.ts). Persistence
+      [pokedexRepository.ts](server/modules/pokedex/persistence/pokedexRepository.ts) — batched
+      additive `onConflictDoUpdate` upserts (`least`/`greatest` for the first/last-seen window,
+      partOfSpeech kept on first sight), `listLexemes(sort)`, `getLexeme`, `listVariants`,
+      `distinctLanguages`, `clearAll`. Read application `listPokedex` / `getRootDetail` /
+      `listLanguages`; write application `recordSeenWords` called from history's `recordAttempt`
+      (cross-module history→pokedex, wrapped try/catch so a derived-store failure never loses the
+      graded attempt). Controllers `/api/pokedex` (`GET /languages`, `GET /?learnLanguage&sort`,
+      `GET /:lemma?learnLanguage`), requireAuth. Unit-tested
+      ([seenWords.test.ts](server/modules/pokedex/domain/seenWords.test.ts)).
+- [x] **Backfill** ([scripts/backfill-pokedex.ts](scripts/backfill-pokedex.ts), `npm run
+      db:backfill:pokedex`) — clears both tables then replays every `attempt` in
+      `(userId, createdAt asc)` order through `recordSeenWords`; re-runnable (idempotent). Seeded
+      **local + prod**.
+- [x] **Frontend** — [src/api/pokedexApi.ts](src/api/pokedexApi.ts);
+      [usePokedex.ts](src/hooks/usePokedex.ts) + [usePokedexEntry.ts](src/hooks/usePokedexEntry.ts)
+      (lazy variant fetch on drill-in) + [usePokedexLanguages.ts](src/hooks/usePokedexLanguages.ts);
+      thin [PokedexPage.tsx](src/pages/PokedexPage.tsx) (language tabs + seen/mistakes/A–Z sort) +
+      `src/components/Pokedex/` (RootList / RootCard / VariantList) reusing `components/shared/`;
+      `/pokedex` route in [routes.tsx](src/routes.tsx) + "Words" nav item in
+      [navigation.ts](src/components/AppShell/navigation.ts). MD3 throughout (theme tokens, fixed
+      success/warning/error ramp for the accuracy dot).
 
 ## ✅ Epic 9 — Full MD3 overhaul + centered layout (merged to main + deployed)
 

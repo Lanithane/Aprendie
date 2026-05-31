@@ -14,6 +14,7 @@ import adminSettingsController from './modules/settings/controllers/adminSetting
 import sentenceController from './modules/sentence/controllers/sentenceController'
 import correctionController from './modules/correction/controllers/correctionController'
 import historyController from './modules/history/controllers/historyController'
+import pokedexController from './modules/pokedex/controllers/pokedexController'
 import languageController from './modules/language/controllers/languageController'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -39,6 +40,7 @@ app.use('/api/admin/settings', adminSettingsController)
 app.use('/api/sentence', sentenceController)
 app.use('/api/correct', correctionController)
 app.use('/api/history', historyController)
+app.use('/api/pokedex', pokedexController)
 app.use('/api/language', languageController)
 
 if (env.NODE_ENV === 'production') {

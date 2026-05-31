@@ -8,6 +8,7 @@ import {
   integer,
   boolean,
   index,
+  uniqueIndex,
   primaryKey,
 } from 'drizzle-orm/pg-core'
 import type { WordToken } from '../../../shared/languages'
@@ -126,6 +127,61 @@ export const attempts = pgTable(
   ]
 )
 
+// Per-user word "Pokédex" — aggregated lexeme (root) stats, derived from `attempts`
+// (the Epic 5 history). One row per (user, learnLanguage, lemma). `seenCount` counts every
+// appearance of the lemma across attempts; `correct`/`incorrect` split that total by whether
+// the surface appeared in that attempt's correction mistakes. `partOfSpeech` is captured on
+// first sight. Cascades with the user. See modules/pokedex/domain/seenWords.ts for the
+// match heuristic.
+export const lexemeStats = pgTable(
+  'lexeme_stats',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    learnLanguage: text('learn_language').notNull(),
+    lemma: text('lemma').notNull(),
+    partOfSpeech: text('part_of_speech').notNull(),
+    seenCount: integer('seen_count').notNull().default(0),
+    correctCount: integer('correct_count').notNull().default(0),
+    incorrectCount: integer('incorrect_count').notNull().default(0),
+    firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('uq_lexeme_stats').on(table.userId, table.learnLanguage, table.lemma),
+    index('idx_lexeme_stats_user_lang').on(table.userId, table.learnLanguage),
+  ]
+)
+
+// Per-user variant (inflected surface) stats, one grain below `lexeme_stats`. One row per
+// (user, learnLanguage, lemma, surface) — drilling into a root reveals its surfaces with
+// their own seen counts. Cascades with the user.
+export const lexemeVariantStats = pgTable(
+  'lexeme_variant_stats',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    learnLanguage: text('learn_language').notNull(),
+    lemma: text('lemma').notNull(),
+    surface: text('surface').notNull(),
+    seenCount: integer('seen_count').notNull().default(0),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('uq_lexeme_variant_stats').on(
+      table.userId,
+      table.learnLanguage,
+      table.lemma,
+      table.surface
+    ),
+    index('idx_lexeme_variant_user_lang_lemma').on(table.userId, table.learnLanguage, table.lemma),
+  ]
+)
+
 // Per-user daily spend counter backing the operator-key cap. One row per (user, UTC day);
 // `count` is the number of graded sentences (corrections) that day. `day` is a
 // 'YYYY-MM-DD' UTC string so the boundary is timezone-stable and the row is a cheap
@@ -173,6 +229,10 @@ export type SentenceRow = typeof sentenceCache.$inferSelect
 export type NewSentenceRow = typeof sentenceCache.$inferInsert
 export type AttemptRow = typeof attempts.$inferSelect
 export type NewAttemptRow = typeof attempts.$inferInsert
+export type LexemeStatsRow = typeof lexemeStats.$inferSelect
+export type NewLexemeStatsRow = typeof lexemeStats.$inferInsert
+export type LexemeVariantStatsRow = typeof lexemeVariantStats.$inferSelect
+export type NewLexemeVariantStatsRow = typeof lexemeVariantStats.$inferInsert
 export type UsageDailyRow = typeof usageDaily.$inferSelect
 export type AppSettingsRow = typeof appSettings.$inferSelect
 export type NewAppSettingsRow = typeof appSettings.$inferInsert

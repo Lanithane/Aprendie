@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage'
 // the unauthenticated entry point.
 const HomePage = lazy(() => import('./pages/HomePage'))
 const HistoryPage = lazy(() => import('./pages/HistoryPage'))
+const PokedexPage = lazy(() => import('./pages/PokedexPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const AdminUserDetailPage = lazy(() => import('./pages/AdminUserDetailPage'))
@@ -46,6 +47,7 @@ export default function AppRoutes() {
       >
         <Route path='/' element={<HomePage />} />
         <Route path='/history' element={<HistoryPage />} />
+        <Route path='/pokedex' element={<PokedexPage />} />
         <Route path='/settings' element={<SettingsPage />} />
         <Route
           path='/admin'

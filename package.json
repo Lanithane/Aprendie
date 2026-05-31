@@ -29,6 +29,7 @@
     "db:migrate:prod": "DB_TARGET=prod tsx --env-file=.env server/infrastructure/db/migrate.ts",
     "db:migrate:deploy": "tsx server/infrastructure/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
+    "db:backfill:pokedex": "tsx --env-file=.env scripts/backfill-pokedex.ts",
     "gen:tokens": "esbuild scripts/gen-md3-tokens.ts --bundle --platform=node --format=esm --outfile=scripts/.gen-tokens.mjs && node scripts/.gen-tokens.mjs && rm scripts/.gen-tokens.mjs && prettier --write src/theme/tokens.ts",
     "test": "vitest run",
     "test:watch": "vitest"
