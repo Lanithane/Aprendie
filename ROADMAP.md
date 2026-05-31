@@ -23,7 +23,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 1    | Language generalization + CEFR levels + word-breakdown data + location→locale | ✅ Done (merged + deployed)         |
 | 2    | Word-root-on-click UI                                                         | ✅ Done                             |
 | A    | Accessibility pass (focus flow, skip link, labels)                            | ✅ Done                             |
-| 3    | Text-to-speech + rate slider                                                  | ⬜ Not started                      |
+| 3    | Text-to-speech + rate slider                                                  | ✅ Done                             |
 | 4    | RBAC + admin console (roles, users CRUD, key support)                         | ✅ Done (migration on prod)         |
 | 5    | History → Postgres, per user account                                          | ✅ Done (local migrated)            |
 | 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started                      |
