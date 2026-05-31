@@ -58,7 +58,7 @@ export default function HistoryPage() {
         <Stack spacing={1}>
           {items.length === 0 && (
             <Typography color='text.secondary'>
-              No history yet — finish a sentence to see it here.
+              No history yet. Finish a sentence to see it here.
             </Typography>
           )}
           {items.map((it) => (

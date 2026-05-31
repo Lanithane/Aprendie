@@ -28,7 +28,7 @@ export default function AccessGate({ access, email }: { access: AccessState; ema
           <Typography color='text.secondary'>
             {blocked
               ? 'Access to practice has been turned off for this account. If you think this is a mistake, reach out to the person who runs this app.'
-              : 'Thanks for signing in! Practice opens up once an operator approves your account. You can come back and refresh shortly — your place is saved.'}
+              : 'Thanks for signing in! Practice opens up once an operator approves your account. Come back and refresh in a little while. Your place is saved.'}
           </Typography>
           {email && (
             <Typography variant='caption' color='text.secondary'>

@@ -64,7 +64,7 @@ export default function AdminUserDetailPage() {
 
   const handleDelete = () => {
     const message = isSelf
-      ? `Delete your OWN account (${user.email})? You'll be signed out — signing back in creates a fresh account, which is how you re-test the new-user flow.`
+      ? `Delete your OWN account (${user.email})? You'll be signed out. Signing back in creates a fresh account, which is how you re-test the new-user flow.`
       : `Permanently delete ${user.email} and all their cached sentences and history? This cannot be undone.`
     if (!confirm(message)) return
     void run(async () => {

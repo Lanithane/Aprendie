@@ -96,7 +96,7 @@ export default function CorrectionDisplay({
       <CardContent>
         <Stack direction='row' spacing={1} sx={{ mb: 2, alignItems: 'center' }}>
           {isCorrect ? <CheckCircleIcon color='success' /> : <CancelIcon color='warning' />}
-          <Typography variant='h5'>{isCorrect ? 'Nice!' : "Close — here's what to fix"}</Typography>
+          <Typography variant='h5'>{isCorrect ? 'Nice!' : "Close! Here's what to fix"}</Typography>
           <Chip label={`Score ${score}/100`} color={scoreColor(score)} sx={{ ml: 'auto' }} />
         </Stack>
         <LinearProgress
