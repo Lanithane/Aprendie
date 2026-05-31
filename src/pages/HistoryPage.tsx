@@ -31,15 +31,18 @@ export default function HistoryPage() {
 
   if (!user) return null
 
+  const attemptCountLabel = `${items.length} attempt${items.length === 1 ? '' : 's'} ${
+    hasMore ? 'shown' : 'total'
+  }`
+
   return (
     <Box>
       <Typography variant='h4' sx={{ mb: 2 }}>
         History
       </Typography>
       <Typography color='text.secondary' sx={{ mb: 3 }}>
-        {languageName(pair.learnLanguage)} → {languageName(pair.guessLanguage)} (
-        <code>{pair.locale}</code>). {items.length} attempt
-        {items.length === 1 ? '' : 's'} loaded.
+        {languageName(pair.learnLanguage)} (<code>{pair.locale}</code>) →{' '}
+        {languageName(pair.guessLanguage)}. {loading ? 'Loading attempts…' : attemptCountLabel}.
       </Typography>
       {error && (
         <Stack spacing={2} sx={{ mb: 2, alignItems: 'flex-start' }}>
