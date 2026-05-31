@@ -12,7 +12,16 @@ import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded'
 import { useSpeech } from '../../hooks/useSpeech'
 import { useSpeechVoice } from '../../hooks/useSpeechVoice'
 import { useLanguagePair } from '../../hooks/useLanguagePair'
-import { languageName } from '../../../shared/languages'
+import { languageName, type LanguageCode, type LocaleCode } from '../../../shared/languages'
+
+interface VoicePickerProps {
+  // Override the language/locale to pick voices for. Defaults to the saved pair; the onboarding
+  // wizard passes its *staged* (not-yet-committed) choice so the list tracks the language being set
+  // up rather than the account's current pair.
+  locale?: LocaleCode
+  learnLanguage?: LanguageCode
+  size?: 'small' | 'medium'
+}
 
 // A short greeting per learn language so the preview shows off the voice, not just a beep.
 const SAMPLES: Record<string, string> = {
@@ -27,12 +36,13 @@ const SAMPLES: Record<string, string> = {
 // Lets the user pin a specific synthesized voice for the language they're learning. Voices come
 // from the browser/OS (Web Speech API), so the list varies per device; we only surface voices
 // that speak the active learn language. "Automatic" defers to locale-based selection.
-export default function VoicePicker() {
+export default function VoicePicker({ locale, learnLanguage, size = 'small' }: VoicePickerProps) {
   const { pair } = useLanguagePair()
   const { voices, speak, supported } = useSpeech()
   const { voiceURI, setVoiceURI } = useSpeechVoice()
 
-  const learnName = languageName(pair.learnLanguage)
+  const effectiveLocale = locale ?? pair.locale
+  const learnName = languageName(learnLanguage ?? pair.learnLanguage)
 
   if (!supported) {
     return (
@@ -42,7 +52,7 @@ export default function VoicePicker() {
     )
   }
 
-  const base = pair.locale.toLowerCase().split('-')[0]
+  const base = effectiveLocale.toLowerCase().split('-')[0]
   const available = voices
     .filter((v) => v.lang.toLowerCase().split('-')[0] === base)
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -63,7 +73,7 @@ export default function VoicePicker() {
 
   return (
     <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
-      <FormControl size='small' sx={{ minWidth: 240, flex: 1 }}>
+      <FormControl size={size} sx={{ minWidth: 240, flex: 1 }}>
         <InputLabel id='voice-picker-label'>{learnName} voice</InputLabel>
         <Select
           labelId='voice-picker-label'
@@ -82,7 +92,7 @@ export default function VoicePicker() {
       <Tooltip title='Preview voice'>
         <IconButton
           color='primary'
-          onClick={() => speak(sample, pair.locale)}
+          onClick={() => speak(sample, effectiveLocale)}
           aria-label={`Preview the ${learnName} voice`}
         >
           <PlayArrowRoundedIcon />

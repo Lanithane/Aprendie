@@ -12,23 +12,31 @@
 //       …) for many locales; those are demoted so they never win by default.
 //   • Windows / Edge: the "Microsoft … Online (Natural)" neural voices (Elvira, Dalia, Aria, …)
 //       are dramatically better than the legacy SAPI voices (Sabina, Helena, David).
-//   • Android / Chrome OS / desktop Chrome: the network-backed "Google <language>" voices.
+//   • Android / Chrome OS / desktop Chrome: the network-backed "Google <language>" voices — the
+//       best-sounding voices we found across platforms, so they get a dedicated top-tier bonus
+//       (GOOGLE_BONUS) and become the default whenever one is installed for the locale.
 //
 // Selection is a score: locale specificity dominates (an exact es-MX voice still beats an es-ES
-// one, preserving the learner's dialect), then a named-voice preference list, then generic quality
-// markers — so even an unlisted voice labelled "Natural"/"Enhanced" outranks a plain one. The
-// per-tier bonuses are intentionally small relative to the locale gap, so quality never overrides
-// dialect.
+// one, preserving the learner's dialect), then Google's voices, then a named-voice preference list,
+// then generic quality markers — so even an unlisted voice labelled "Natural"/"Enhanced" outranks a
+// plain one. Every quality bonus (Google included) stays below the locale gap, so quality never
+// overrides dialect: a Google es-ES voice still loses to a non-Google es-MX one for an es-MX learner.
 
 // Named voices to prefer per base language, best first (matched as a case-insensitive substring).
+// Google voices are handled by GOOGLE_BONUS, not listed here.
 export const PREFERRED_VOICES: Record<string, readonly string[]> = {
-  es: ['mónica', 'monica', 'paulina', 'elvira', 'dalia', 'google español'],
-  en: ['samantha', 'aria', 'jenny', 'guy', 'daniel', 'google us english', 'google uk english'],
-  fr: ['amélie', 'amelie', 'thomas', 'denise', 'google français'],
-  de: ['anna', 'katja', 'conrad', 'google deutsch'],
-  it: ['alice', 'elsa', 'diego', 'google italiano'],
-  pt: ['luciana', 'joana', 'francisca', 'google português'],
+  es: ['mónica', 'monica', 'paulina', 'elvira', 'dalia'],
+  en: ['samantha', 'aria', 'jenny', 'guy', 'daniel'],
+  fr: ['amélie', 'amelie', 'thomas', 'denise'],
+  de: ['anna', 'katja', 'conrad'],
+  it: ['alice', 'elsa', 'diego'],
+  pt: ['luciana', 'joana', 'francisca'],
 }
+
+// Bonus for Google's voices: large enough to beat any named/quality combo within the same locale
+// tier (so a Google voice is the default when present), but below the ~90-point exact-vs-sibling
+// locale gap so it never pulls the learner off their dialect.
+export const GOOGLE_BONUS = 50
 
 // Generic, cross-platform name markers that signal a higher-tier voice, best first.
 export const QUALITY_MARKERS: readonly string[] = [
@@ -37,7 +45,6 @@ export const QUALITY_MARKERS: readonly string[] = [
   'premium',
   'enhanced',
   'online',
-  'google',
 ]
 
 // Apple novelty / character voices: they speak the locale but sound gimmicky, so push them below
@@ -89,7 +96,9 @@ function scoreVoice(voice: SpeechSynthesisVoice, target: string, base: string): 
   const named = PREFERRED_VOICES[base] ?? []
   const nameIdx = firstMatch(name, named)
   if (nameIdx !== -1) score += named.length - nameIdx
-  // Generic quality markers (Natural/Enhanced/Google/…): a softer nudge than the named list.
+  // Google's voices are the best across platforms — prefer them strongly within the locale tier.
+  if (name.includes('google')) score += GOOGLE_BONUS
+  // Generic quality markers (Natural/Enhanced/Online/…): a softer nudge than the named list.
   const markerIdx = firstMatch(name, QUALITY_MARKERS)
   if (markerIdx !== -1) score += QUALITY_MARKERS.length - markerIdx
   // Demote novelty voices below anything else in the same locale tier.
