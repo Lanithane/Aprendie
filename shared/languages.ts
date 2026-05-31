@@ -104,14 +104,16 @@ export interface WordModifier {
 // Grammatical metadata (part of speech, modifier notes) is in the GUESS language so the
 // learner can read the grammar. When the surface word is inflected, `modifiers` decomposes the
 // change; an empty array means it's already the base form. Generated upfront with each sentence.
-// `gloss` is only present on Starter-level sentences — a one-word meaning in the guess language
-// to give beginners a foothold; omitted at A1 and above to preserve immersion.
+// `gloss` is a one-word meaning in the guess language, generated for every token at every level.
+// The UI keeps practice immersive by only revealing it at Starter while guessing; the results
+// screen reveals it at every level once the challenge is over. (Optional: sentences generated
+// before glosses went universal may lack it above Starter.)
 export interface WordToken {
   surface: string
   lemma: string
   partOfSpeech: string // a common part-of-speech label in the guess language, e.g. "noun"
   modifiers: WordModifier[] // empty => surface is the base form
-  gloss?: string // Starter only: meaning in the guess language
+  gloss?: string // one-word meaning in the guess language
 }
 
 // UI label shown in place of the lemma when a surface word is already its own dictionary

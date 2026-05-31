@@ -84,6 +84,7 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
     promptText: sentence.promptText,
     answerText: sentence.answerText,
     userAnswer: input.userAnswer,
+    wordBreakdown: sentence.wordBreakdown ?? [],
     ...result,
   }
 }

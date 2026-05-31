@@ -79,6 +79,7 @@ export default function HomePage() {
           learnLanguage={correction.learnLanguage}
           guessLanguage={correction.guessLanguage}
           promptText={correction.promptText}
+          wordBreakdown={correction.wordBreakdown}
           userAnswer={correction.userAnswer}
           correctedAnswer={correction.correctedAnswer}
           isCorrect={correction.isCorrect}

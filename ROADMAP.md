@@ -681,6 +681,29 @@ gloss is **generated only for Starter sentences**; existing `foundation` data is
 - [x] _Note:_ the hint applies to explicit Starter selection only; mixed-level batches don't carry
       Starter glosses. Further assistance ideas (first-letter hint, word bank) are parked in the backlog.
 
+**Follow-up (2026-05-31) — universal glosses + word breakdown on the results screen.** Practice
+stays immersive, but once the challenge is over the learner should be able to study every word at
+any level. Two changes, expanding off the work above:
+
+- [x] **Glosses generated at every level** — the `SYSTEM_PROMPT_STANDARD` / `SYSTEM_PROMPT_STARTER`
+      split in [generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts)
+      collapses to **one `SYSTEM_PROMPT`** that always requests a one-word `gloss` per token, for
+      every level and mixed batches. The cached system block stays byte-identical across pairs *and*
+      levels. Immersion is now purely a UI gate, not a generation one. (`WordToken.gloss` comment in
+      [shared/languages.ts](shared/languages.ts) updated; old A1+ rows simply lack the gloss and
+      degrade gracefully.)
+- [x] **Word breakdown on the completed-sentence screen** — `wordBreakdown` threaded through
+      [Correction.ts](server/modules/correction/domain/Correction.ts) →
+      [correctTranslation.ts](server/modules/correction/application/correctTranslation.ts) →
+      [correctionApi.ts](src/api/correctionApi.ts) →
+      [HomePage.tsx](src/pages/HomePage.tsx) →
+      [CorrectionDisplay.tsx](src/components/CorrectionDisplay/CorrectionDisplay.tsx), whose prompt
+      headline now renders clickable [SentenceTokens.tsx](src/components/SentenceTokens/SentenceTokens.tsx).
+- [x] **Reveal the gloss at all levels there** — new `alwaysShowGloss` prop on `SentenceTokens` /
+      [WordPopover.tsx](src/components/WordPopover/WordPopover.tsx) (`showGloss = (alwaysShowGloss ||
+      sentenceLevel === 'starter') && …`). The results screen passes it; `PracticeCard` does not, so
+      practice keeps the Starter-only gate.
+
 ---
 
 ## Verification
@@ -719,7 +742,9 @@ Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
   the admin view; confirm key events are recorded; QA the dialog in light/dark/system + mobile.
 - **Epic 17** — the level menu shows a single **Starter** below A1 (no Foundation); a pre-existing
   Foundation account/sentence now reads Starter; at Starter, clicking a word shows its meaning in the
-  popover; switch to A1+ and confirm the popover never shows a meaning (immersion intact).
+  popover; switch to A1+ and confirm the popover never shows a meaning *while practicing* (immersion
+  intact). Then submit an A1+ answer and on the results screen confirm the prompt's words are
+  clickable and **do** show their meaning (new sentence needed for a gloss to exist above Starter).
 
 Use the `/verify` skill for end-to-end confirmation and `/code-review` before declaring an epic
 done. Each epic is a natural PR/commit boundary.

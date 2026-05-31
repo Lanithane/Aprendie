@@ -13,11 +13,12 @@ import { styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import { diffWordsWithSpace } from 'diff'
-import { languageName, type LanguageCode } from '../../../shared/languages'
+import { languageName, type LanguageCode, type WordToken } from '../../../shared/languages'
 import { scoreToGrade } from '../../../shared/grades'
 import type { CorrectionMistakeDto } from '../../api/correctionApi'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
 import { scoreColor } from '../../theme/scoreColor'
+import SentenceTokens from '../SentenceTokens/SentenceTokens'
 
 const normalizePunct = (s: string) => s.replace(/[''ʼ]/g, "'").replace(/[""]/g, '"')
 
@@ -25,6 +26,7 @@ interface CorrectionDisplayProps {
   learnLanguage: LanguageCode
   guessLanguage: LanguageCode
   promptText: string
+  wordBreakdown: WordToken[]
   userAnswer: string
   correctedAnswer: string
   isCorrect: boolean
@@ -99,6 +101,7 @@ export default function CorrectionDisplay({
   learnLanguage,
   guessLanguage,
   promptText,
+  wordBreakdown,
   userAnswer,
   correctedAnswer,
   isCorrect,
@@ -149,7 +152,17 @@ export default function CorrectionDisplay({
         <Typography variant='overline' color='text.secondary'>
           {languageName(learnLanguage)}
         </Typography>
-        <PromptHeadline lang={learnLanguage}>{promptText}</PromptHeadline>
+        {/* The challenge is over, so the sentence becomes a study aid: every word is clickable and
+            its gloss shows at every level (alwaysShowGloss), not just Starter as during practice. */}
+        <PromptHeadline>
+          <SentenceTokens
+            text={promptText}
+            breakdown={wordBreakdown}
+            learnLanguage={learnLanguage}
+            guessLanguage={guessLanguage}
+            alwaysShowGloss
+          />
+        </PromptHeadline>
 
         <Stack spacing={1}>
           <Box>

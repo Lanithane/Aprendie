@@ -9,6 +9,9 @@ interface WordPopoverProps {
   learnLanguage: LanguageCode
   guessLanguage: LanguageCode
   sentenceLevel?: LevelCode | null
+  // Reveal the gloss at every level (the results screen, where the challenge is over). During
+  // practice this stays false, so the gloss only shows at Starter to keep A1+ immersive.
+  alwaysShowGloss?: boolean
   onClose: () => void
 }
 
@@ -42,10 +45,11 @@ export default function WordPopover({
   learnLanguage,
   guessLanguage,
   sentenceLevel,
+  alwaysShowGloss,
   onClose,
 }: WordPopoverProps) {
   const isBaseForm = token !== null && token.modifiers.length === 0
-  const showGloss = sentenceLevel === 'starter' && Boolean(token?.gloss)
+  const showGloss = (alwaysShowGloss || sentenceLevel === 'starter') && Boolean(token?.gloss)
   return (
     <Popover
       open={Boolean(anchorEl && token)}

@@ -37,27 +37,12 @@ Output requirements:
         "segment" = the affix or changed letters as they appear (e.g. "-es", "-as", "ie"),
         "note" = a brief explanation of that change's grammatical function, written in the GUESS language (e.g. "2nd person singular, present tense", "stem change e→ie", "feminine plural").`
 
-// Standard prompt: immersive — no word meanings ever revealed. Language-agnostic so the
-// cached system block is byte-identical across every language pair.
-const SYSTEM_PROMPT_STANDARD = `${SHARED_PROMPT_INTRO}
-- CRITICAL: never give the meaning or translation of any word. The learner must recall meanings unaided. The GUESS language appears ONLY as grammatical metadata — the "partOfSpeech" label and modifier "note" fields — never as a gloss. "lemma" and modifier "segment" stay in the LEARN language.
-- Return ONLY valid JSON, no markdown, no commentary.
-
-JSON shape:
-{
-  "sentences": [
-    {
-      "promptText": string,
-      "answerText": string,
-      "level": string,
-      "wordBreakdown": [ { "surface": string, "lemma": string, "partOfSpeech": string, "modifiers": [ { "segment": string, "note": string } ] } ]
-    }
-  ]
-}`
-
-// Starter prompt: adds a one-word gloss per token in the guess language. Only used when the
-// entire batch is at the starter level — mixed batches always use the standard prompt.
-const SYSTEM_PROMPT_STARTER = `${SHARED_PROMPT_INTRO}
+// One prompt for every level: each token always carries a one-word gloss in the guess language,
+// so the meaning is in the data for the results screen to reveal once the challenge is over.
+// Immersion is a UI concern, not a generation one — during practice the client hides the gloss
+// above Starter. Language-agnostic, so the cached system block stays byte-identical across every
+// language pair AND every level.
+const SYSTEM_PROMPT = `${SHARED_PROMPT_INTRO}
 - For each wordBreakdown entry, include a "gloss" field: a single word (or very short phrase) in the GUESS language that gives the core meaning of that word. This is the one place the guess language may express meaning — keep it to one word where possible.
 - "lemma" and modifier "segment" still stay in the LEARN language.
 - Return ONLY valid JSON, no markdown, no commentary.
@@ -134,11 +119,10 @@ ${levelLine}
 
 Generate ${count} sentences now.`
 
-  const systemPrompt = level === 'starter' ? SYSTEM_PROMPT_STARTER : SYSTEM_PROMPT_STANDARD
   const resp = await anthropic.messages.create({
     model: SENTENCE_MODEL,
     max_tokens: 8000,
-    system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
+    system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: userText }],
   })
 

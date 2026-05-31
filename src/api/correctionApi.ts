@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { LanguageCode, LocaleCode } from '../../shared/languages'
+import type { LanguageCode, LocaleCode, WordToken } from '../../shared/languages'
 import type { LevelCode } from '../../shared/levels'
 
 export interface CorrectionMistakeDto {
@@ -25,6 +25,7 @@ export interface CorrectionDto {
   correctedAnswer: string
   mistakes: CorrectionMistakeDto[]
   notes?: string
+  wordBreakdown: WordToken[]
 }
 
 export function submitCorrection(sentenceId: string, userAnswer: string): Promise<CorrectionDto> {

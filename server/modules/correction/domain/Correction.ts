@@ -1,4 +1,4 @@
-import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
+import type { LanguageCode, LocaleCode, WordToken } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
 
 export interface CorrectionMistake {
@@ -29,4 +29,5 @@ export interface CorrectionView extends CorrectionResult {
   promptText: string
   answerText: string
   userAnswer: string
+  wordBreakdown: WordToken[]
 }

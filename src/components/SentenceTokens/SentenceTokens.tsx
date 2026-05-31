@@ -40,6 +40,9 @@ interface SentenceTokensProps {
   learnLanguage: LanguageCode
   guessLanguage: LanguageCode
   sentenceLevel?: LevelCode | null
+  // Reveal each word's gloss regardless of level (results screen). Defaults off for immersive
+  // practice, where the gloss only shows at Starter.
+  alwaysShowGloss?: boolean
 }
 
 // Renders a learn-language sentence with each meaningful word clickable; clicking opens a
@@ -52,6 +55,7 @@ export default function SentenceTokens({
   learnLanguage,
   guessLanguage,
   sentenceLevel,
+  alwaysShowGloss,
 }: SentenceTokensProps) {
   const segments = useMemo(() => tokenizeSentence(text, breakdown), [text, breakdown])
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
@@ -85,6 +89,7 @@ export default function SentenceTokens({
         learnLanguage={learnLanguage}
         guessLanguage={guessLanguage}
         sentenceLevel={sentenceLevel}
+        alwaysShowGloss={alwaysShowGloss}
         onClose={close}
       />
     </span>
