@@ -446,7 +446,7 @@ account, so the app is moving to an **operator-supplied key** for everyone (one 
 see **Epic 12** for the key model + access gate that makes this safe. That removes the API-key step
 from onboarding. The first-run flow becomes a **short wizard with a single meaningful step:** pick
 learn → guess → locale → level (the four inputs), then land on Practice. (If the hybrid path in
-Epic 12 is chosen, an *optional* "use my own key" lives in Settings, never in the new-user flow.)
+Epic 12 is chosen, an _optional_ "use my own key" lives in Settings, never in the new-user flow.)
 
 **Warm timing (revised):** warm the pool **once all four inputs (learn, guess, locale, level) are
 satisfied** — i.e. when the wizard completes / the pair+level are persisted — **not** while a key is

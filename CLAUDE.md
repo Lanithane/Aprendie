@@ -73,7 +73,7 @@ and every new screen/component must be built in it — do **not** restyle later.
   a theme, edit its seed spec in [scripts/gen-md3-tokens.ts](scripts/gen-md3-tokens.ts) and run
   `npm run gen:tokens` (build-time only; `@material/material-color-utilities` is a devDependency, never
   imported at runtime — the script also prettier-formats the output). The generator stays because it
-  derives the ~37 contrast-correct roles per mode (on-* pairs, container tones, the surface-elevation
+  derives the ~37 contrast-correct roles per mode (on-\* pairs, container tones, the surface-elevation
   ladder, state layers) that 5 raw colours can't safely cover.
 - **Theme + mode are both user prefs.** [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx) owns the
   selected `themeId` (`gac:themeId`) and light/dark/system `mode` (`gac:themeMode`) and builds the MUI

@@ -40,22 +40,86 @@ const STD_WARNING = '#E5A000'
 // Each comment lists the source palette; every one of its five swatches is mapped to a role below.
 const THEME_SPECS: ThemeSpec[] = [
   // Abra (a rocky coastal cove) — Eggshell / Burnt Peach / Muted Teal / Twilight Indigo / Apricot Cream.
-  { id: 'abra', name: 'Abra', primary: '#E07A5F', secondary: '#F2CC8F', tertiary: '#81B29A', lightSurface: '#F4F1DE', darkSurface: '#3D405B' },
+  {
+    id: 'abra',
+    name: 'Abra',
+    primary: '#E07A5F',
+    secondary: '#F2CC8F',
+    tertiary: '#81B29A',
+    lightSurface: '#F4F1DE',
+    darkSurface: '#3D405B',
+  },
   // Cerezo (cherry blossom) — Baby Pink / Cotton Rose / Frosted Mint / Lemon Chiffon / Mauve.
-  { id: 'cerezo', name: 'Cerezo', primary: '#FF99C8', secondary: '#D0F4DE', tertiary: '#E4C1F9', lightSurface: '#FCF6BD', darkSurface: '#FEC8C3' },
+  {
+    id: 'cerezo',
+    name: 'Cerezo',
+    primary: '#FF99C8',
+    secondary: '#D0F4DE',
+    tertiary: '#E4C1F9',
+    lightSurface: '#FCF6BD',
+    darkSurface: '#FEC8C3',
+  },
   // Costa (coast) — Sky Blue / Blue Green / Deep Space Blue / Amber Flame / Princeton Orange.
-  { id: 'costa', name: 'Costa', primary: '#219EBC', secondary: '#FFB703', tertiary: '#FB8500', lightSurface: '#8ECAE6', darkSurface: '#023047' },
+  {
+    id: 'costa',
+    name: 'Costa',
+    primary: '#219EBC',
+    secondary: '#FFB703',
+    tertiary: '#FB8500',
+    lightSurface: '#8ECAE6',
+    darkSurface: '#023047',
+  },
   // Duna (dune) — Dune Beach / Apricot Dust / Sand Nougat / Cacao Husk / Midnight Soil.
-  { id: 'duna', name: 'Duna', primary: '#E49C69', secondary: '#F2C299', tertiary: '#5C3B2E', lightSurface: '#FFD9A0', darkSurface: '#201A17' },
+  {
+    id: 'duna',
+    name: 'Duna',
+    primary: '#E49C69',
+    secondary: '#F2C299',
+    tertiary: '#5C3B2E',
+    lightSurface: '#FFD9A0',
+    darkSurface: '#201A17',
+  },
   // Lavanda (lavender twilight) — our own palette: amethyst / dusty rose / honey gold (violet's
   // complement) on a lilac-mist light canvas and a plum-night dark canvas. Fills the violet gap.
-  { id: 'lavanda', name: 'Lavanda', primary: '#7A5EA6', secondary: '#E3A857', tertiary: '#C98BA4', lightSurface: '#F0EBF6', darkSurface: '#211A30' },
+  {
+    id: 'lavanda',
+    name: 'Lavanda',
+    primary: '#7A5EA6',
+    secondary: '#E3A857',
+    tertiary: '#C98BA4',
+    lightSurface: '#F0EBF6',
+    darkSurface: '#211A30',
+  },
   // Mango (tropical) — Linen yellow / Linen cream / Light Coral / Cotton Rose / Muted Teal.
-  { id: 'mango', name: 'Mango', primary: '#F28482', secondary: '#F6BD60', tertiary: '#84A59D', lightSurface: '#F7EDE2', darkSurface: '#F5CAC3' },
+  {
+    id: 'mango',
+    name: 'Mango',
+    primary: '#F28482',
+    secondary: '#F6BD60',
+    tertiary: '#84A59D',
+    lightSurface: '#F7EDE2',
+    darkSurface: '#F5CAC3',
+  },
   // Tinta (ink) — monochrome black / white / greys.
-  { id: 'tinta', name: 'Tinta', primary: '#3C3C3C', secondary: '#787878', tertiary: '#5A5A5A', lightSurface: '#F2F2F2', darkSurface: '#1A1A1A' },
+  {
+    id: 'tinta',
+    name: 'Tinta',
+    primary: '#3C3C3C',
+    secondary: '#787878',
+    tertiary: '#5A5A5A',
+    lightSurface: '#F2F2F2',
+    darkSurface: '#1A1A1A',
+  },
   // Viñedo (vineyard) — Hunter Green / Sage Green / Yellow Green / Floral White / Wine Plum.
-  { id: 'vinedo', name: 'Viñedo', primary: '#6A994E', secondary: '#782832', tertiary: '#A7C957', lightSurface: '#FBF7EF', darkSurface: '#22301E' },
+  {
+    id: 'vinedo',
+    name: 'Viñedo',
+    primary: '#6A994E',
+    secondary: '#782832',
+    tertiary: '#A7C957',
+    lightSurface: '#FBF7EF',
+    darkSurface: '#22301E',
+  },
 ]
 
 // role -> [palette key, lightTone, darkTone]. Surface-container ladder mapped from neutral.

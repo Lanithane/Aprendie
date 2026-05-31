@@ -40,15 +40,15 @@ npm run dev             # Vite on :5173, Express on :3000
 
 ## Scripts
 
-| Script | What it does |
-|---|---|
-| `npm run dev` | Vite + Express concurrently with HMR / file-watch |
-| `npm run build` | `vite build` (frontend) + `esbuild` bundle (backend) |
-| `npm start` | `node dist-server/index.js` — what Railway runs |
-| `npm run lint` / `lint:fix` | ESLint flat config with prettier-as-rule |
-| `npm run format` | Prettier write |
-| `npm run typecheck` | `tsc --noEmit` against both frontend and server tsconfigs |
-| `npm run db:generate` / `db:migrate` / `db:studio` | Drizzle Kit |
+| Script                                             | What it does                                              |
+| -------------------------------------------------- | --------------------------------------------------------- |
+| `npm run dev`                                      | Vite + Express concurrently with HMR / file-watch         |
+| `npm run build`                                    | `vite build` (frontend) + `esbuild` bundle (backend)      |
+| `npm start`                                        | `node dist-server/index.js` — what Railway runs           |
+| `npm run lint` / `lint:fix`                        | ESLint flat config with prettier-as-rule                  |
+| `npm run format`                                   | Prettier write                                            |
+| `npm run typecheck`                                | `tsc --noEmit` against both frontend and server tsconfigs |
+| `npm run db:generate` / `db:migrate` / `db:studio` | Drizzle Kit                                               |
 
 ## Layout
 

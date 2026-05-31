@@ -7,12 +7,12 @@ Implementation: [server/infrastructure/crypto/encryption.ts](../server/infrastru
 
 ## Two different "keys" — don't confuse them
 
-| Thing | What it is | Where it lives |
-| --- | --- | --- |
-| **Master key** (`ENCRYPTION_KEY`) | The AES-256 key the *server* uses to encrypt/decrypt stored Anthropic keys at rest | `.env` / Railway env var |
-| **A user's Anthropic API key** (`sk-ant-…`) | The key copied from the Anthropic dashboard, encrypted and stored per user | Postgres `users.encrypted_anthropic_key` (encrypted) |
+| Thing                                       | What it is                                                                         | Where it lives                                       |
+| ------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| **Master key** (`ENCRYPTION_KEY`)           | The AES-256 key the _server_ uses to encrypt/decrypt stored Anthropic keys at rest | `.env` / Railway env var                             |
+| **A user's Anthropic API key** (`sk-ant-…`) | The key copied from the Anthropic dashboard, encrypted and stored per user         | Postgres `users.encrypted_anthropic_key` (encrypted) |
 
-"Rotating the master key" means replacing `ENCRYPTION_KEY` — *not* the user's
+"Rotating the master key" means replacing `ENCRYPTION_KEY` — _not_ the user's
 `sk-ant-…`.
 
 ## How the scheme works
@@ -26,11 +26,11 @@ v3$iv$ciphertext$authTag
 
 - AES-256-GCM, with the owning **userId bound in two independent ways**:
   - **HKDF per-user subkey** — the AES key is `HKDF(ENCRYPTION_KEY, salt=userId,
-    info="gac/apiKey")`, so the master key never encrypts directly and each
+info="gac/apiKey")`, so the master key never encrypts directly and each
     row's key is user-bound.
   - **AAD** — the userId is also fed as GCM additional authenticated data.
 - A ciphertext copied onto another user's row decrypts under a different subkey
-  *and* fails the GCM tag — transplant is cryptographically blocked.
+  _and_ fails the GCM tag — transplant is cryptographically blocked.
 
 There is **a single master key and no legacy/previous-key read path**. A blob
 written under one `ENCRYPTION_KEY` is only readable under that exact key; change
@@ -39,8 +39,8 @@ below).
 
 ### Env var (see [server/env.ts](../server/env.ts))
 
-| Var | Meaning |
-| --- | --- |
+| Var              | Meaning                                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------------------- |
 | `ENCRYPTION_KEY` | The master key — base64 of 32 bytes. Required; the server exits on boot if it's missing or not 32 bytes. |
 
 ## Rotating the master key (wipe-and-re-enter)
@@ -94,7 +94,7 @@ production key into chat, a PR, or a log.
   switch targets — set `NODE_ENV=production` to point local tooling at prod.
 - **Running the wipe against prod from your machine:** the simplest path is the
   raw `UPDATE` above via `psql "$DATABASE_URL"`. (Migration `0007` already
-  performed the one-time wipe for the single-key cutover; a *future* rotation is
+  performed the one-time wipe for the single-key cutover; a _future_ rotation is
   not a migration, so use the manual `UPDATE`.)
 - **Deploys run migrations automatically:** Railway's start command is
   `npm run db:migrate:deploy && npm start` ([railway.json](../railway.json)), so
