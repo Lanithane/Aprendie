@@ -34,7 +34,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ⬜ Not started (refill shipped)     |
 | 12   | Operator key + access gate + daily cap                                        | ✅ Done (shipped to main)           |
 | 13   | Branding & identity (logo, favicon, PWA icons)                                | ⬜ Not started                      |
-| 14   | Forgiving scoring & letter grades (A+…F)                                       | ⬜ Not started                      |
+| 14   | Forgiving scoring & letter grades (A+…F)                                       | ✅ Done (shipped to main)           |
 | 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                     | ⬜ Not started                      |
 | 16   | Feedback & analytics (self-hosted, in admin)                                   | ⬜ Not started                      |
 | 17   | Single Starter level (drop Foundation) + Starter word-meaning hints            | ⬜ Not started                      |
@@ -574,7 +574,7 @@ A real visual identity to replace the default Vite favicon. Pure frontend + stat
 - [ ] _Note:_ the mark itself may want a designer / AI-generated asset; this epic covers the asset set
       + wiring, not the visual design exploration.
 
-## ⬜ Epic 14 — Forgiving scoring & letter grades
+## ✅ Epic 14 — Forgiving scoring & letter grades (merged to main)
 
 Grades read as **A+ / A / B / C / D / F**, stay lenient about punctuation and capitalization, and give
 partial credit for accurate-but-stiff phrasing instead of zeroing it. The numeric 0–100 score remains
@@ -585,25 +585,10 @@ the **internal source of truth** (it already drives `attempts.score` and history
 never drop a fully-correct answer below A+; a model "naturalness" signal caps an accurate-but-stiff
 answer (e.g. "I am enchanted by you", "How many years do you have") at the **A** band, not A+.
 
-- [ ] **`shared/grades.ts`** (new) — pure `scoreToGrade(score) → 'A+'|'A'|'B'|'C'|'D'|'F'` with the
-      band thresholds as the single source of truth (sibling to [shared/levels.ts](shared/levels.ts)),
-      imported by the frontend display (and reusable server-side).
-- [ ] **Lenient + naturalness-aware grading** — strengthen the correction prompt in
-      [scoreTranslation.ts](server/modules/correction/application/scoreTranslation.ts) (Claude returns
-      the score directly) so punctuation/capitalization never reduce a semantically-correct answer, and
-      have it also return a `naturalness` signal (`natural` | `stiff`). Surface it through
-      [responseParser.ts](server/infrastructure/claude/responseParser.ts)'s `extractJsonText`, add it to
-      `CorrectionResult` in [Correction.ts](server/modules/correction/domain/Correction.ts), and cap a
-      `stiff`-but-fully-correct attempt at the A band (leave the per-word % driving B/C/D/F intact).
-- [ ] **Display the letter** — [scoreColor.ts](src/theme/scoreColor.ts) thresholds re-aligned to the
-      grade bands (keep the success/warning/error ramp), and
-      [CorrectionDisplay.tsx](src/components/CorrectionDisplay/CorrectionDisplay.tsx) shows the
-      **letter** prominently (the `Score {score}/100` chip + `LinearProgress` become secondary).
-- [ ] **Migration (next free number, e.g. `0012`)** — add a nullable `grade text` snapshot column to the
-      denormalized `attempts` table ([schema.ts](server/infrastructure/db/schema.ts); it already holds
-      `score` + `mistakes`), generated through the existing `drizzle/` workflow and backfilled from
-      existing scores, so historical grades don't shift if the bands are later retuned. `score` stays
-      the source of truth.
+- [x] **`shared/grades.ts`** — pure `scoreToGrade(score) → 'A+'|'A'|'B'|'C'|'D'|'F'` with band thresholds.
+- [x] **Lenient + naturalness-aware grading** — prompt strengthened in `scoreTranslation.ts`; `naturalness` signal (`natural`|`stiff`) surfaces through response parser + `CorrectionResult`; stiff-but-correct capped at A band.
+- [x] **Display the letter** — `scoreColor.ts` thresholds re-aligned; `CorrectionDisplay`, `HistoryPage`, `HomePage` all show the letter grade.
+- [x] **Migration `0013`** — nullable `grade text` column added to `attempts` via `drizzle/0013_pink_archangel.sql`.
 
 ## ⬜ Epic 15 — Auto-speak on load + smart voice defaults
 
