@@ -441,12 +441,25 @@ _while the user is still choosing_, so they never land on a spinner. This is **n
 (rejected as unmaintainable across dynamic languages/locales) — the pool still fills itself
 on-demand; we just start filling it a few seconds earlier.
 
-**Decided:** the first-run flow is a **short wizard** — (1) pick learn → guess → locale → level, then
-(2) enter + validate the Anthropic API key — and only **then** warm the pool, because generation
-can't call Anthropic until the key exists. Warm with a **small first batch (2–3 sentences)** so the
-first sentences land while step 2's key-validation round-trip (and a brief "preparing…" screen) plays,
-with the full 10-sentence top-up continuing in the background — the user lands on Practice already
-warm. The key step is therefore a hard part of the new-user flow, not a separate gate.
+**Decided (revised 2026-05-30 — operator-key pivot):** non-techy users won't create an Anthropic
+account, so the app is moving to an **operator-supplied key** for everyone (one key, server-side) —
+see **Epic 12** for the key model + access gate that makes this safe. That removes the API-key step
+from onboarding. The first-run flow becomes a **short wizard with a single meaningful step:** pick
+learn → guess → locale → level (the four inputs), then land on Practice. (If the hybrid path in
+Epic 12 is chosen, an *optional* "use my own key" lives in Settings, never in the new-user flow.)
+
+**Warm timing (revised):** warm the pool **once all four inputs (learn, guess, locale, level) are
+satisfied** — i.e. when the wizard completes / the pair+level are persisted — **not** while a key is
+being supplied (there is no key step anymore, and warming mid-typing was always fragile). Warm with a
+**small first batch (2–3 sentences)** during a brief "preparing…" transition, with the full
+10-sentence top-up continuing in the background, so the user lands on Practice already warm. The same
+trigger fires on app boot for a returning user's saved pair.
+
+_Cost/scale note (10 sporadic users, one operator key):_ correction (Sonnet 4.6, cached system block)
+is **< $0.01/graded sentence**; batched Haiku sentence-gen is negligible per sentence → **single-digit
+$/month** at this scale. Rate limits (shared RPM/TPM on the one key) are the real risk, but only under
+**open/uncapped access** — hence Epic 12's gate. The existing pool buffer + background refill already
+batches generation; a simple per-user/day cap is a cheap backstop even before the full gate lands.
 
 **Decided — no Claude OAuth; the key step stays a polished paste (investigated 2026-05-30).** There is
 no "Sign in with Claude → app gets API access" OAuth for third-party apps, and Anthropic actively
@@ -500,11 +513,15 @@ Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
   language (e.g. es-MX then es-ES) and confirm the dialect/vocabulary shifts and an optional note
   appears when relevant; the empty-input button is disabled, Cmd/Ctrl+Enter submits, errors surface
   as an Alert, and the no-API-key state shows `ApiKeySetup`; QA light/dark/system + mobile.
-- **Epic 11** — sign in on a fresh account; step through onboarding (pick languages/level, then enter
-  and validate the key) and confirm a sentence is already present (no spinner) on landing; switch to a
+- **Epic 11** — sign in on a fresh account; step through onboarding (pick learn/guess/locale/level —
+  **no key step**) and confirm a sentence is already present (no spinner) on landing; switch to a
   brand-new locale/level and confirm the warm hides the wait; reload and confirm the pair persists from
   the account (not just localStorage). Also confirm the steady-state refill: page through a full batch
   and verify no "Next" press stalls on generation.
+- **Epic 12** — with the operator key configured and no own key on the account, confirm practice works
+  (sentences + corrections run on the operator key); confirm the access gate blocks a non-approved /
+  over-cap account with a clear screen and never silently spends; if hybrid, confirm an own key in
+  Settings overrides the operator key.
 
 Use the `/verify` skill for end-to-end confirmation and `/code-review` before declaring an epic
 done. Each epic is a natural PR/commit boundary.
