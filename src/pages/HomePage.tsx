@@ -14,13 +14,21 @@ import { useCorrectionSubmission } from '../hooks/useCorrectionSubmission'
 // absorb the slack above/below), giving the calm, centered "homepage" feel — biased above true
 // center so it sits higher in the eyeline: ~12% of the viewport up on mobile, a gentle nudge on
 // desktop.
-const Stage = styled('div')`
+const CenteredStage = styled('div')`
   margin-block: auto;
   width: 100%;
   padding-block: ${({ theme }) => theme.spacing(2)};
   transform: translateY(-12vh);
   ${({ theme }) => theme.breakpoints.up('md')} {
     transform: translateY(-${({ theme }) => theme.spacing(6)});
+  }
+`
+
+const FlowStage = styled('div')`
+  width: 100%;
+  padding-block: ${({ theme }) => theme.spacing(2)};
+  ${({ theme }) => theme.breakpoints.down('md')} {
+    padding-bottom: calc(${({ theme }) => theme.spacing(2)} + env(safe-area-inset-bottom));
   }
 `
 
@@ -46,15 +54,15 @@ export default function HomePage() {
   // A pending/blocked account can't spend the operator key.
   if (user && !isApproved)
     return (
-      <Stage>
+      <FlowStage>
         <AccessGate access={user.access} email={user.email} />
-      </Stage>
+      </FlowStage>
     )
 
   const error = sentenceError ?? submitError
   if (error)
     return (
-      <Stage>
+      <FlowStage>
         <Stack spacing={2} sx={{ alignItems: 'center' }}>
           <Alert severity='error' sx={{ width: '100%' }}>
             {error}
@@ -69,12 +77,12 @@ export default function HomePage() {
             Try again
           </Button>
         </Stack>
-      </Stage>
+      </FlowStage>
     )
 
   if (correction) {
     return (
-      <Stage>
+      <FlowStage>
         <CorrectionDisplay
           learnLanguage={correction.learnLanguage}
           guessLanguage={correction.guessLanguage}
@@ -92,14 +100,14 @@ export default function HomePage() {
             clear()
           }}
         />
-      </Stage>
+      </FlowStage>
     )
   }
 
   if (loading || !sentence) return <LoadingSpinner />
 
   return (
-    <Stage>
+    <CenteredStage>
       <PracticeCard
         promptText={sentence.promptText}
         wordBreakdown={sentence.wordBreakdown}
@@ -114,6 +122,6 @@ export default function HomePage() {
         }}
         submitting={submitting}
       />
-    </Stage>
+    </CenteredStage>
   )
 }
