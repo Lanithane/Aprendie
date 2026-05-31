@@ -28,8 +28,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // `withBootstrap` only on the initial load — a plain refresh() (after a level/theme/pair
   // change) must not request a sentence, or it would drain a pool sentence per refresh.
-  const load = async (withBootstrap: boolean) => {
-    setLoading(true)
+  // `silent` skips the global loading gate: a post-write refresh revalidates `user` in the
+  // background without unmounting the app behind a spinner (which read as a page flash).
+  const load = async (withBootstrap: boolean, silent = false) => {
+    if (!silent) setLoading(true)
     try {
       const me = await fetchCurrentUser(withBootstrap ? { bootstrap: true } : undefined)
       setUser(me)
@@ -41,11 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('[auth] /api/me failed:', err)
       }
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
-  const refresh = () => load(false)
+  const refresh = () => load(false, true)
 
   useEffect(() => {
     // Fetch the current user once on mount; load() owns its own loading state.
