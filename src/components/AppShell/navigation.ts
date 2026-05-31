@@ -1,11 +1,13 @@
 import HomeIcon from '@mui/icons-material/Home'
 import HistoryIcon from '@mui/icons-material/History'
+import MenuBookIcon from '@mui/icons-material/MenuBook'
 import SettingsIcon from '@mui/icons-material/Settings'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 
 export const NAV_ITEMS = [
   { to: '/', label: 'Practice', Icon: HomeIcon },
   { to: '/history', label: 'History', Icon: HistoryIcon },
+  { to: '/pokedex', label: 'Words', Icon: MenuBookIcon },
   { to: '/settings', label: 'Settings', Icon: SettingsIcon },
 ] as const
 

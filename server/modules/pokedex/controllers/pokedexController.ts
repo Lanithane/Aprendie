@@ -1,0 +1,61 @@
+import { Router } from 'express'
+import { z } from 'zod'
+import type { UserRow } from '../../../infrastructure/db/schema'
+import { requireAuth } from '../../../infrastructure/http/requireAuth'
+import { asyncHandler } from '../../../infrastructure/http/asyncHandler'
+import { listPokedex, getRootDetail, listLanguages } from '../application/listPokedex'
+import { LEXEME_SORTS, type LexemeSort } from '../domain/Lexeme'
+
+const router = Router()
+
+router.use(requireAuth)
+
+const listQuerySchema = z.object({
+  learnLanguage: z.string().min(1),
+  sort: z.enum(LEXEME_SORTS as unknown as [LexemeSort, ...LexemeSort[]]).optional(),
+})
+
+const detailQuerySchema = z.object({
+  learnLanguage: z.string().min(1),
+})
+
+// Must precede /:lemma so Express doesn't match "languages" as a lemma.
+router.get(
+  '/languages',
+  asyncHandler(async (req, res) => {
+    const langs = await listLanguages((req.user as UserRow).id)
+    res.json(langs)
+  })
+)
+
+router.get(
+  '/',
+  asyncHandler(async (req, res) => {
+    const parsed = listQuerySchema.safeParse(req.query)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const { learnLanguage, sort } = parsed.data
+    const entries = await listPokedex((req.user as UserRow).id, learnLanguage, sort ?? 'seen')
+    res.json(entries)
+  })
+)
+
+router.get(
+  '/:lemma',
+  asyncHandler(async (req, res) => {
+    const parsed = detailQuerySchema.safeParse(req.query)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const detail = await getRootDetail(
+      (req.user as UserRow).id,
+      parsed.data.learnLanguage,
+      req.params.lemma
+    )
+    if (!detail) return res.status(404).json({ error: 'lexeme not found' })
+    res.json(detail)
+  })
+)
+
+export default router
