@@ -7,6 +7,18 @@ export { THEMES, THEME_META, THEME_IDS, DEFAULT_THEME_ID, type ThemeId } from '.
 const rem = (px: number) => `${px / 16}rem`
 const em = (px: number, sizePx: number) => `${px / sizePx}em`
 
+// Straight-line RGB distance between two #rrggbb colors — used to pick a focus-ring accent
+// that actually reads against a button's fill (some themes have analogous accents).
+function hexDistance(a: string, b: string): number {
+  const rgb = (h: string) => {
+    const n = parseInt(h.slice(1), 16)
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255] as const
+  }
+  const [r1, g1, b1] = rgb(a)
+  const [r2, g2, b2] = rgb(b)
+  return Math.hypot(r1 - r2, g1 - g2, b1 - b2)
+}
+
 function md3Typography(): TypographyVariantsOptions {
   return {
     fontFamily: '"Nunito Variable", "Nunito", "Helvetica", "Arial", sans-serif',
@@ -192,11 +204,18 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
             // Hold the contained fill steady on hover so the state layer (not a darkened fill)
             // carries the feedback — MD3 expresses states as a translucent on-color overlay.
             const restingFill = ownerState.variant === 'contained' ? paletteColor?.main : undefined
-            // Focus ring: tertiary accent ring on all buttons so it pops against any fill,
-            // switching to primary when the button itself is already tertiary.
-            const tertiaryColor = theme.palette.tertiary
-            const primaryColor = theme.palette.primary
-            const focusRing = c === 'tertiary' ? primaryColor.main : tertiaryColor.main
+            // Focus ring: an accent ring that pops against the button's own fill. Tertiary is
+            // the usual choice, but some themes (e.g. vinedo) have a tertiary analogous to their
+            // primary, so a fixed tertiary ring vanishes on a primary button. Pick whichever of
+            // tertiary/secondary/primary sits furthest from the fill instead.
+            const fill = paletteColor?.main ?? theme.palette.primary.main
+            const focusRing = [
+              theme.palette.tertiary.main,
+              theme.palette.secondary.main,
+              theme.palette.primary.main,
+            ].reduce((best, cand) =>
+              hexDistance(cand, fill) > hexDistance(best, fill) ? cand : best
+            )
             const focusOutline = { outline: `2.5px solid ${focusRing}`, outlineOffset: 2 }
             return {
               borderRadius: 999,

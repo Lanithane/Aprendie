@@ -55,8 +55,6 @@ const BrandSlot = styled(Box)`
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
-  -webkit-text-stroke: 4.5px ${({ theme }) => theme.palette.secondary.main};
-  paint-order: stroke fill;
 `
 
 const BottomRail = styled(Box)`

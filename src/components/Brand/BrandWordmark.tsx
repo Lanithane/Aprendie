@@ -20,9 +20,13 @@ const Root = styled('div', {
   user-select: none;
   color: ${({ theme }) => theme.palette.tertiary.main};
   font-size: ${({ $size }) => ($size === 'login' ? '3.5rem' : '2rem')};
+  -webkit-text-stroke: ${({ $size }) => ($size === 'login' ? '6px' : '4.5px')}
+    ${({ theme }) => theme.palette.secondary.main};
+  paint-order: stroke fill;
 
   ${({ theme }) => theme.breakpoints.down('sm')} {
     font-size: ${({ $size }) => ($size === 'login' ? '2.8rem' : '1.5rem')};
+    -webkit-text-stroke-width: ${({ $size }) => ($size === 'login' ? '5px' : '4.5px')};
   }
 `
 
