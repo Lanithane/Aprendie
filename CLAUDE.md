@@ -1,6 +1,7 @@
 # Project Rules (read me first)
 
-This file is auto-loaded by Claude Code when working in this repo. Treat it as authoritative when editing code. See [BLUEPRINT.md](BLUEPRINT.md) for the wider product/architecture context.
+This file is auto-loaded by Claude Code when working in this repo. Treat it as authoritative when editing code.
+Contextual memory, decision logs, and session state are also maintained in the `.claude/` directory. See BLUEPRINT.md for the wider product/architecture context.
 
 ## Architecture: DDD per bounded context (backend)
 
