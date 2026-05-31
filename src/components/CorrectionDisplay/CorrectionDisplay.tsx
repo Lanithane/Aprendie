@@ -1,14 +1,4 @@
-import {
-  Card,
-  CardContent,
-  Typography,
-  Stack,
-  Chip,
-  Box,
-  Button,
-  Divider,
-  LinearProgress,
-} from '@mui/material'
+import { Card, CardContent, Typography, Stack, Chip, Box, Button, Divider } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
@@ -17,7 +7,7 @@ import { languageName, type LanguageCode, type WordToken } from '../../../shared
 import { scoreToGrade } from '../../../shared/grades'
 import type { CorrectionMistakeDto } from '../../api/correctionApi'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
-import { scoreColor } from '../../theme/scoreColor'
+import GradeChip from '../shared/GradeChip'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
 
 const normalizePunct = (s: string) => s.replace(/[''ʼ]/g, "'").replace(/[""]/g, '"')
@@ -75,28 +65,6 @@ const MistakeRow = styled(Stack)`
   border-radius: 0 12px 12px 0;
 `
 
-const GradeBadge = styled(Box)<{ scorecolor: string }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: ${({ theme, scorecolor }) => {
-    if (scorecolor === 'success') return theme.palette.success.main
-    if (scorecolor === 'warning') return theme.palette.warning.main
-    return theme.palette.error.main
-  }};
-  color: ${({ theme, scorecolor }) => {
-    if (scorecolor === 'success') return theme.palette.success.contrastText
-    if (scorecolor === 'warning') return theme.palette.warning.contrastText
-    return theme.palette.error.contrastText
-  }};
-  font-size: 1.1rem;
-  font-weight: 700;
-  flex-shrink: 0;
-`
-
 export default function CorrectionDisplay({
   learnLanguage,
   guessLanguage,
@@ -119,34 +87,25 @@ export default function CorrectionDisplay({
     (m) => normalizePunct(m.userPhrase) !== normalizePunct(m.correctPhrase)
   )
   const displayGrade = grade ?? scoreToGrade(score)
-  const color = scoreColor(score)
 
   return (
     <Card aria-live='polite'>
       <CardContent>
-        <Stack direction='row' spacing={1.5} sx={{ mb: 2, alignItems: 'center' }}>
+        <Stack
+          direction='row'
+          spacing={1.5}
+          sx={{
+            mb: 2,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            rowGap: 1,
+          }}
+        >
           {isCorrect ? <CheckCircleIcon color='success' /> : <CancelIcon color='warning' />}
-          <Typography variant='h5' sx={{ flex: 1 }}>
+          <Typography variant='h5' sx={{ flex: '1 1 220px', minWidth: 0 }}>
             {isCorrect ? 'Nice!' : "Close! Here's what to fix"}
           </Typography>
-          <GradeBadge scorecolor={color} aria-label={`Grade ${displayGrade}`}>
-            {displayGrade}
-          </GradeBadge>
-        </Stack>
-        <Stack direction='row' spacing={1} sx={{ mb: 1.5, alignItems: 'center' }}>
-          <LinearProgress
-            variant='determinate'
-            value={Math.max(0, Math.min(100, score))}
-            color={color}
-            sx={{ flex: 1, height: 6, borderRadius: 3 }}
-            aria-label={`Score ${score} out of 100`}
-          />
-          <Chip
-            label={`${score}/100`}
-            color={color}
-            size='small'
-            sx={{ fontSize: '0.75rem', minWidth: 60 }}
-          />
+          <GradeChip grade={displayGrade} size='medium' />
         </Stack>
 
         <Typography variant='overline' color='text.secondary'>

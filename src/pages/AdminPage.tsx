@@ -11,12 +11,18 @@ import {
   Chip,
   Avatar,
 } from '@mui/material'
+import type { ChipProps } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import LimitsPanel from '../components/Admin/LimitsPanel'
 import { useAdminContext } from '../components/Admin/AdminLayout'
 import { useNow } from '../hooks/useNow'
-import { scoreColor } from '../theme/scoreColor'
+
+function capUsageColor(used: number, cap: number): NonNullable<ChipProps['color']> {
+  if (cap <= 0 || used >= cap) return 'error'
+  if (used / cap >= 0.8) return 'warning'
+  return 'success'
+}
 
 // Admin landing: a tappable list of accounts. Each opens a detail route to edit the user.
 export default function AdminPage() {
@@ -76,9 +82,7 @@ export default function AdminPage() {
                           <Chip
                             size='small'
                             variant='outlined'
-                            color={scoreColor(
-                              100 - (user.usedToday / Math.max(user.effectiveCap, 1)) * 100
-                            )}
+                            color={capUsageColor(user.usedToday, user.effectiveCap)}
                             label={`${user.usedToday}/${user.effectiveCap}`}
                           />
                         )}
