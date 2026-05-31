@@ -2,13 +2,15 @@ import { useState } from 'react'
 import {
   Typography,
   Box,
-  Card,
-  CardActionArea,
-  CardContent,
   Stack,
   Collapse,
   Button,
   Alert,
+  List,
+  ListItemButton,
+  ListItemText,
+  Divider,
+  Paper,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { format } from 'date-fns'
@@ -57,26 +59,33 @@ export default function HistoryPage() {
       {loading ? (
         <LoadingSpinner />
       ) : (
-        <Stack spacing={1}>
+        <Stack spacing={2}>
           {items.length === 0 && (
             <Typography color='text.secondary'>
               No history yet. Finish a sentence to see it here.
             </Typography>
           )}
-          {items.map((it) => (
-            <HistoryRow
-              key={it.id}
-              entry={it}
-              open={expanded === it.id}
-              onToggle={() => setExpanded((cur) => (cur === it.id ? null : it.id))}
-            />
-          ))}
+          {items.length > 0 && (
+            <Paper variant='outlined' sx={{ borderRadius: 2, overflow: 'hidden' }}>
+              <List disablePadding>
+                {items.map((it, idx) => (
+                  <HistoryRow
+                    key={it.id}
+                    entry={it}
+                    open={expanded === it.id}
+                    onToggle={() => setExpanded((cur) => (cur === it.id ? null : it.id))}
+                    showDivider={idx < items.length - 1 || expanded === it.id}
+                  />
+                ))}
+              </List>
+            </Paper>
+          )}
           {hasMore && (
             <Button
               color='tertiary'
               onClick={() => void loadMore()}
               disabled={loadingMore}
-              sx={{ alignSelf: 'center', mt: 1 }}
+              sx={{ alignSelf: 'center' }}
             >
               {loadingMore ? 'Loading…' : 'Load more'}
             </Button>
@@ -91,43 +100,58 @@ interface HistoryRowProps {
   entry: AttemptDto
   open: boolean
   onToggle: () => void
+  showDivider: boolean
 }
 
-function HistoryRow({ entry, open, onToggle }: HistoryRowProps) {
+function HistoryRow({ entry, open, onToggle, showDivider }: HistoryRowProps) {
   return (
-    <Card variant='outlined'>
-      <CardActionArea onClick={onToggle} aria-expanded={open} aria-label='Toggle attempt details'>
-        <CardContent sx={{ pb: '16px !important' }}>
-          <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
-            <GradeChip grade={entry.grade} />
-            <Typography lang={entry.learnLanguage} sx={{ flex: 1, minWidth: 0 }} noWrap>
-              {entry.promptText}
-            </Typography>
-            <Typography variant='caption' sx={{ flexShrink: 0 }}>
-              {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
-            </Typography>
-            <ExpandMoreIcon
-              sx={{
-                flexShrink: 0,
-                color: 'action.active',
-                transform: open ? 'rotate(180deg)' : 'none',
-                transition: '0.2s',
-              }}
-            />
-          </Stack>
-        </CardContent>
-      </CardActionArea>
+    <>
+      <ListItemButton
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-label='Toggle attempt details'
+        sx={{ gap: 1, py: 1.25, px: 2, borderRadius: 0 }}
+      >
+        <GradeChip grade={entry.grade} />
+        <ListItemText
+          primary={entry.promptText}
+          slotProps={{
+            primary: {
+              lang: entry.learnLanguage,
+              noWrap: true,
+              sx: { flex: 1, minWidth: 0 },
+            },
+          }}
+        />
+        <Typography variant='caption' sx={{ flexShrink: 0, color: 'text.secondary' }}>
+          {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
+        </Typography>
+        <ExpandMoreIcon
+          sx={{
+            flexShrink: 0,
+            color: 'action.active',
+            transform: open ? 'rotate(180deg)' : 'none',
+            transition: '0.2s',
+          }}
+        />
+      </ListItemButton>
       <Collapse in={open}>
-        <CardContent sx={{ pt: 0 }}>
-          <Typography variant='caption'>Your answer</Typography>
+        <Box sx={{ px: 2, pb: 2, pt: 0.5 }}>
+          <Typography variant='caption' color='text.secondary'>
+            Your answer
+          </Typography>
           <Typography lang={entry.guessLanguage} sx={{ mb: 1 }}>
             {entry.userAnswer}
           </Typography>
-          <Typography variant='caption'>Corrected</Typography>
+          <Typography variant='caption' color='text.secondary'>
+            Correct
+          </Typography>
           <Typography lang={entry.guessLanguage}>{entry.correctedAnswer}</Typography>
           {entry.mistakes.length > 0 && (
             <Box sx={{ mt: 1.5 }}>
-              <Typography variant='caption'>Mistakes</Typography>
+              <Typography variant='caption' color='text.secondary'>
+                Mistakes
+              </Typography>
               {entry.mistakes.map((m, i) => (
                 <Typography key={i} variant='body2' sx={{ mt: 0.5 }}>
                   <strong lang={entry.learnLanguage}>{m.sourceText}</strong>: {m.explanation}
@@ -135,8 +159,9 @@ function HistoryRow({ entry, open, onToggle }: HistoryRowProps) {
               ))}
             </Box>
           )}
-        </CardContent>
+        </Box>
       </Collapse>
-    </Card>
+      {showDivider && <Divider />}
+    </>
   )
 }
