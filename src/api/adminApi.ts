@@ -8,13 +8,7 @@ export interface AdminUser {
   name: string
   role: UserRole
   access: AccessState
-  hasApiKey: boolean
   createdAt: string
-}
-
-export interface RevalidateResult {
-  ok: boolean
-  reason?: string
 }
 
 export function fetchUsers(): Promise<AdminUser[]> {
@@ -33,14 +27,6 @@ export function setUserAccess(id: string, access: AccessState): Promise<AdminUse
     method: 'PATCH',
     body: JSON.stringify({ access }),
   })
-}
-
-export function revokeUserKey(id: string): Promise<void> {
-  return api<void>(`/api/admin/users/${id}/key`, { method: 'DELETE' })
-}
-
-export function revalidateUserKey(id: string): Promise<RevalidateResult> {
-  return api<RevalidateResult>(`/api/admin/users/${id}/key/revalidate`, { method: 'POST' })
 }
 
 export function fetchUserHistory(id: string, cursor?: string): Promise<HistoryPageDto> {

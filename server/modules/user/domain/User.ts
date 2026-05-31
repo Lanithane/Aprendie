@@ -20,7 +20,6 @@ export interface UserView {
   name: string
   role: UserRole
   access: AccessState
-  hasApiKey: boolean
   level: LevelCode | null
   themeId: string | null
   themeMode: ThemeMode | null
@@ -29,7 +28,7 @@ export interface UserView {
   locale: string | null
 }
 
-// Admin-facing projection of another user. Never exposes encryptedAnthropicKey.
+// Admin-facing projection of another user.
 // `totalCostUsd` is added once Epic 6 (usage showback) lands.
 export interface AdminUserView {
   id: string
@@ -37,7 +36,6 @@ export interface AdminUserView {
   name: string
   role: UserRole
   access: AccessState
-  hasApiKey: boolean
   createdAt: string
 }
 
@@ -48,7 +46,6 @@ export function toUserView(row: UserRow): UserView {
     name: row.name,
     role: row.role,
     access: row.access,
-    hasApiKey: Boolean(row.encryptedAnthropicKey),
     level: row.level ?? null,
     themeId: row.themeId ?? null,
     themeMode: row.themeMode ?? null,
@@ -65,7 +62,6 @@ export function toAdminUserView(row: UserRow): AdminUserView {
     name: row.name,
     role: row.role,
     access: row.access,
-    hasApiKey: Boolean(row.encryptedAnthropicKey),
     createdAt: row.createdAt.toISOString(),
   }
 }

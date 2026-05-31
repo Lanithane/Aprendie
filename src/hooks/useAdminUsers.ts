@@ -4,11 +4,8 @@ import {
   fetchUsers,
   setUserRole as apiSetUserRole,
   setUserAccess as apiSetUserAccess,
-  revokeUserKey as apiRevokeUserKey,
-  revalidateUserKey as apiRevalidateUserKey,
   deleteUser as apiDeleteUser,
   type AdminUser,
-  type RevalidateResult,
 } from '../api/adminApi'
 import type { UserRole, AccessState } from '../api/userApi'
 
@@ -19,8 +16,6 @@ interface UseAdminUsersResult {
   reload: () => Promise<void>
   setRole: (id: string, role: UserRole) => Promise<boolean>
   setAccess: (id: string, access: AccessState) => Promise<boolean>
-  revokeKey: (id: string) => Promise<boolean>
-  revalidateKey: (id: string) => Promise<RevalidateResult | null>
   deleteUser: (id: string) => Promise<boolean>
 }
 
@@ -71,28 +66,6 @@ export function useAdminUsers(): UseAdminUsersResult {
     }
   }, [])
 
-  const revokeKey = useCallback(async (id: string) => {
-    setError(null)
-    try {
-      await apiRevokeUserKey(id)
-      setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, hasApiKey: false } : u)))
-      return true
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to revoke key')
-      return false
-    }
-  }, [])
-
-  const revalidateKey = useCallback(async (id: string) => {
-    setError(null)
-    try {
-      return await apiRevalidateUserKey(id)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to re-validate key')
-      return null
-    }
-  }, [])
-
   const deleteUser = useCallback(async (id: string) => {
     setError(null)
     try {
@@ -105,5 +78,5 @@ export function useAdminUsers(): UseAdminUsersResult {
     }
   }, [])
 
-  return { users, loading, error, reload, setRole, setAccess, revokeKey, revalidateKey, deleteUser }
+  return { users, loading, error, reload, setRole, setAccess, deleteUser }
 }

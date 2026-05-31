@@ -1,7 +1,7 @@
 import type { UserRow } from '../../../infrastructure/db/schema'
 import { SENTENCE_MODEL } from '../../../infrastructure/claude/anthropicClient'
 import { extractJsonText } from '../../../infrastructure/claude/responseParser'
-import { resolveAnthropicClient } from '../../apiKey/application/resolveAnthropicClient'
+import { getOperatorAnthropicClient } from '../../../infrastructure/claude/anthropicClient'
 import { canSpend } from '../../user/application/access'
 import {
   LANGUAGES,
@@ -40,7 +40,7 @@ Location: "${location}"
 Return the best-matching locale code now.`
 
   try {
-    const anthropic = resolveAnthropicClient(input.user)
+    const anthropic = getOperatorAnthropicClient()
     const resp = await anthropic.messages.create({
       model: SENTENCE_MODEL,
       max_tokens: 100,

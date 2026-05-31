@@ -54,16 +54,6 @@ export async function create(values: NewUserRow): Promise<UserRow> {
   return inserted[0]
 }
 
-export async function updateEncryptedApiKey(
-  id: string,
-  encryptedKey: string | null
-): Promise<void> {
-  await db
-    .update(users)
-    .set({ encryptedAnthropicKey: encryptedKey, updatedAt: new Date() })
-    .where(eq(users.id, id))
-}
-
 export async function updateLevel(id: string, level: LevelCode | null): Promise<UserRow> {
   const updated = await db
     .update(users)

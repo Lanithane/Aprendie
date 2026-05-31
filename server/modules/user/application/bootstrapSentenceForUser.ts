@@ -10,7 +10,7 @@ import { isValidLanguagePair, type LanguageCode } from '../../../../shared/langu
 // sentence the normal way (cross-module user -> sentence application orchestration).
 export function bootstrapSentenceForUser(user: UserRow): Promise<SentenceView | null> {
   const { learnLanguage, guessLanguage, locale, level } = user
-  if (!user.encryptedAnthropicKey || !level) return Promise.resolve(null)
+  if (!level) return Promise.resolve(null)
   if (!isValidLanguagePair(learnLanguage, guessLanguage, locale)) {
     return Promise.resolve(null)
   }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom'
-import { Box, Typography, Alert, Button, Stack, Select, MenuItem, Chip } from '@mui/material'
+import { Box, Typography, Alert, Button, Stack, Select, MenuItem } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { format } from 'date-fns'
@@ -9,19 +9,16 @@ import UserHistoryPanel from '../components/Admin/UserHistoryPanel'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAdminContext } from '../components/Admin/AdminLayout'
 import { useAuth } from '../auth/AuthContext'
-import type { RevalidateResult } from '../api/adminApi'
 import type { UserRole, AccessState } from '../api/userApi'
 
 export default function AdminUserDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user: currentUser } = useAuth()
-  const { users, loading, error, setRole, setAccess, revokeKey, revalidateKey, deleteUser } =
-    useAdminContext()
+  const { users, loading, error, setRole, setAccess, deleteUser } = useAdminContext()
   const user = users.find((u) => u.id === id)
 
   const [busy, setBusy] = useState(false)
-  const [result, setResult] = useState<RevalidateResult | null>(null)
 
   const back = (
     <Button component={RouterLink} to='/admin' startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>
@@ -57,18 +54,6 @@ export default function AdminUserDetailPage() {
     void run(() => setAccess(user.id, access))
   }
 
-  const handleRevoke = () => {
-    if (!confirm(`Revoke ${user.email}'s API key? They'll need to re-enter it to keep practicing.`))
-      return
-    setResult(null)
-    void run(() => revokeKey(user.id))
-  }
-
-  const handleRevalidate = () =>
-    void run(async () => {
-      setResult(await revalidateKey(user.id))
-    })
-
   const isSelf = currentUser?.id === user.id
 
   const handleDelete = () => {
@@ -100,7 +85,7 @@ export default function AdminUserDetailPage() {
       )}
 
       <Stack spacing={3}>
-        <SectionCard title='Role' description='Admins can manage all accounts and API-key support.'>
+        <SectionCard title='Role' description='Admins can manage all accounts.'>
           <Select
             size='small'
             value={user.role}
@@ -128,33 +113,6 @@ export default function AdminUserDetailPage() {
             <MenuItem value='approved'>Approved</MenuItem>
             <MenuItem value='blocked'>Blocked</MenuItem>
           </Select>
-        </SectionCard>
-
-        <SectionCard
-          title='API key'
-          description='Re-validate pings Anthropic with the stored key; revoke clears it. The key is never shown.'
-        >
-          {user.hasApiKey ? (
-            <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Chip size='small' color='success' label='Key set' />
-              <Button size='small' onClick={handleRevalidate} disabled={busy}>
-                Re-validate
-              </Button>
-              <Button size='small' color='error' onClick={handleRevoke} disabled={busy}>
-                Revoke
-              </Button>
-              {result && (
-                <Chip
-                  size='small'
-                  variant='outlined'
-                  color={result.ok ? 'success' : 'error'}
-                  label={result.ok ? 'Valid' : (result.reason ?? 'Invalid')}
-                />
-              )}
-            </Stack>
-          ) : (
-            <Chip size='small' variant='outlined' label='No key set' />
-          )}
         </SectionCard>
 
         <SectionCard

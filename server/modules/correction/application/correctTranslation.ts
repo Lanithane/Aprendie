@@ -1,7 +1,7 @@
 import type { UserRow, SentenceRow } from '../../../infrastructure/db/schema'
 import type { LanguageCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
-import { resolveAnthropicClient } from '../../apiKey/application/resolveAnthropicClient'
+import { getOperatorAnthropicClient } from '../../../infrastructure/claude/anthropicClient'
 import { assertCanSpend } from '../../user/application/access'
 import { assertWithinDailyCap, recordGradedSentence } from '../../usage/application/dailyCap'
 import * as sentenceRepository from '../../sentence/persistence/sentenceRepository'
@@ -40,7 +40,7 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
   const locale = sentence.locale
   const level = (sentence.level as LevelCode | null) ?? null
 
-  const anthropic = resolveAnthropicClient(input.user)
+  const anthropic = getOperatorAnthropicClient()
   const result = await scoreTranslation(anthropic, {
     learnLanguage,
     guessLanguage,

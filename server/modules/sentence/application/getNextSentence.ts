@@ -1,7 +1,7 @@
 import type { UserRow } from '../../../infrastructure/db/schema'
 import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
-import { resolveAnthropicClient } from '../../apiKey/application/resolveAnthropicClient'
+import { getOperatorAnthropicClient } from '../../../infrastructure/claude/anthropicClient'
 import { assertCanSpend, canSpend } from '../../user/application/access'
 import * as sentenceRepository from '../persistence/sentenceRepository'
 import { generateSentenceBatch } from './generateSentenceBatch'
@@ -32,7 +32,7 @@ function poolKey(input: GetNextSentenceInput): string {
 }
 
 async function refillPool(input: GetNextSentenceInput): Promise<void> {
-  const anthropic = resolveAnthropicClient(input.user)
+  const anthropic = getOperatorAnthropicClient()
   const batch = await generateSentenceBatch(anthropic, {
     learnLanguage: input.learnLanguage,
     guessLanguage: input.guessLanguage,

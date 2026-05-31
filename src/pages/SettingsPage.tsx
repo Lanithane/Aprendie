@@ -3,7 +3,6 @@ import {
   Box,
   Stack,
   Button,
-  Alert,
   Select,
   MenuItem,
   FormControl,
@@ -16,21 +15,14 @@ import LanguagePairPicker from '../components/LanguagePairPicker/LanguagePairPic
 import VoicePicker from '../components/VoicePicker/VoicePicker'
 import ThemePicker from '../components/ThemePicker/ThemePicker'
 import { useAuth } from '../auth/AuthContext'
-import { useApiKey } from '../hooks/useApiKey'
 import { useLevelPreference } from '../hooks/useLevelPreference'
 import { useThemeMode, type ThemeMode } from '../ThemeModeProvider'
 import { LEVELS, levelLabel } from '../../shared/levels'
 
 export default function SettingsPage() {
   const { user } = useAuth()
-  const { remove, removing, error } = useApiKey()
   const { pref, setPref } = useLevelPreference()
   const { mode, setMode } = useThemeMode()
-
-  const onRemoveKey = () => {
-    if (!confirm("Remove your API key? You'll need to re-enter it to keep practicing.")) return
-    void remove()
-  }
 
   return (
     <Box>
@@ -92,26 +84,6 @@ export default function SettingsPage() {
               ))}
             </Select>
           </FormControl>
-        </SectionCard>
-
-        <SectionCard
-          title='Anthropic API key'
-          description={
-            user?.hasApiKey
-              ? 'A key is currently stored (encrypted server-side). Remove it to enter a new one.'
-              : 'No key set.'
-          }
-        >
-          {error && (
-            <Alert severity='error' sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          {user?.hasApiKey && (
-            <Button variant='outlined' color='error' onClick={onRemoveKey} disabled={removing}>
-              {removing ? 'Removing…' : 'Remove API key'}
-            </Button>
-          )}
         </SectionCard>
 
         <SectionCard title='Account' description={user?.email}>

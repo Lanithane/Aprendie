@@ -4,14 +4,7 @@ import { requireAuth } from '../../../infrastructure/http/requireAuth'
 import { requireAdmin } from '../../../infrastructure/http/requireAdmin'
 import { asyncHandler } from '../../../infrastructure/http/asyncHandler'
 import { UserNotFoundError, LastAdminError } from '../domain/errors'
-import {
-  listUsers,
-  setUserRole,
-  setUserAccess,
-  adminRevokeUserKey,
-  adminRevalidateUserKey,
-  adminDeleteUser,
-} from '../application/adminUsers'
+import { listUsers, setUserRole, setUserAccess, adminDeleteUser } from '../application/adminUsers'
 import { adminGetUserHistory } from '../application/adminUserHistory'
 
 const router = Router()
@@ -70,31 +63,6 @@ router.patch(
     }
     try {
       res.json(await setUserAccess(req.params.id, parsed.data.access))
-    } catch (err) {
-      if (err instanceof UserNotFoundError) return res.status(404).json({ error: err.message })
-      throw err
-    }
-  })
-)
-
-router.delete(
-  '/:id/key',
-  asyncHandler(async (req, res) => {
-    try {
-      await adminRevokeUserKey(req.params.id)
-      res.status(204).end()
-    } catch (err) {
-      if (err instanceof UserNotFoundError) return res.status(404).json({ error: err.message })
-      throw err
-    }
-  })
-)
-
-router.post(
-  '/:id/key/revalidate',
-  asyncHandler(async (req, res) => {
-    try {
-      res.json(await adminRevalidateUserKey(req.params.id))
     } catch (err) {
       if (err instanceof UserNotFoundError) return res.status(404).json({ error: err.message })
       throw err

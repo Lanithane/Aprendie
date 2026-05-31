@@ -13,7 +13,6 @@ export interface CurrentUserDto {
   name: string
   role: UserRole
   access: AccessState
-  hasApiKey: boolean
   level: LevelCode | null
   themeId: string | null
   themeMode: ThemeMode | null
