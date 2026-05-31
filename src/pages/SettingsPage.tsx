@@ -25,11 +25,11 @@ export default function SettingsPage() {
   const { mode, setMode } = useThemeMode()
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', maxWidth: 540, mx: 'auto' }}>
       <Typography variant='h4' sx={{ mb: 3 }}>
         Settings
       </Typography>
-      <Stack spacing={3} sx={{ maxWidth: 540 }}>
+      <Stack spacing={3}>
         <SectionCard
           title='Appearance'
           description='Pick a color theme and your light/dark preference. Every theme adapts to both.'
