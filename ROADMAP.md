@@ -1,4 +1,4 @@
-# Guess and Correct — Feature Roadmap
+# Aprendie — Feature Roadmap
 
 Living roadmap for the post-MVP feature work. Build order was chosen deliberately: the
 **language generalization refactor first** (it touches the most files), then the small
@@ -19,7 +19,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 
 | Epic | Scope                                                                         | Status                              |
 | ---- | ----------------------------------------------------------------------------- | ----------------------------------- |
-| 0    | Tab title → "Guess and Correct"                                               | ✅ Done (merged)                    |
+| 0    | Tab title → "Aprendie"                                                        | ✅ Done (merged)                    |
 | 1    | Language generalization + CEFR levels + word-breakdown data + location→locale | ✅ Done (merged + deployed)         |
 | 2    | Word-root-on-click UI                                                         | ✅ Done                             |
 | A    | Accessibility pass (focus flow, skip link, labels)                            | ✅ Done                             |
@@ -89,7 +89,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 
 ## ✅ Epic 0 — Tab title
 
-- [x] [index.html](index.html) `<title>` → `Guess and Correct`.
+- [x] [index.html](index.html) `<title>` → `Aprendie`.
 
 ## ✅ Epic 1 — Language generalization + CEFR levels (the foundation)
 
@@ -377,7 +377,7 @@ folds in here. **MD3 is now the binding design standard** — see the
       [ThemeModeProvider.tsx](src/ThemeModeProvider.tsx).
 - [x] **Centered home** — [AppShell.tsx](src/components/AppShell/AppShell.tsx) centers content in a
       760px max-width column; [HomePage.tsx](src/pages/HomePage.tsx) floats the practice flow vertically
-      via auto block margins. Branding fixed to **Guess and Correct** (AppShell app bar + LoginPage).
+      via auto block margins. Branding fixed to **Aprendie** (AppShell app bar + LoginPage).
 - [x] **Restyle screens** to MD3 — Sidebar (inset pill nav rail/drawer), CorrectionDisplay
       (surface-container fills + tertiary accent), History (silvery-blue captions + whole summary row
       clickable via `CardActionArea`), LoginPage. Most other screens inherit the new theme directly

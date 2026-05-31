@@ -30,7 +30,7 @@ app.use(passport.initialize())
 app.use(passport.session())
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, service: 'guess-and-correct', ts: new Date().toISOString() })
+  res.json({ ok: true, service: 'aprendie', ts: new Date().toISOString() })
 })
 app.use('/api/auth', authController)
 app.use('/api/me', userController)

@@ -68,7 +68,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <MenuIcon />
             </IconButton>
             <Typography variant='h6' sx={{ ml: 1 }}>
-              Guess and Correct
+              Aprendie
             </Typography>
           </Toolbar>
         </AppBar>

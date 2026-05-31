@@ -1,4 +1,4 @@
-# Guess-and-Correct — Spanish Learning Tool
+# Aprendie — Spanish Learning Tool
 
 ## Context
 
@@ -43,7 +43,7 @@ Single Railway deployment, one repo, monorepo-lite layout. One Node process:
 ## Project layout
 
 ```
-guess-and-correct/
+aprendie/
 ├── package.json                  # single root package
 ├── tsconfig.json                 # base (paths, strict)
 ├── tsconfig.frontend.json        # extends base; browser libs, src/

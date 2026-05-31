@@ -1,4 +1,4 @@
-# Guess & Correct
+# Aprendie
 
 A Spanish-language learning SPA. You're shown a sentence in Spanish; you type an English translation; the Claude API scores it and walks you through any mistakes (including which Spanish source words you misunderstood). A "Next" button advances to a fresh sentence.
 
@@ -21,8 +21,8 @@ A Spanish-language learning SPA. You're shown a sentence in Spanish; you type an
 ## Setup
 
 ```sh
-git clone https://github.com/Lanithane/guess-and-correct.git
-cd guess-and-correct
+git clone https://github.com/Lanithane/Aprendie.git
+cd Aprendie
 nvm use            # picks up Node 22
 npm install
 

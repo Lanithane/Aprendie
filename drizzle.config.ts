@@ -7,7 +7,7 @@ const url =
   (useProdDb
     ? process.env.DATABASE_URL
     : (process.env.DATABASE_URL_LOCAL ?? process.env.DATABASE_URL)) ??
-  'postgresql://postgres:postgres@localhost:5432/guess_and_correct'
+  'postgresql://postgres:postgres@localhost:5432/aprendie'
 const isLocalDb = url.includes('localhost') || url.includes('127.0.0.1')
 
 export default defineConfig({
