@@ -291,6 +291,44 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
           },
         },
       },
+      // Tabs render as a pill segmented control rather than an underline: the default underline
+      // indicator + faint onSurfaceVariant label washed out against the tinted page. The selected
+      // tab gets the MD3 secondary-container active-indicator (same highlight as the nav drawer),
+      // so it reads clearly without the heavier full-secondary fill looking awkward.
+      MuiTabs: {
+        styleOverrides: {
+          // Space the pills apart so they aren't touching. MUI v7 renamed the flex container
+          // slot to `list`; target both so the gap applies regardless.
+          root: {
+            minHeight: 40,
+            '& .MuiTabs-list, & .MuiTabs-flexContainer': { gap: 8 },
+          },
+          indicator: { display: 'none' },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            minHeight: 40,
+            paddingInline: 12,
+            borderRadius: 999,
+            // Transparent border so the box size stays put; only the active pill shows it.
+            border: '2px solid transparent',
+            textTransform: 'none',
+            fontWeight: 700,
+            color: s.onSurfaceVariant,
+            opacity: 1,
+            '&.Mui-selected': {
+              backgroundColor: s.secondaryContainer,
+              color: s.onSecondaryContainer,
+              // Thick border only on the active pill, matching the app's framed controls.
+              borderColor: s.secondary,
+            },
+            '&:hover': { backgroundColor: s.surfaceContainerHighest },
+            '&.Mui-selected:hover': { backgroundColor: s.secondaryContainer },
+          },
+        },
+      },
     },
   })
 }

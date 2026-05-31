@@ -99,7 +99,7 @@ export default function HistoryPage() {
             }}
             variant='scrollable'
             scrollButtons='auto'
-            sx={{ mb: 2.5, borderBottom: 1, borderColor: 'divider' }}
+            sx={{ mt: 2, mb: 2.5 }}
           >
             {pairs.map((p) => (
               <Tab key={pairKey(p)} value={pairKey(p)} label={pairTabLabel(p)} />
@@ -271,7 +271,10 @@ function HistoryRow({ entry, open, onToggle, showDivider }: HistoryRowProps) {
           <Typography variant='caption' color='text.secondary'>
             Your answer
           </Typography>
-          <Typography lang={entry.guessLanguage} sx={{ mb: 1, fontWeight: 400, wordSpacing: '-0.05em' }}>
+          <Typography
+            lang={entry.guessLanguage}
+            sx={{ mb: 1, fontWeight: 400, wordSpacing: '-0.05em' }}
+          >
             {entry.userAnswer}
           </Typography>
           <Typography variant='caption' color='text.secondary'>
