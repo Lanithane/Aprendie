@@ -1,6 +1,19 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom'
-import { Box, Typography, Alert, Button, Stack, Select, MenuItem } from '@mui/material'
+import {
+  Box,
+  Typography,
+  Alert,
+  Button,
+  Stack,
+  Select,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+} from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { format } from 'date-fns'
@@ -21,6 +34,8 @@ export default function AdminUserDetailPage() {
   const user = users.find((u) => u.id === id)
 
   const [busy, setBusy] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
 
   const back = (
     <Button
@@ -64,11 +79,9 @@ export default function AdminUserDetailPage() {
 
   const isSelf = currentUser?.id === user.id
 
-  const handleDelete = () => {
-    const message = isSelf
-      ? `Delete your OWN account (${user.email})? You'll be signed out. Signing back in creates a fresh account, which is how you re-test the new-user flow.`
-      : `Permanently delete ${user.email} and all their cached sentences and history? This cannot be undone.`
-    if (!confirm(message)) return
+  const handleDeleteConfirm = () => {
+    setDeleteOpen(false)
+    setDeleteConfirm('')
     void run(async () => {
       if (!(await deleteUser(user.id))) return
       // A self-delete invalidates the session, so hard-navigate: /api/me then 401s
@@ -143,11 +156,75 @@ export default function AdminUserDetailPage() {
           title='Delete account'
           description='Permanently removes this user and all their cached sentences and history. Cannot be undone.'
         >
-          <Button color='error' startIcon={<DeleteIcon />} onClick={handleDelete} disabled={busy}>
+          <Button
+            color='error'
+            startIcon={<DeleteIcon />}
+            onClick={() => setDeleteOpen(true)}
+            disabled={busy}
+          >
             {isSelf ? 'Delete my account' : 'Delete user'}
           </Button>
         </SectionCard>
       </Stack>
+
+      <Dialog
+        open={deleteOpen}
+        onClose={() => {
+          setDeleteOpen(false)
+          setDeleteConfirm('')
+        }}
+        maxWidth='xs'
+        fullWidth
+      >
+        <DialogTitle>Delete account</DialogTitle>
+        <DialogContent>
+          <Typography variant='body2' sx={{ mb: 2 }}>
+            {isSelf ? (
+              <>
+                You are about to delete your own account. You will be signed out and all your data
+                will be permanently removed.
+              </>
+            ) : (
+              <>
+                This will permanently delete <strong>{user.name}</strong> ({user.email}) and all
+                their cached sentences and history. This cannot be undone.
+              </>
+            )}
+          </Typography>
+          <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+            Type <strong>{user.name}</strong> to confirm.
+          </Typography>
+          <TextField
+            autoFocus
+            size='small'
+            fullWidth
+            placeholder={user.name}
+            value={deleteConfirm}
+            onChange={(e) => setDeleteConfirm(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && deleteConfirm === user.name) handleDeleteConfirm()
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setDeleteOpen(false)
+              setDeleteConfirm('')
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            color='error'
+            variant='contained'
+            disabled={deleteConfirm !== user.name}
+            onClick={handleDeleteConfirm}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
