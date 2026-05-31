@@ -36,7 +36,11 @@ router.patch(
   '/level',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const { level } = levelBodySchema.parse(req.body)
+    const parsed = levelBodySchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const { level } = parsed.data
     const view = await setUserLevel((req.user as UserRow).id, level)
     res.json(view)
   })
@@ -56,8 +60,11 @@ router.patch(
   '/language-pair',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const pair = languagePairBodySchema.parse(req.body)
-    const view = await setUserLanguagePair((req.user as UserRow).id, pair)
+    const parsed = languagePairBodySchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const view = await setUserLanguagePair((req.user as UserRow).id, parsed.data)
     res.json(view)
   })
 )
@@ -76,8 +83,11 @@ router.patch(
   '/appearance',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const patch = appearanceBodySchema.parse(req.body)
-    const view = await setUserAppearance((req.user as UserRow).id, patch)
+    const parsed = appearanceBodySchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const view = await setUserAppearance((req.user as UserRow).id, parsed.data)
     res.json(view)
   })
 )

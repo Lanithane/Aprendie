@@ -39,19 +39,23 @@ export async function countUnconsumed(filter: PoolFilter): Promise<number> {
 }
 
 export async function takeNextUnconsumed(filter: PoolFilter): Promise<SentenceRow | null> {
-  const candidates = await db
-    .select()
-    .from(sentenceCache)
-    .where(and(...poolFilters(filter)))
-    .orderBy(sentenceCache.createdAt)
-    .limit(1)
-  if (candidates.length === 0) return null
-  const sentence = candidates[0]
-  await db
+  const updatedRows = await db
     .update(sentenceCache)
     .set({ consumedAt: new Date() })
-    .where(eq(sentenceCache.id, sentence.id))
-  return sentence
+    .where(
+      eq(
+        sentenceCache.id,
+        db
+          .select({ id: sentenceCache.id })
+          .from(sentenceCache)
+          .where(and(...poolFilters(filter)))
+          .orderBy(sentenceCache.createdAt)
+          .limit(1)
+          .for('update', { skipLocked: true })
+      )
+    )
+    .returning()
+  return updatedRows[0] ?? null
 }
 
 export async function insertBatch(rows: NewSentenceRow[]): Promise<void> {

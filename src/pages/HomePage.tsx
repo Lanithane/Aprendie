@@ -1,4 +1,4 @@
-import { Alert } from '@mui/material'
+import { Alert, Button, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import PracticeCard from '../components/PracticeCard/PracticeCard'
 import CorrectionDisplay from '../components/CorrectionDisplay/CorrectionDisplay'
@@ -55,7 +55,20 @@ export default function HomePage() {
   if (error)
     return (
       <Stage>
-        <Alert severity='error'>{error}</Alert>
+        <Stack spacing={2} sx={{ alignItems: 'center' }}>
+          <Alert severity='error' sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+          <Button
+            variant='outlined'
+            onClick={() => {
+              reset()
+              clear()
+            }}
+          >
+            Try again
+          </Button>
+        </Stack>
       </Stage>
     )
 

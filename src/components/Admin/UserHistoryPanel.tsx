@@ -11,10 +11,19 @@ interface UserHistoryPanelProps {
 
 // Read-only attempt history for a single user, shown inline in the admin table.
 export default function UserHistoryPanel({ userId }: UserHistoryPanelProps) {
-  const { items, loading, loadingMore, error, hasMore, loadMore } = useUserHistory(userId)
+  const { items, loading, loadingMore, error, hasMore, loadMore, reload } = useUserHistory(userId)
 
   if (loading) return <LoadingSpinner />
-  if (error) return <Typography color='error'>{error}</Typography>
+  if (error) {
+    return (
+      <Stack spacing={1} sx={{ alignItems: 'flex-start' }}>
+        <Typography color='error'>{error}</Typography>
+        <Button size='small' variant='outlined' onClick={() => void reload()}>
+          Try again
+        </Button>
+      </Stack>
+    )
+  }
   if (items.length === 0)
     return <Typography color='text.secondary'>No attempts recorded.</Typography>
 

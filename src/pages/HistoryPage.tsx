@@ -24,7 +24,10 @@ import type { AttemptDto } from '../api/historyApi'
 export default function HistoryPage() {
   const { user } = useAuth()
   const { pair } = useLanguagePair()
-  const { items, loading, loadingMore, error, hasMore, loadMore } = useHistory(user?.id, pair)
+  const { items, loading, loadingMore, error, hasMore, loadMore, reload } = useHistory(
+    user?.id,
+    pair
+  )
   const [expanded, setExpanded] = useState<string | null>(null)
 
   if (!user) return null
@@ -40,9 +43,14 @@ export default function HistoryPage() {
         {items.length === 1 ? '' : 's'} loaded.
       </Typography>
       {error && (
-        <Alert severity='error' sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+        <Stack spacing={2} sx={{ mb: 2, alignItems: 'flex-start' }}>
+          <Alert severity='error' sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+          <Button variant='outlined' size='small' onClick={() => void reload()}>
+            Try again
+          </Button>
+        </Stack>
       )}
       {loading ? (
         <LoadingSpinner />

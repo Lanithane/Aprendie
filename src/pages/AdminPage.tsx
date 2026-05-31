@@ -3,6 +3,7 @@ import {
   Box,
   Typography,
   Alert,
+  Button,
   Stack,
   Card,
   CardActionArea,
@@ -16,7 +17,7 @@ import { useAdminContext } from '../components/Admin/AdminLayout'
 
 // Admin landing: a tappable list of accounts. Each opens a detail route to edit the user.
 export default function AdminPage() {
-  const { users, loading, error } = useAdminContext()
+  const { users, loading, error, reload } = useAdminContext()
 
   return (
     <Box>
@@ -27,9 +28,14 @@ export default function AdminPage() {
         Manage accounts and API-key support. {users.length} user{users.length === 1 ? '' : 's'}.
       </Typography>
       {error && (
-        <Alert severity='error' sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+        <Stack spacing={2} sx={{ mb: 2, alignItems: 'flex-start' }}>
+          <Alert severity='error' sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+          <Button variant='outlined' size='small' onClick={() => void reload()}>
+            Try again
+          </Button>
+        </Stack>
       )}
       {loading ? (
         <LoadingSpinner />

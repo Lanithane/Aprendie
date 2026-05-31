@@ -10,6 +10,7 @@ interface UseUserHistoryResult {
   error: string | null
   hasMore: boolean
   loadMore: () => Promise<void>
+  reload: () => Promise<void>
 }
 
 // Admin view of one user's attempt history (all language pairs). Same cursor
@@ -64,5 +65,5 @@ export function useUserHistory(userId: string | null): UseUserHistoryResult {
     void reload()
   }, [userId, reload])
 
-  return { items, loading, loadingMore, error, hasMore: cursor !== null, loadMore }
+  return { items, loading, loadingMore, error, hasMore: cursor !== null, loadMore, reload }
 }
