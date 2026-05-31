@@ -31,6 +31,11 @@ const envSchema = z.object({
   // (e.g. `.aprendie.com`) to share the login across the apex and `www` (and any
   // subdomain). Unset = host-only cookie (correct for localhost / single-host).
   COOKIE_DOMAIN: z.string().optional(),
+  // The public host to land on. When set (e.g. `aprendie.com`), requests that
+  // arrive on the bare Railway origin (`*.up.railway.app`) are 301'd here so the
+  // app is only ever reached under its real domain. www and the apex are both
+  // legit and pass through untouched; only the railway origin is rewritten.
+  CANONICAL_HOST: z.string().optional(),
 })
 
 const parsed = envSchema.safeParse(process.env)
