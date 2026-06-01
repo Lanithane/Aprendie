@@ -196,7 +196,7 @@ export default function LimitsPanel({ users }: LimitsPanelProps) {
                       onChange={(e) => void update({ spendPaused: e.target.checked })}
                     />
                   }
-                  label='Pause all practice (maintenance)'
+                  label='Pause all practice'
                 />
                 <Typography variant='caption' color='text.secondary' sx={{ display: 'block' }}>
                   Stops every account from spending the key. Use for cost spikes or incidents.
