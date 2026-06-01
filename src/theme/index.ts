@@ -1,23 +1,12 @@
 import '@fontsource-variable/nunito'
 import { createTheme, type Theme, type TypographyVariantsOptions } from '@mui/material/styles'
 import { THEMES, type Md3Scheme, type ThemeId } from './tokens'
+import { colorDistance, mostContrasting } from './contrast'
 export { THEMES, THEME_META, THEME_IDS, DEFAULT_THEME_ID, type ThemeId } from './tokens'
 
 // Material 3 type scale (px @ 16px root). Sizes in rem, line-height unitless, tracking in em.
 const rem = (px: number) => `${px / 16}rem`
 const em = (px: number, sizePx: number) => `${px / sizePx}em`
-
-// Straight-line RGB distance between two #rrggbb colors — used to pick a focus-ring accent
-// that actually reads against a button's fill (some themes have analogous accents).
-function hexDistance(a: string, b: string): number {
-  const rgb = (h: string) => {
-    const n = parseInt(h.slice(1), 16)
-    return [(n >> 16) & 255, (n >> 8) & 255, n & 255] as const
-  }
-  const [r1, g1, b1] = rgb(a)
-  const [r2, g2, b2] = rgb(b)
-  return Math.hypot(r1 - r2, g1 - g2, b1 - b2)
-}
 
 function md3Typography(): TypographyVariantsOptions {
   return {
@@ -204,18 +193,39 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
             // Hold the contained fill steady on hover so the state layer (not a darkened fill)
             // carries the feedback — MD3 expresses states as a translucent on-color overlay.
             const restingFill = ownerState.variant === 'contained' ? paletteColor?.main : undefined
-            // Focus ring: an accent ring that pops against the button's own fill. Tertiary is
-            // the usual choice, but some themes (e.g. vinedo) have a tertiary analogous to their
-            // primary, so a fixed tertiary ring vanishes on a primary button. Pick whichever of
-            // tertiary/secondary/primary sits furthest from the fill instead.
+            // Focus ring. The primary button reuses the BrandWordmark's inner fill — tertiary — so
+            // the title and the main CTA share the same accent. But on themes where tertiary is too
+            // close to the primary fill (e.g. viñedo: green tertiary on a green button), the ring
+            // blends in, so we only keep it when tertiary is perceptually distinct enough from the
+            // fill; otherwise — and for every non-primary colour — we fall back to the theme colour
+            // that stands out MOST against both the button's fill AND the surface behind it. Scoring
+            // against the surfaces too is what stops the fallback ring (which sits offset on the page)
+            // from picking `surface` and vanishing into the background — notably in dark mode.
             const fill = paletteColor?.main ?? theme.palette.primary.main
-            const focusRing = [
-              theme.palette.tertiary.main,
-              theme.palette.secondary.main,
+            const ringPool = [
               theme.palette.primary.main,
-            ].reduce((best, cand) =>
-              hexDistance(cand, fill) > hexDistance(best, fill) ? cand : best
-            )
+              theme.palette.secondary.main,
+              theme.palette.tertiary.main,
+              theme.palette.onSurface,
+              theme.palette.surface,
+              theme.palette.inverseSurface,
+            ]
+            // Below this RGB distance tertiary reads as the same colour as the fill and the ring
+            // disappears; tuned so same-hue/low-chroma pairs (viñedo, tinta, cerezo) fall back while
+            // distinct-hue pairs (lavanda, costa, …) keep the matched tertiary ring.
+            const RING_BLEND_DISTANCE = 85
+            const tertiaryReads =
+              colorDistance(theme.palette.tertiary.main, fill) >= RING_BLEND_DISTANCE
+            const isPrimary = c === 'primary' || c == null
+            const ringBases = [
+              fill,
+              theme.palette.background.default,
+              theme.palette.background.paper,
+            ]
+            const focusRing =
+              isPrimary && tertiaryReads
+                ? theme.palette.tertiary.main
+                : mostContrasting(ringBases, ringPool)
             const focusOutline = { outline: `2.5px solid ${focusRing}`, outlineOffset: 2 }
             return {
               borderRadius: 999,
