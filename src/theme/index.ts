@@ -245,7 +245,8 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
                 pointerEvents: 'none',
               },
               '&:hover::after': { opacity: 0.12 },
-              '&.Mui-focusVisible::after': { opacity: 0.12 },
+              // Focus shows only the ring (below) — no shade change, so a focused-but-not-hovered
+              // button keeps its resting fill.
               '&:active::after': { opacity: 0.16 },
               // Shaded outline: a semi-thick ring offset off the edge so a sliver of the page shows
               // through and the ring reads on every theme/mode. Shown on hover plus any focus (mouse

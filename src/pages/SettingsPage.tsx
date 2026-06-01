@@ -70,16 +70,6 @@ export default function SettingsPage() {
         </SectionCard>
 
         <SectionCard
-          title='Pronunciation'
-          description='Choose the voice used to read sentences aloud, and whether new sentences play on their own. Available voices depend on your device.'
-        >
-          <Stack spacing={2}>
-            <VoicePicker />
-            <AutoSpeakControls />
-          </Stack>
-        </SectionCard>
-
-        <SectionCard
           title='Difficulty level'
           description='Controls the complexity of sentences. You can also change this on the practice card.'
         >
@@ -99,6 +89,16 @@ export default function SettingsPage() {
               ))}
             </Select>
           </FormControl>
+        </SectionCard>
+
+        <SectionCard
+          title='Pronunciation'
+          description='Choose the voice used to read sentences aloud, and whether new sentences play on their own. Available voices depend on your device.'
+        >
+          <Stack spacing={2}>
+            <VoicePicker />
+            <AutoSpeakControls />
+          </Stack>
         </SectionCard>
 
         {isMobile && <ContributeCard userId={user?.id} />}

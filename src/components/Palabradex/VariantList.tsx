@@ -8,7 +8,8 @@ const VariantRow = styled(Box)`
   align-items: center;
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing(1)};
-  padding: ${({ theme }) => theme.spacing(0.75, 0)};
+  min-height: 44px;
+  padding: ${({ theme }) => theme.spacing(0.5, 0)};
 `
 
 interface VariantListProps {
@@ -29,7 +30,10 @@ export default function VariantList({ variants, learnLanguage }: VariantListProp
     <Stack divider={<Box sx={{ borderTop: 1, borderColor: 'divider' }} />}>
       {variants.map((v) => (
         <VariantRow key={v.surface}>
-          <Typography lang={learnLanguage} sx={{ minWidth: 0, wordBreak: 'break-word' }}>
+          <Typography
+            lang={learnLanguage}
+            sx={{ minWidth: 0, wordBreak: 'break-word', lineHeight: 1.2 }}
+          >
             {v.surface}
           </Typography>
           <Chip

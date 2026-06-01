@@ -78,7 +78,7 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 0.5 }}>
             <Typography color='text.secondary' variant='body2'>
-              Ideas, bugs, or just a hello — it all helps shape Aprendie.
+              Ideas, bugs, or just a hello! It all helps shape Aprendie.
             </Typography>
             <ToggleButtonGroup
               value={category}
