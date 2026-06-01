@@ -292,11 +292,16 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
           paper: { borderRadius: 12, backgroundColor: s.surfaceContainer, backgroundImage: 'none' },
         },
       },
+      // Tooltips read as a tinted theme surface (matching menus/popovers) rather than the MD3
+      // inverse-surface box: in light mode the inverse tone is a near-neutral dark that reads as a
+      // generic black box against the cream canvas, not "a shade of the theme". Using the highest
+      // surface-container tone + an outline keeps them clearly themed and legible in both modes.
       MuiTooltip: {
         styleOverrides: {
           tooltip: {
-            backgroundColor: s.inverseSurface,
-            color: s.inverseOnSurface,
+            backgroundColor: s.surfaceContainerHighest,
+            color: s.onSurface,
+            border: `1px solid ${s.outlineVariant}`,
             fontSize: rem(12),
           },
         },
