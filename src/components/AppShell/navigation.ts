@@ -1,22 +1,22 @@
 import HomeIcon from '@mui/icons-material/Home'
-import TranslateIcon from '@mui/icons-material/Translate'
 import HistoryIcon from '@mui/icons-material/History'
 import MenuBookIcon from '@mui/icons-material/MenuBook'
 import SettingsIcon from '@mui/icons-material/Settings'
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
+import ShieldIcon from '@mui/icons-material/Shield'
+import BangIcon from './BangIcon'
 
 const SETTINGS_NAV_ITEM = { to: '/settings', label: 'Settings', Icon: SettingsIcon } as const
 
 export const ADMIN_NAV_ITEM = {
   to: '/admin',
   label: 'Admin',
-  Icon: AdminPanelSettingsIcon,
+  Icon: ShieldIcon,
 } as const
 
 // Settings always sits last; Admin (when present) is inserted just before it.
 export const NAV_ITEMS = [
   { to: '/', label: 'Practice', Icon: HomeIcon },
-  { to: '/translator', label: 'Translate', Icon: TranslateIcon },
+  { to: '/translator', label: 'Translate', Icon: BangIcon },
   { to: '/history', label: 'History', Icon: HistoryIcon },
   { to: '/palabradex', label: 'Words', Icon: MenuBookIcon },
   SETTINGS_NAV_ITEM,
