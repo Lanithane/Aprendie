@@ -132,6 +132,14 @@ export function isSupportedLanguage(code: string): code is LanguageCode {
   return Object.prototype.hasOwnProperty.call(LANGUAGES, code)
 }
 
+// Map a BCP-47 tag ('en', 'en-GB', 'pt-BR') to its supported base language, or null if we
+// don't support it. Used to seed defaults from the user's system/browser language.
+export function resolveLanguageTag(tag: string | null | undefined): LanguageCode | null {
+  if (!tag) return null
+  const base = tag.toLowerCase().split('-')[0]
+  return isSupportedLanguage(base) ? base : null
+}
+
 export function languageName(code: LanguageCode): string {
   return LANGUAGES[code]?.name ?? code
 }

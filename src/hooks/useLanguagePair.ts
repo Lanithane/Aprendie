@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   DEFAULT_PAIR,
   defaultLocaleFor,
   isValidLanguagePair,
+  resolveLanguageTag,
   type LanguageCode,
   type LanguagePair,
   type LocaleCode,
@@ -44,6 +45,17 @@ export function writeLanguagePairCache(pair: LanguagePair) {
   }
 }
 
+// Brand-new users (no account pair, no cache) get the known/guess language seeded from their
+// browser's language list, falling back to DEFAULT_PAIR. We keep the default learn side ('es')
+// unless the detected language collides with it, in which case the default guess ('en') stands.
+function systemDefaultPair(): LanguagePair {
+  if (typeof navigator === 'undefined') return DEFAULT_PAIR
+  const tags = navigator.languages?.length ? navigator.languages : [navigator.language]
+  const detected = tags.map(resolveLanguageTag).find((c): c is LanguageCode => c !== null)
+  if (!detected || detected === DEFAULT_PAIR.learnLanguage) return DEFAULT_PAIR
+  return { ...DEFAULT_PAIR, guessLanguage: detected }
+}
+
 export function useLanguagePair() {
   const { user, refresh } = useAuth()
   // Optimistic override held only while a server write is in flight (mirrors
@@ -59,7 +71,9 @@ export function useLanguagePair() {
     }
   }
 
-  const pair = override ?? serverPair ?? readCache() ?? DEFAULT_PAIR
+  // Memoized so the fallback object is stable across renders (DEFAULT_PAIR used to be a const).
+  const systemDefault = useMemo(() => systemDefaultPair(), [])
+  const pair = override ?? serverPair ?? readCache() ?? systemDefault
 
   const commit = useCallback(
     (next: LanguagePair) => {
