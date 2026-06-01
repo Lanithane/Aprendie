@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import {
   Drawer,
@@ -12,8 +13,8 @@ import {
   Box,
 } from '@mui/material'
 import LogoutIcon from '@mui/icons-material/Logout'
-import MenuIcon from '@mui/icons-material/Menu'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness'
@@ -21,6 +22,7 @@ import { styled } from '@mui/material/styles'
 import { useAuth } from '../../auth/AuthContext'
 import { clearSessionMarker } from '../../auth/sessionMarker'
 import { useThemeMode, type ThemeMode } from '../../ThemeModeProvider'
+import { useViewportCenterY } from '../../hooks/useViewportCenterY'
 import BrandWordmark from '../Brand/BrandWordmark'
 import { buildNavItems, isActiveRoute } from '../AppShell/navigation'
 
@@ -45,17 +47,36 @@ const StyledDrawer = styled(Drawer, {
 const HeaderRow = styled(Box)`
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   min-height: 56px;
   padding: ${({ theme }) => theme.spacing(1)};
-  position: relative;
 `
 
-const BrandSlot = styled(Box)`
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
+// The collapse/expand control straddles the sidebar's right edge at the divider above the bottom
+// rail, sitting on the intersection of that seam and the theme-mode/sign-out separator. It is
+// positioned `fixed` at the sidebar's width line (rather than inside the drawer paper) so its
+// overhanging half isn't clipped by the paper's scroll overflow; the left offset transitions in
+// step with the rail's width, and the top is the measured centre of that divider.
+const EdgeToggle = styled(IconButton, {
+  shouldForwardProp: (prop) => prop !== '$left' && prop !== '$top',
+})<{ $left: number; $top: number | null }>`
+  position: fixed;
+  top: ${({ $top }) => ($top != null ? `${$top}px` : '50%')};
+  left: ${({ $left }) => $left}px;
+  transform: translate(-50%, -50%);
+  z-index: ${({ theme }) => theme.zIndex.drawer + 1};
+  width: 28px;
+  height: 28px;
+  transition: ${({ theme }) => theme.transitions.create('left')};
+  background-color: ${({ theme }) => theme.palette.surfaceContainerHighest};
+  border: 1px solid ${({ theme }) => theme.palette.outlineVariant};
+  color: ${({ theme }) => theme.palette.onSurfaceVariant};
+  &:hover {
+    background-color: ${({ theme }) => theme.palette.surfaceContainerHighest};
+  }
+  & .MuiSvgIcon-root {
+    font-size: 1.1rem;
+  }
 `
 
 const BottomRail = styled(Box)`
@@ -90,6 +111,11 @@ export default function Sidebar({
   const { mode, cycleMode } = useThemeMode()
   const loc = useLocation()
 
+  // Pin the edge toggle onto the divider above the bottom rail; remeasure when the sign-out item
+  // appears/disappears (it shifts the divider) or the viewport resizes.
+  const bottomDividerRef = useRef<HTMLHRElement>(null)
+  const toggleTop = useViewportCenterY(bottomDividerRef, [!!user])
+
   const navItems = buildNavItems(isAdmin)
 
   const width = collapsed ? widthCollapsed : widthExpanded
@@ -99,19 +125,15 @@ export default function Sidebar({
 
   return (
     <StyledDrawer variant='permanent' open $width={width} $reserveSpace>
-      <HeaderRow>
-        {showLabels && (
-          <BrandSlot>
-            <BrandWordmark size='sidebar' />
-          </BrandSlot>
-        )}
-        <IconButton
-          onClick={onToggleCollapsed}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <MenuIcon /> : <ChevronLeftIcon />}
-        </IconButton>
-      </HeaderRow>
+      <EdgeToggle
+        $left={width}
+        $top={toggleTop}
+        onClick={onToggleCollapsed}
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+      </EdgeToggle>
+      <HeaderRow>{showLabels && <BrandWordmark size='sidebar' />}</HeaderRow>
       <Divider />
       <List>
         {navItems.map(({ to, label, Icon }) => (
@@ -134,7 +156,7 @@ export default function Sidebar({
       </List>
 
       <BottomRail>
-        <Divider />
+        <Divider ref={bottomDividerRef} />
         <List>
           <ListItem disablePadding>
             <Tooltip title={modeLabel} placement='right'>

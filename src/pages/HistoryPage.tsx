@@ -185,7 +185,7 @@ interface HistoryFiltersProps {
 
 function HistoryFilters({ selectedLevel, sort, onLevelChange, onSortChange }: HistoryFiltersProps) {
   return (
-    <Stack spacing={1.5} sx={{ mb: 2.5 }}>
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, mb: 2.5 }}>
       <Box>
         <Typography variant='caption' color='text.secondary' sx={{ mb: 0.75, display: 'block' }}>
           Level
@@ -224,7 +224,7 @@ function HistoryFilters({ selectedLevel, sort, onLevelChange, onSortChange }: Hi
           <ToggleButton value='worst'>Most mistakes first</ToggleButton>
         </ToggleButtonGroup>
       </Box>
-    </Stack>
+    </Box>
   )
 }
 

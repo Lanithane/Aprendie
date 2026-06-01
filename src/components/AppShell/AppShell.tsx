@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { styled, useTheme } from '@mui/material/styles'
 import { Box, useMediaQuery, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material'
 import { useAuth } from '../../auth/AuthContext'
+import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed'
 import Sidebar from '../Sidebar/Sidebar'
 import { buildNavItems, isActiveRoute } from './navigation'
 
@@ -70,8 +71,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const { isAdmin } = useAuth()
   const loc = useLocation()
-  // Desktop sidebar defaults to the collapsed rail; users expand it on demand.
-  const [collapsed, setCollapsed] = useState(true)
+  // Desktop sidebar defaults to the collapsed rail; users expand it on demand. The choice is
+  // persisted to localStorage so it survives reloads.
+  const { collapsed, toggleCollapsed } = useSidebarCollapsed()
   const navItems = buildNavItems(isAdmin)
   const activePath = navItems.find(({ to }) => isActiveRoute(loc.pathname, to))?.to ?? false
 
@@ -81,7 +83,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       {!isMobile && (
         <Sidebar
           collapsed={collapsed}
-          onToggleCollapsed={() => setCollapsed((c) => !c)}
+          onToggleCollapsed={toggleCollapsed}
           widthExpanded={SIDEBAR_WIDTH}
           widthCollapsed={SIDEBAR_COLLAPSED_WIDTH}
         />
