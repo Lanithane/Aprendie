@@ -21,6 +21,7 @@ import ContributeCard from '../components/Contribute/ContributeCard'
 import { useAdminContext } from '../components/Admin/AdminLayout'
 import { useAuth } from '../auth/AuthContext'
 import { useNow } from '../hooks/useNow'
+import { formatUsd } from '../components/Contribute/contribute'
 
 function capUsageColor(used: number, cap: number): NonNullable<ChipProps['color']> {
   if (cap <= 0 || used >= cap) return 'error'
@@ -115,6 +116,11 @@ export default function AdminPage() {
                                 ? 'error'
                                 : 'warning'
                           }
+                        />
+                        <Chip
+                          size='small'
+                          variant='outlined'
+                          label={formatUsd(user.totalCostUsd)}
                         />
                       </Stack>
                     </Box>

@@ -15,6 +15,8 @@ export interface AdminUser {
   effectiveCap: number
   dailyCapOverride: number | null
   capExemptUntil: string | null
+  // Cumulative operator-key spend on this account's behalf (Epic 6 showback), in USD.
+  totalCostUsd: number
 }
 
 export function fetchUsers(): Promise<AdminUser[]> {
