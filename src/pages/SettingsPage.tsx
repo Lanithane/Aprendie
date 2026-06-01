@@ -10,8 +10,11 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined'
 import SectionCard from '../components/shared/SectionCard'
+import ContributeCard from '../components/Contribute/ContributeCard'
 import { useFeedback } from '../components/Feedback/FeedbackProvider'
 import LanguagePairPicker from '../components/LanguagePairPicker/LanguagePairPicker'
 import VoicePicker from '../components/VoicePicker/VoicePicker'
@@ -28,6 +31,10 @@ export default function SettingsPage() {
   const { pref, setPref } = useLevelPreference()
   const { mode, setMode } = useThemeMode()
   const { openFeedback } = useFeedback()
+  const theme = useTheme()
+  // The contribute section lives in the sidebar on desktop; on mobile (no sidebar) it surfaces
+  // here instead.
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   return (
     <Box>
@@ -93,6 +100,8 @@ export default function SettingsPage() {
             </Select>
           </FormControl>
         </SectionCard>
+
+        {isMobile && <ContributeCard userId={user?.id} />}
 
         <SectionCard
           title='Feedback'

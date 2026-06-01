@@ -266,38 +266,45 @@ full snapshot per attempt) so history survives `sentence_cache` pruning — and 
 - [ ] _Optional (deferred):_ admin view of a user's history via `/api/admin/users/:id/history`
       reusing `listForUser`.
 
-## ⬜ Epic 6 — Usage-cost showback + contribute CTAs
+## 🟦 Epic 6 — Usage-cost showback + contribute CTAs
 
 Captures Claude token usage per user (a showback table keyed by `userId`), surfaces each account's
-cost, and adds two sidebar "contribute" options sized by that cost. Showback is **informational** —
-users run on their own key (per BLUEPRINT), so this is visibility, not billing.
+cost, and adds a sidebar "contribute" section sized by that cost. Showback is **informational** —
+visibility into what the **operator key** spent on the account's behalf, not billing.
 
-**Decided:** showback math now; the two sidebar buttons are **config-link CTAs** (URLs set later).
+**Decided:** showback math now; the contribute links are **config-link CTAs** (URLs set later).
+**Deviations from the original scope** (codebase had moved on): housed in a **new
+`modules/showback/`** (the `modules/usage/` name was already taken by the daily-cap feature);
+migration landed as **`0019`** (not `0004`); spend is on the **operator key**, so showback reflects
+operator spend per user, not per-user keys.
 
-- [ ] **Capture usage** — both call sites currently discard `resp.usage`:
-      [scoreTranslation.ts](server/modules/correction/application/scoreTranslation.ts) and
-      [generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts). Return
-      `usage` from both up to their application callers.
-- [ ] **DB migration `0004`** — new `usage_events` (the showback table): id, `userId` FK→users
-      (cascade), `operation` (`'correction' | 'sentence_batch'`), model, inputTokens, outputTokens,
-      cacheCreationInputTokens, cacheReadInputTokens, `costUsd numeric(12,6)` (snapshot — prices drift),
-      createdAt. Index `(userId, createdAt)`. Apply to **local + Railway prod**.
-- [ ] **server/infrastructure/claude/pricing.ts** (new) — per-model USD rates + `costUsd(model, usage)`.
-- [ ] **New `modules/usage/`** (full DDD) — persistence `usageRepository.ts` (insert + sum
-      aggregations); application `recordUsage` (computes `costUsd`, inserts), `getUserShowback(userId)`
-      (total + by-operation + token totals + carbon/water estimate), `getShowbackForAllUsers()` (admin);
-      controllers `/api/usage` (`GET /me`). Admin per-user totals fold into Epic 4's `AdminUserView`
-      (`totalCostUsd`).
-- [ ] **Wire** — `correctTranslation` → `recordUsage(op:'correction')`; the sentence-batch trigger
-      → `recordUsage(op:'sentence_batch')` (cross-module application→usage application).
-- [ ] **server/infrastructure/claude/sustainability.ts** (new) — configurable Wh/token → CO₂ g +
-      water mL factors; **clearly labeled an estimate.**
-- [ ] **Frontend** — new `src/api/usageApi.ts` + `src/hooks/useShowback.ts`; a new
-      `src/components/Sidebar/ContributeSection.tsx` in the
-      [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx) BottomRail with two items — **Offset
-      carbon/water** and **Support the developer** — each showing the estimate and linking to a config
-      URL (`VITE_OFFSET_URL` / `VITE_SUPPORT_URL`; hide if unset).
-- [ ] _Open:_ the two CTA URLs + the carbon/water factor methodology.
+- [x] **Capture usage** — `scoreTranslation` now returns `{ result, usage }` and
+      `generateSentenceBatch` returns `{ sentences, usage }`; `toTokenUsage` (pricing.ts) flattens the
+      SDK's nullable cache fields. Callers thread `usage` to `recordUsage`.
+- [x] **DB migration `0019`** ([drizzle/0019_unknown_mordo.sql](drizzle/0019_unknown_mordo.sql)) —
+      `usage_events`: id, `userId` FK→users (cascade), `operation` (`'correction' | 'sentence_batch'`),
+      model, the four token columns, `cost_usd numeric(12,6)` (snapshot), createdAt, index
+      `(userId, createdAt)`. Applied **local**; **prod migrates on deploy.**
+- [x] **server/infrastructure/claude/pricing.ts** (new) — per-model USD rate cards (Sonnet 4.6 /
+      Haiku 4.5, snapshot @ 2026-05) + `costUsd(model, usage)`, priced per token class.
+- [x] **New `modules/showback/`** (full DDD) — persistence `usageEventRepository.ts` (insert +
+      per-operation + all-user cost aggregations); application `recordUsage` (computes `costUsd`,
+      inserts), `getUserShowback(userId)` (total + by-operation + token totals + carbon/water estimate),
+      `getShowbackForAllUsers()`; controller `/api/showback` (`GET /me`).
+- [x] **Wire** — `correctTranslation` → `recordUsage(op:'correction')`; `refillPool` (sentence batch)
+      → `recordUsage(op:'sentence_batch')` (cross-module application→showback application,
+      fire-and-forget so a showback failure never fails the grade/refill).
+- [x] **server/infrastructure/claude/sustainability.ts** (new) — documented Wh/token → CO₂ g + water
+      mL constants (env-overridable), **clearly labeled an estimate.**
+- [x] **Frontend** — `src/api/showbackApi.ts` + `src/hooks/useShowback.ts`;
+      `src/components/Contribute/ContributeSection.tsx` in the
+      [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx) BottomRail (usage-so-far with a "Aprendie is
+      free" reassurance tooltip, **Offset water footprint**, **Support the developer** GitHub Sponsors),
+      links config-gated on `VITE_OFFSET_URL` / `VITE_SUPPORT_URL`. On mobile (no sidebar) it surfaces
+      as a `ContributeCard` in Settings.
+- [ ] **Admin fold-in** — `getShowbackForAllUsers()` is built and ready, but `totalCostUsd` is not yet
+      surfaced in Epic 4's `AdminUserView` (the only remaining task).
+- [ ] _Open:_ the two CTA URLs + (optionally) tuning the carbon/water factor methodology.
 
 ## ✅ Epic 7 — API-key security hardening ("super doubly secure")
 

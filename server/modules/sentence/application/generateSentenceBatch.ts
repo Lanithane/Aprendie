@@ -1,6 +1,7 @@
 import type { Anthropic } from '../../../infrastructure/claude/anthropicClient'
 import { SENTENCE_MODEL } from '../../../infrastructure/claude/anthropicClient'
 import { extractJsonText } from '../../../infrastructure/claude/responseParser'
+import { toTokenUsage, type TokenUsage } from '../../../infrastructure/claude/pricing'
 import {
   languageName,
   type LanguageCode,
@@ -110,6 +111,12 @@ interface GenerateParams {
   level?: LevelCode
 }
 
+// The generated sentences plus the token usage of the call, so the caller can record showback.
+export interface GeneratedBatch {
+  sentences: GeneratedSentence[]
+  usage: TokenUsage
+}
+
 interface RawSentence {
   promptText?: string
   answerText?: string
@@ -150,7 +157,7 @@ export async function generateSentenceBatch(
   anthropic: Anthropic,
   params: GenerateParams,
   count: number = BATCH_SIZE
-): Promise<GeneratedSentence[]> {
+): Promise<GeneratedBatch> {
   const { learnLanguage, guessLanguage, locale, level } = params
   const levelLine = level
     ? `All ${count} sentences at difficulty level "${level}" (${levelByCode(level)?.name ?? level}).`
@@ -188,5 +195,5 @@ Generate ${count} sentences now.`
   if (sentences.length === 0) {
     throw new Error('[sentence/generate] no usable sentences in response')
   }
-  return sentences
+  return { sentences, usage: toTokenUsage(resp.usage) }
 }

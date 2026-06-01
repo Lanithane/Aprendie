@@ -6,6 +6,7 @@ import {
   varchar,
   json,
   integer,
+  numeric,
   boolean,
   index,
   uniqueIndex,
@@ -198,6 +199,30 @@ export const usageDaily = pgTable(
   (table) => [primaryKey({ columns: [table.userId, table.day] })]
 )
 
+// Epic 6 — usage-cost showback. One row per billed Claude call (a correction grade or a
+// sentence batch), keyed to the user it was spent for. Token counts and a dollar-cost SNAPSHOT
+// (`cost_usd`, computed from the rate card at write time since list prices drift) let us total
+// each account's spend and derive a labeled carbon/water estimate. Informational, not billing —
+// all calls run on the operator key. Cascades with the user.
+export const usageEvents = pgTable(
+  'usage_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    operation: text('operation').$type<'correction' | 'sentence_batch' | 'translation'>().notNull(),
+    model: text('model').notNull(),
+    inputTokens: integer('input_tokens').notNull().default(0),
+    outputTokens: integer('output_tokens').notNull().default(0),
+    cacheCreationInputTokens: integer('cache_creation_input_tokens').notNull().default(0),
+    cacheReadInputTokens: integer('cache_read_input_tokens').notNull().default(0),
+    costUsd: numeric('cost_usd', { precision: 12, scale: 6 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('idx_usage_events_user_created').on(table.userId, table.createdAt)]
+)
+
 // Singleton operator/site settings (one row, fixed id = 1). Holds the global daily graded-sentence
 // cap plus two site-wide kill switches: `signupsPaused` (reject brand-new account creation) and
 // `spendPaused` (block all operator-key spend / maintenance). Read on every spend path, so it's a
@@ -273,6 +298,8 @@ export type NewLexemeStatsRow = typeof lexemeStats.$inferInsert
 export type LexemeVariantStatsRow = typeof lexemeVariantStats.$inferSelect
 export type NewLexemeVariantStatsRow = typeof lexemeVariantStats.$inferInsert
 export type UsageDailyRow = typeof usageDaily.$inferSelect
+export type UsageEventRow = typeof usageEvents.$inferSelect
+export type NewUsageEventRow = typeof usageEvents.$inferInsert
 export type AppSettingsRow = typeof appSettings.$inferSelect
 export type NewAppSettingsRow = typeof appSettings.$inferInsert
 export type FeedbackRow = typeof feedback.$inferSelect

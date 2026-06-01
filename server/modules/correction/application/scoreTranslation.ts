@@ -1,9 +1,16 @@
 import type { Anthropic } from '../../../infrastructure/claude/anthropicClient'
 import { CORRECTION_MODEL } from '../../../infrastructure/claude/anthropicClient'
 import { extractJsonText } from '../../../infrastructure/claude/responseParser'
+import { toTokenUsage, type TokenUsage } from '../../../infrastructure/claude/pricing'
 import { languageName, type LanguageCode, type LocaleCode } from '../../../../shared/languages'
 import { scoreToGrade } from '../../../../shared/grades'
 import type { CorrectionResult, Naturalness } from '../domain/Correction'
+
+// The graded result plus the token usage of the call, so the caller can record showback.
+export interface ScoredTranslation {
+  result: CorrectionResult
+  usage: TokenUsage
+}
 
 interface ScoreInput {
   learnLanguage: LanguageCode
@@ -47,7 +54,7 @@ const A_BAND_CAP = 96
 export async function scoreTranslation(
   anthropic: Anthropic,
   input: ScoreInput
-): Promise<CorrectionResult> {
+): Promise<ScoredTranslation> {
   const userText = `Learn language: ${languageName(input.learnLanguage)} (${input.learnLanguage})
 Guess language: ${languageName(input.guessLanguage)} (${input.guessLanguage})
 Regional locale: ${input.locale}
@@ -87,12 +94,15 @@ Score it now.`
     naturalness === 'stiff' && parsed.score >= A_PLUS_THRESHOLD ? A_BAND_CAP : parsed.score
 
   return {
-    isCorrect: parsed.isCorrect,
-    score,
-    grade: scoreToGrade(score),
-    naturalness,
-    correctedAnswer: parsed.correctedAnswer,
-    mistakes: parsed.mistakes ?? [],
-    notes: parsed.notes ?? undefined,
+    result: {
+      isCorrect: parsed.isCorrect,
+      score,
+      grade: scoreToGrade(score),
+      naturalness,
+      correctedAnswer: parsed.correctedAnswer,
+      mistakes: parsed.mistakes ?? [],
+      notes: parsed.notes ?? undefined,
+    },
+    usage: toTokenUsage(resp.usage),
   }
 }

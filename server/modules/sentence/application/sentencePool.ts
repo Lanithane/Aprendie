@@ -1,7 +1,11 @@
 import type { UserRow } from '../../../infrastructure/db/schema'
 import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
-import { getOperatorAnthropicClient } from '../../../infrastructure/claude/anthropicClient'
+import {
+  getOperatorAnthropicClient,
+  SENTENCE_MODEL,
+} from '../../../infrastructure/claude/anthropicClient'
+import { recordUsage } from '../../showback/application/recordUsage'
 import * as sentenceRepository from '../persistence/sentenceRepository'
 import { generateSentenceBatch } from './generateSentenceBatch'
 
@@ -33,7 +37,7 @@ export function poolKey(input: PoolInput): string {
 
 export async function refillPool(input: PoolInput, count?: number): Promise<void> {
   const anthropic = getOperatorAnthropicClient()
-  const batch = await generateSentenceBatch(
+  const { sentences, usage } = await generateSentenceBatch(
     anthropic,
     {
       learnLanguage: input.learnLanguage,
@@ -43,8 +47,18 @@ export async function refillPool(input: PoolInput, count?: number): Promise<void
     },
     count
   )
+
+  // Snapshot the batch's spend for showback, attributed to the user the pool serves. Never
+  // let a usage-recording failure fail the refill.
+  recordUsage({
+    userId: input.user.id,
+    operation: 'sentence_batch',
+    model: SENTENCE_MODEL,
+    usage,
+  }).catch((err) => console.error('[showback] recordUsage(sentence_batch) failed:', err))
+
   await sentenceRepository.insertBatch(
-    batch.map((s) => ({
+    sentences.map((s) => ({
       userId: input.user.id,
       learnLanguage: input.learnLanguage,
       guessLanguage: input.guessLanguage,
