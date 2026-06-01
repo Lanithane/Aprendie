@@ -1,10 +1,14 @@
 import type { UserRow, SentenceRow } from '../../../infrastructure/db/schema'
 import type { LanguageCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
-import { getOperatorAnthropicClient } from '../../../infrastructure/claude/anthropicClient'
+import {
+  getOperatorAnthropicClient,
+  CORRECTION_MODEL,
+} from '../../../infrastructure/claude/anthropicClient'
 import { assertCanSpend } from '../../user/application/access'
 import { assertSpendEnabled } from '../../settings/application/appSettings'
 import { assertWithinDailyCap, recordGradedSentence } from '../../usage/application/dailyCap'
+import { recordUsage } from '../../showback/application/recordUsage'
 import * as sentenceRepository from '../../sentence/persistence/sentenceRepository'
 import { recordAttempt } from '../../history/application/recordAttempt'
 import { scoreTranslation } from './scoreTranslation'
@@ -43,7 +47,7 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
   const level = (sentence.level as LevelCode | null) ?? null
 
   const anthropic = getOperatorAnthropicClient()
-  const result = await scoreTranslation(anthropic, {
+  const { result, usage } = await scoreTranslation(anthropic, {
     learnLanguage,
     guessLanguage,
     locale,
@@ -51,6 +55,14 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
     answerText: sentence.answerText,
     userAnswer: input.userAnswer,
   })
+
+  // Snapshot the spend for showback. Never let a usage-recording failure fail the grade.
+  recordUsage({
+    userId: input.user.id,
+    operation: 'correction',
+    model: CORRECTION_MODEL,
+    usage,
+  }).catch((err) => console.error('[showback] recordUsage(correction) failed:', err))
 
   // Persist a denormalized snapshot of this attempt (the single source for the history view).
   await recordAttempt({

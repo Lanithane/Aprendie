@@ -4,8 +4,10 @@ import {
   getOperatorAnthropicClient,
 } from '../../../infrastructure/claude/anthropicClient'
 import { extractJsonText } from '../../../infrastructure/claude/responseParser'
+import { toTokenUsage } from '../../../infrastructure/claude/pricing'
 import { assertCanSpend } from '../../user/application/access'
 import { assertSpendEnabled } from '../../settings/application/appSettings'
+import { recordUsage } from '../../showback/application/recordUsage'
 import { languageName, type LanguageCode, type LocaleCode } from '../../../../shared/languages'
 
 // Byte-static so the cache_control block hits the prompt cache across every user, pair, and
@@ -61,6 +63,15 @@ Return the JSON now.`
     system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: userText }],
   })
+
+  // Snapshot the spend for showback, attributed to this user. Never let a usage-recording
+  // failure fail the translation.
+  recordUsage({
+    userId: user.id,
+    operation: 'translation',
+    model: SENTENCE_MODEL,
+    usage: toTokenUsage(resp.usage),
+  }).catch((err) => console.error('[showback] recordUsage(translation) failed:', err))
 
   const raw = extractJsonText(resp, 'translator/translate')
   const parsed = JSON.parse(raw) as { translation?: unknown; note?: unknown }

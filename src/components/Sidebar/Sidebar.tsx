@@ -24,6 +24,8 @@ import { useAuth } from '../../auth/AuthContext'
 import { clearSessionMarker } from '../../auth/sessionMarker'
 import { useThemeMode, type ThemeMode } from '../../ThemeModeProvider'
 import { useFeedback } from '../Feedback/FeedbackProvider'
+import { useShowback } from '../../hooks/useShowback'
+import ContributeSection from '../Contribute/ContributeSection'
 import { useViewportCenterY } from '../../hooks/useViewportCenterY'
 import BrandWordmark from '../Brand/BrandWordmark'
 import { buildNavItems, isActiveRoute } from '../AppShell/navigation'
@@ -112,6 +114,7 @@ export default function Sidebar({
   const { user, isAdmin } = useAuth()
   const { mode, cycleMode } = useThemeMode()
   const { openFeedback } = useFeedback()
+  const { showback } = useShowback(user?.id)
   const loc = useLocation()
 
   // Pin the edge toggle onto the divider above the bottom rail; remeasure when the sign-out item
@@ -159,6 +162,7 @@ export default function Sidebar({
       </List>
 
       <BottomRail>
+        <ContributeSection showback={showback} showLabels={showLabels} />
         <Divider ref={bottomDividerRef} />
         <List>
           <ListItem disablePadding>
