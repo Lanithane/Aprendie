@@ -22,7 +22,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { clearSessionMarker } from '../../auth/sessionMarker'
 import { useThemeMode, type ThemeMode } from '../../ThemeModeProvider'
 import BrandWordmark from '../Brand/BrandWordmark'
-import { ADMIN_NAV_ITEM, isActiveRoute, NAV_ITEMS } from '../AppShell/navigation'
+import { buildNavItems, isActiveRoute } from '../AppShell/navigation'
 
 interface SidebarProps {
   collapsed: boolean
@@ -90,7 +90,7 @@ export default function Sidebar({
   const { mode, cycleMode } = useThemeMode()
   const loc = useLocation()
 
-  const navItems = isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS
+  const navItems = buildNavItems(isAdmin)
 
   const width = collapsed ? widthCollapsed : widthExpanded
   const showLabels = !collapsed

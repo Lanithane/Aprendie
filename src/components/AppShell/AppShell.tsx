@@ -4,7 +4,7 @@ import { styled, useTheme } from '@mui/material/styles'
 import { Box, useMediaQuery, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material'
 import { useAuth } from '../../auth/AuthContext'
 import Sidebar from '../Sidebar/Sidebar'
-import { ADMIN_NAV_ITEM, isActiveRoute, NAV_ITEMS } from './navigation'
+import { buildNavItems, isActiveRoute } from './navigation'
 
 const SIDEBAR_WIDTH = 240
 const SIDEBAR_COLLAPSED_WIDTH = 64
@@ -72,7 +72,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const loc = useLocation()
   // Desktop sidebar defaults to the collapsed rail; users expand it on demand.
   const [collapsed, setCollapsed] = useState(true)
-  const navItems = isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS
+  const navItems = buildNavItems(isAdmin)
   const activePath = navItems.find(({ to }) => isActiveRoute(loc.pathname, to))?.to ?? false
 
   return (
