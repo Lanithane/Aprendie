@@ -30,7 +30,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 7    | API-key security hardening                                                    | ✅ Done (AAD+HKDF+vitest)           |
 | 8    | Word "Pokédex" (seen roots + variants)                                        | ✅ Done (lexeme_stats + backfill)   |
 | 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
-| 10   | Built-in translator (known → learning+locale, + usage note)                   | ⬜ Not started                      |
+| 10   | Built-in translator (known → learning+locale, + usage note)                   | ✅ Done (local; QA pending)         |
 | 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ✅ Done (local; QA pending)         |
 | 12   | Operator key + access gate + daily cap                                        | ✅ Done (shipped to main)           |
 | 13   | Branding & identity (logo, favicon, PWA icons)                                | ⬜ Not started                      |
@@ -422,7 +422,7 @@ folds in here. **MD3 is now the binding design standard** — see the
       truncation, admin history panel wrap); centered max-width column adapts to mobile padding + drawer.
 - [ ] **Visual QA** — confirm every screen in light/dark/system + mobile drawer (run locally, logged in).
 
-## ⬜ Epic 10 — Built-in translator widget
+## ✅ Epic 10 — Built-in translator widget
 
 Lets a learner translate **their own** free text (not just prompted sentences) from the language
 they know into the one they're studying. The user types in their **known** language (`guessLanguage`)
@@ -434,7 +434,7 @@ and gets a natural translation into their **learning** language honoring the sel
 locked); output = translation + one optional usage note (no `WordToken` breakdown); dedicated
 `/translator` page; direction fixed known→learning.
 
-- [ ] **New stateless `server/modules/translator/`** — `application/translateText.ts` (cached
+- [x] **New stateless `server/modules/translator/`** — `application/translateText.ts` (cached
       language-agnostic system block + per-pair user turn, `SENTENCE_MODEL`, `extractJsonText` →
       `{ translation, note? }`; reuses
       [anthropicClientForUser.ts](server/modules/apiKey/application/anthropicClientForUser.ts)) and
@@ -442,16 +442,40 @@ locked); output = translation + one optional usage note (no `WordToken` breakdow
       [shared/languages.ts](shared/languages.ts) helpers, mirroring
       [sentenceController.ts](server/modules/sentence/controllers/sentenceController.ts)). Mounted in
       [server/main.ts](server/main.ts).
-- [ ] **Frontend** — [src/api/translatorApi.ts](src/api/translatorApi.ts) (`translateText`, POST
+- [x] **Frontend** — [src/api/translatorApi.ts](src/api/translatorApi.ts) (`translateText`, POST
       `/api/translate`); `src/hooks/useTranslation.ts` (mirrors
       [useCorrectionSubmission.ts](src/hooks/useCorrectionSubmission.ts)); `src/components/Translator/`
       `TranslatorWidget.tsx` (MD3 styled, wraps
       [SectionCard](src/components/shared/SectionCard.tsx), Cmd/Ctrl+Enter to submit, shows the
       direction + translation + optional note); `src/pages/TranslatorPage.tsx` (thin, same `hasApiKey`
       gate as [HomePage.tsx](src/pages/HomePage.tsx)).
-- [ ] **Nav/routing** — `/translator` route in [routes.tsx](src/routes.tsx) (inside the authed
+- [x] **Nav/routing** — `/translator` route in [routes.tsx](src/routes.tsx) (inside the authed
       `AppShell` block) + a "Translate" item (`TranslateIcon`) in
       [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx)'s `NAV_ITEMS`, right after Practice.
+
+**Built (2026-05-31):** as specced, adapted to the Epic 12 operator-key reality (the old `apiKey`
+module is gone). Backend [translateText.ts](server/modules/translator/application/translateText.ts)
+uses **Haiku (`SENTENCE_MODEL`) via `getOperatorAnthropicClient()`** — the same client the sentence/
+correction paths use — gated by `assertCanSpend` + `assertSpendEnabled` (no daily cap; that counts
+graded sentences). It sends a **byte-static cached system block** + per-pair user turn and parses
+`extractJsonText` → `{ translation, note? }`.
+[translatorController.ts](server/modules/translator/controllers/translatorController.ts) mounts
+`POST /api/translate` (`requireAuth` + `asyncHandler`, zod + the `isSupportedLanguage` /
+`isValidLocaleFor` shared helpers, distinct-languages check, `text` 1–1000 chars). Frontend
+[translatorApi.ts](src/api/translatorApi.ts) + [useTranslation.ts](src/hooks/useTranslation.ts)
+mirror `useCorrectionSubmission`; [TranslatorWidget.tsx](src/components/Translator/TranslatorWidget.tsx)
+wraps `SectionCard`, shows the direction (known → target + locale label), supports ⌘/Ctrl+Enter,
+disables on empty input, and surfaces errors via `Alert`;
+[TranslatorPage.tsx](src/pages/TranslatorPage.tsx) reuses HomePage's `AccessGate` for pending/blocked
+accounts. Nav entry added in [navigation.ts](src/components/AppShell/navigation.ts) (right after
+Practice; the `Sidebar` renders `NAV_ITEMS`). **Usage note kept** (the user flagged it as possibly
+redundant with Epic 6, but Epic 6 is usage-cost showback, not word lookup — and the locked roadmap
+decision keeps it): the model returns **one optional** short note (register/gender/false-friend/
+locale word-choice), omitted when nothing is notable, so it never duplicates a dictionary entry.
+**It is purely a convenience tool** — a learner curious about a phrase stays in-app instead of reaching
+for a separate translator — and it deliberately feeds **nothing** into the Pokédex/lexeme stats (no
+`recordSeenWords`, no persistence). typecheck + lint + build all green; **QA'd on local (2026-05-31) —
+looks good.**
 
 ---
 

@@ -16,6 +16,7 @@ import correctionController from './modules/correction/controllers/correctionCon
 import historyController from './modules/history/controllers/historyController'
 import pokedexController from './modules/pokedex/controllers/pokedexController'
 import languageController from './modules/language/controllers/languageController'
+import translatorController from './modules/translator/controllers/translatorController'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -42,6 +43,7 @@ app.use('/api/correct', correctionController)
 app.use('/api/history', historyController)
 app.use('/api/pokedex', pokedexController)
 app.use('/api/language', languageController)
+app.use('/api/translate', translatorController)
 
 if (env.NODE_ENV === 'production') {
   const clientDist = path.resolve(__dirname, '..', 'dist')
