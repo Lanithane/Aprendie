@@ -38,6 +38,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                    | ✅ Done                             |
 | 16   | Feedback & analytics (self-hosted, in admin)                                  | ⬜ Not started                      |
 | 17   | Single Starter level (drop Foundation) + Starter word-meaning hints           | ✅ Done                             |
+| 18   | Same-language practice mode (paraphrase / tense-shift, by difficulty)          | ⬜ Not started                      |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -760,6 +761,50 @@ any level. Two changes, expanding off the work above:
       [WordPopover.tsx](src/components/WordPopover/WordPopover.tsx) (`showGloss = (alwaysShowGloss ||
     sentenceLevel === 'starter') && …`). The results screen passes it; `PracticeCard` does not, so
       practice keeps the Starter-only gate.
+
+---
+
+## ⬜ Epic 18 — Same-language practice mode (rewrite, by difficulty)
+
+Today picking the **same language on both sides** is blocked everywhere
+([shared/languages.ts](shared/languages.ts) `isValidLanguagePair`, the
+[LanguagePairPicker.tsx](src/components/LanguagePairPicker/LanguagePairPicker.tsx) dropdown filter,
+and the [useLanguagePair.ts](src/hooks/useLanguagePair.ts) guard). This epic instead treats
+**same → same** as a deliberate choice that drops the learner into a **single-language practice
+mode**: rather than translating, they **rewrite a prompted sentence within the same language**,
+keeping it grammatically and structurally valid, graded by CEFR difficulty. Immersion is preserved —
+the prompt and the answer are both in the studied language.
+
+The learner picks the rewrite _task_ via a **button-group toggle** on the practice card:
+
+- **Paraphrase / restructure** — say the same thing a different way (synonyms, reordered clauses,
+  voice change) while preserving meaning and staying grammatical. Scored on meaning-preservation
+  **+** grammatical correctness **+** how genuinely distinct it is from the original (an echo of the
+  prompt shouldn't score well).
+- **Tense / register shift** — keep the meaning but change the grammatical frame: shift
+  tense/aspect, or move formal ↔ informal. Scored on hitting the requested target frame while
+  staying correct and faithful.
+
+**Still to brainstorm (not yet decided):**
+
+- _Scoring._ The current pipeline grades a translation against a target sentence
+  ([correctTranslation.ts](server/modules/correction/application/correctTranslation.ts), Epic 14's
+  forgiving grade ladder). A same-language rewrite has **no single target** — the model must judge
+  meaning-equivalence + correctness + distinctness/target-frame openly. Decide whether this reuses
+  the `correction` context with a new prompt/mode flag or warrants a new `practice`/`rewrite`
+  bounded context.
+- _Generation._ Whether the prompt sentence comes from the existing
+  [generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts) flow
+  (which currently assumes a learn/guess split + glosses) or a same-language variant of it.
+- _Pair model._ `LanguagePair` requires `learnLanguage !== guessLanguage`. Decide how to represent a
+  same-language session — an `isValidLanguagePair` carve-out, a `mode` field, or a separate
+  selection path — without regressing the normal bilingual flow.
+- _UX._ Where the mode toggle lives, how the picker surfaces "same language → practice mode" instead
+  of silently filtering it out, and how the results screen explains the score (no canonical answer).
+- _Other mechanics parked for later:_ expand/compress to a CEFR target, and fix-the-grammar
+  (correct a deliberately broken native sentence).
+
+- [ ] Brainstorm + scope the above before breaking into work items.
 
 ---
 
