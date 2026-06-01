@@ -18,7 +18,7 @@ export const NAV_ITEMS = [
   { to: '/', label: 'Practice', Icon: HomeIcon },
   { to: '/translator', label: 'Translate', Icon: TranslateIcon },
   { to: '/history', label: 'History', Icon: HistoryIcon },
-  { to: '/pokedex', label: 'Words', Icon: MenuBookIcon },
+  { to: '/palabradex', label: 'Words', Icon: MenuBookIcon },
   SETTINGS_NAV_ITEM,
 ] as const
 

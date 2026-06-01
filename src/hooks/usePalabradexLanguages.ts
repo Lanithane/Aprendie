@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { fetchPokedexLanguages } from '../api/pokedexApi'
+import { fetchPalabradexLanguages } from '../api/palabradexApi'
 import type { LanguageCode } from '../../shared/languages'
 
-// The distinct learn languages this user has any recorded words for — drives the Pokédex
+// The distinct learn languages this user has any recorded words for — drives the Palabradex
 // language selector. Non-critical: the page handles an empty list gracefully.
-export function usePokedexLanguages(userId: string | undefined): {
+export function usePalabradexLanguages(userId: string | undefined): {
   languages: LanguageCode[]
   loading: boolean
 } {
@@ -18,7 +18,7 @@ export function usePokedexLanguages(userId: string | undefined): {
     }
     setLoading(true)
     try {
-      setLanguages(await fetchPokedexLanguages())
+      setLanguages(await fetchPalabradexLanguages())
     } catch {
       // ignore — empty list renders the "no words yet" state
     } finally {

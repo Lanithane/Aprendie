@@ -12,12 +12,12 @@ import {
 } from '@mui/material'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguagePair } from '../hooks/useLanguagePair'
-import { usePokedex } from '../hooks/usePokedex'
-import { usePokedexLanguages } from '../hooks/usePokedexLanguages'
+import { usePalabradex } from '../hooks/usePalabradex'
+import { usePalabradexLanguages } from '../hooks/usePalabradexLanguages'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
-import RootList from '../components/Pokedex/RootList'
+import RootList from '../components/Palabradex/RootList'
 import { LANGUAGES, type LanguageCode } from '../../shared/languages'
-import type { LexemeSort } from '../api/pokedexApi'
+import type { LexemeSort } from '../api/palabradexApi'
 
 const SORT_LABELS: Record<LexemeSort, string> = {
   seen: 'Most seen',
@@ -25,10 +25,10 @@ const SORT_LABELS: Record<LexemeSort, string> = {
   alpha: 'A–Z',
 }
 
-export default function PokedexPage() {
+export default function PalabradexPage() {
   const { user } = useAuth()
   const { pair } = useLanguagePair()
-  const { languages, loading: langsLoading } = usePokedexLanguages(user?.id)
+  const { languages, loading: langsLoading } = usePalabradexLanguages(user?.id)
   const [selectedLang, setSelectedLang] = useState<LanguageCode | null>(null)
   const [sort, setSort] = useState<LexemeSort>('seen')
 
@@ -39,7 +39,7 @@ export default function PokedexPage() {
     return languages.includes(pair.learnLanguage) ? pair.learnLanguage : languages[0]
   }, [languages, selectedLang, pair.learnLanguage])
 
-  const { entries, loading, error, reload } = usePokedex(
+  const { entries, loading, error, reload } = usePalabradex(
     effectiveLang ? user?.id : undefined,
     effectiveLang ?? undefined,
     sort

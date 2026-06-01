@@ -23,12 +23,12 @@ export interface RootDetailDto extends LexemeStatsDto {
   variants: VariantStatsDto[]
 }
 
-export function fetchPokedex(
+export function fetchPalabradex(
   learnLanguage: LanguageCode,
   sort: LexemeSort
 ): Promise<LexemeStatsDto[]> {
   const search = new URLSearchParams({ learnLanguage, sort })
-  return api<LexemeStatsDto[]>(`/api/pokedex?${search.toString()}`)
+  return api<LexemeStatsDto[]>(`/api/palabradex?${search.toString()}`)
 }
 
 export function fetchRootDetail(
@@ -36,9 +36,9 @@ export function fetchRootDetail(
   lemma: string
 ): Promise<RootDetailDto> {
   const search = new URLSearchParams({ learnLanguage })
-  return api<RootDetailDto>(`/api/pokedex/${encodeURIComponent(lemma)}?${search.toString()}`)
+  return api<RootDetailDto>(`/api/palabradex/${encodeURIComponent(lemma)}?${search.toString()}`)
 }
 
-export function fetchPokedexLanguages(): Promise<LanguageCode[]> {
-  return api<LanguageCode[]>('/api/pokedex/languages')
+export function fetchPalabradexLanguages(): Promise<LanguageCode[]> {
+  return api<LanguageCode[]>('/api/palabradex/languages')
 }

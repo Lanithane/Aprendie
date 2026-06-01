@@ -127,11 +127,11 @@ export const attempts = pgTable(
   ]
 )
 
-// Per-user word "Pokédex" — aggregated lexeme (root) stats, derived from `attempts`
+// Per-user word "Palabradex" — aggregated lexeme (root) stats, derived from `attempts`
 // (the Epic 5 history). One row per (user, learnLanguage, lemma). `seenCount` counts every
 // appearance of the lemma across attempts; `correct`/`incorrect` split that total by whether
 // the surface appeared in that attempt's correction mistakes. `partOfSpeech` is captured on
-// first sight. Cascades with the user. See modules/pokedex/domain/seenWords.ts for the
+// first sight. Cascades with the user. See modules/palabradex/domain/seenWords.ts for the
 // match heuristic.
 export const lexemeStats = pgTable(
   'lexeme_stats',

@@ -2,7 +2,7 @@ import type { LanguageCode, LocaleCode, WordToken } from '../../../../shared/lan
 import type { LevelCode } from '../../../../shared/levels'
 import * as historyRepository from '../persistence/historyRepository'
 import { toAttemptView, type AttemptMistake, type AttemptView } from '../domain/Attempt'
-import { recordSeenWords } from '../../pokedex/application/recordSeenWords'
+import { recordSeenWords } from '../../palabradex/application/recordSeenWords'
 
 export interface RecordAttemptInput {
   userId: string
@@ -43,7 +43,7 @@ export async function recordAttempt(input: RecordAttemptInput): Promise<AttemptV
     wordBreakdown: input.wordBreakdown,
   })
 
-  // Fold this attempt into the per-user word Pokédex (cross-module orchestration). It's a
+  // Fold this attempt into the per-user word Palabradex (cross-module orchestration). It's a
   // derived aggregate keyed off the snapshot we just inserted, so a failure here must never
   // lose the graded attempt the user just earned — best-effort, log and move on.
   try {
@@ -55,7 +55,7 @@ export async function recordAttempt(input: RecordAttemptInput): Promise<AttemptV
       seenAt: row.createdAt,
     })
   } catch (err) {
-    console.error('[recordAttempt] recordSeenWords failed (pokedex skipped):', err)
+    console.error('[recordAttempt] recordSeenWords failed (palabradex skipped):', err)
   }
 
   return toAttemptView(row)
