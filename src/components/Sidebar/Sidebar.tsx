@@ -18,10 +18,12 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness'
+import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined'
 import { styled } from '@mui/material/styles'
 import { useAuth } from '../../auth/AuthContext'
 import { clearSessionMarker } from '../../auth/sessionMarker'
 import { useThemeMode, type ThemeMode } from '../../ThemeModeProvider'
+import { useFeedback } from '../Feedback/FeedbackProvider'
 import { useViewportCenterY } from '../../hooks/useViewportCenterY'
 import BrandWordmark from '../Brand/BrandWordmark'
 import { buildNavItems, isActiveRoute } from '../AppShell/navigation'
@@ -109,6 +111,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const { user, isAdmin } = useAuth()
   const { mode, cycleMode } = useThemeMode()
+  const { openFeedback } = useFeedback()
   const loc = useLocation()
 
   // Pin the edge toggle onto the divider above the bottom rail; remeasure when the sign-out item
@@ -158,6 +161,20 @@ export default function Sidebar({
       <BottomRail>
         <Divider ref={bottomDividerRef} />
         <List>
+          <ListItem disablePadding>
+            <Tooltip title={!showLabels ? 'Send feedback' : ''} placement='right'>
+              <ListItemButton
+                sx={navSx(!showLabels)}
+                onClick={openFeedback}
+                aria-label='Send feedback'
+              >
+                <ListItemIcon>
+                  <FeedbackOutlinedIcon />
+                </ListItemIcon>
+                {showLabels && <ListItemText primary='Feedback' />}
+              </ListItemButton>
+            </Tooltip>
+          </ListItem>
           <ListItem disablePadding>
             <Tooltip title={modeLabel} placement='right'>
               <ListItemButton sx={navSx(!showLabels)} onClick={cycleMode} aria-label={modeLabel}>

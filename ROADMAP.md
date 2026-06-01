@@ -36,7 +36,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 13   | Branding & identity (logo, favicon, PWA icons)                                | ⬜ Not started                      |
 | 14   | Forgiving scoring & letter grades (A+…F)                                      | ✅ Done (shipped to main)           |
 | 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                    | ✅ Done                             |
-| 16   | Feedback & analytics (self-hosted, in admin)                                  | ⬜ Not started                      |
+| 16   | Feedback & analytics (self-hosted, in admin)                                  | ✅ Done                             |
 | 17   | Single Starter level (drop Foundation) + Starter word-meaning hints           | ✅ Done                             |
 | 18   | Same-language practice mode (paraphrase / tense-shift, by difficulty)          | ⬜ Not started                      |
 | 19   | Grammar building blocks reference (POS overview + drill-down, per learn language) | ⬜ Not started                      |
@@ -675,7 +675,7 @@ experience. Delay bounds (0–3000 ms) and the defaults are shared client+server
       [useSpeech.ts](src/hooks/useSpeech.ts), used only when the user hasn't pinned one in `VoicePicker`.
 - [ ] _Backlog:_ cloud neural TTS for higher, consistent voice quality.
 
-## ⬜ Epic 16 — Feedback & analytics
+## ✅ Epic 16 — Feedback & analytics
 
 Users can send feedback and we record lightweight usage metrics — all **self-hosted** in our own
 Postgres (no third-party SDK; fits the operator-key / minimal-deps philosophy), surfaced through the
@@ -684,22 +684,29 @@ existing admin console.
 **Decided:** self-hosted tables; feedback is the visible MVP; the metrics view folds into the
 [admin](src/pages/AdminPage.tsx) section (no separate analytics vendor).
 
-- [ ] **`feedback` module** (full DDD, mirroring [history](server/modules/history/)) — a `feedback`
+- [x] **`feedback` module** (full DDD, mirroring [history](server/modules/history/)) — a `feedback`
       table (id, `userId` FK→users cascade, message, category, page/userAgent context, createdAt) +
       `recordFeedback` / `listFeedback` use cases + controller (`POST /api/feedback` requireAuth; an
       admin `GET` behind `requireAdmin`).
-- [ ] **`analytics` module** (full DDD) — an `events` table (id, nullable `userId`, name, `props`
-      jsonb, createdAt) + an ingest use case + `POST /api/events`. Instrument key events (sentence
-      shown, guess submitted, grade received).
-- [ ] **Migration (next free number, e.g. `0013`)** — create both tables in
+- [x] **`analytics` module** (full DDD) — an `events` table (id, nullable `userId`, name, `props`
+      jsonb, createdAt) + an ingest use case + `POST /api/events`. Key events instrumented:
+      `sentence_shown` (server-side in `getNextSentence`, best-effort), `guess_submitted` +
+      `grade_received` (client-side in `useCorrectionSubmission`). Event names are a closed set
+      (`EVENT_NAMES`).
+- [x] **Migration `0018_quiet_tana_nile`** — created both tables in
       [schema.ts](server/infrastructure/db/schema.ts) via the `drizzle/` workflow; applied local + (auto
-      on deploy) prod, per [railway.json](railway.json).
-- [ ] **Feedback button in the sidebar** — an action item (not a route) in the
-      [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx) bottom rail opening a `FeedbackDialog` that posts
-      via a new `src/api/feedbackApi.ts` (built on [client.ts](src/api/client.ts), never raw `fetch`);
-      add `src/api/analyticsApi.ts` for events.
-- [ ] **Admin surfacing** — a feedback list + basic event counts on the admin pages
-      ([AdminPage.tsx](src/pages/AdminPage.tsx) / [AdminUserDetailPage.tsx](src/pages/AdminUserDetailPage.tsx)).
+      on deploy) prod, per [railway.json](railway.json). (Its journal `when` was bumped above the
+      hand-inflated 0015–0017 timestamps so the migrator doesn't silently skip it.)
+- [x] **Feedback dialog + triggers** — a shared `FeedbackProvider`/`useFeedback` mounts one
+      `FeedbackDialog` under the router and exposes `openFeedback()`. Triggered from two places: an
+      action item in the [Sidebar.tsx](src/components/Sidebar/Sidebar.tsx) bottom rail (above the
+      theme-mode toggle, desktop only) **and** a "Send feedback" button in
+      [SettingsPage.tsx](src/pages/SettingsPage.tsx) (so it's reachable on mobile, where the sidebar is
+      hidden). Posts via `src/api/feedbackApi.ts` + `src/api/analyticsApi.ts` (both on
+      [client.ts](src/api/client.ts), never raw `fetch`).
+- [x] **Admin surfacing** — `AnalyticsPanel` (event counts + distinct users over a window) and
+      `FeedbackPanel` (recent submissions with category/author/page) on
+      [AdminPage.tsx](src/pages/AdminPage.tsx).
 - [ ] _Backlog:_ richer admin analytics dashboards.
 
 ## ✅ Epic 17 — Single Starter level + Starter word hints

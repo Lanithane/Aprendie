@@ -213,6 +213,45 @@ export const appSettings = pgTable('app_settings', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// Epic 16 — self-hosted user feedback. One row per submission, denormalized with the page
+// and user-agent context captured at send time so the admin inbox needs no joins beyond the
+// user. `category` is loose-typed text (like `role`/`level`) to avoid pg-enum friction; the
+// client constrains it. Cascades with the user.
+export const feedback = pgTable(
+  'feedback',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    category: text('category').$type<'idea' | 'bug' | 'praise' | 'other'>().notNull(),
+    message: text('message').notNull(),
+    // Context captured at send time: the in-app path the user was on and their browser UA.
+    page: text('page'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('idx_feedback_created').on(table.createdAt.desc())]
+)
+
+// Epic 16 — self-hosted lightweight usage analytics. One row per event. `userId` is a nullable
+// soft reference (no FK) so events can outlive the account and anonymous events are allowed; the
+// account-scoped events we record today set it. `props` is free-form jsonb context per event name.
+export const events = pgTable(
+  'events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id'),
+    name: text('name').notNull(),
+    props: json('props').$type<Record<string, unknown>>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('idx_events_name_created').on(table.name, table.createdAt.desc()),
+    index('idx_events_created').on(table.createdAt.desc()),
+  ]
+)
+
 export const session = pgTable(
   'session',
   {
@@ -236,3 +275,7 @@ export type NewLexemeVariantStatsRow = typeof lexemeVariantStats.$inferInsert
 export type UsageDailyRow = typeof usageDaily.$inferSelect
 export type AppSettingsRow = typeof appSettings.$inferSelect
 export type NewAppSettingsRow = typeof appSettings.$inferInsert
+export type FeedbackRow = typeof feedback.$inferSelect
+export type NewFeedbackRow = typeof feedback.$inferInsert
+export type EventRow = typeof events.$inferSelect
+export type NewEventRow = typeof events.$inferInsert

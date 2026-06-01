@@ -9,6 +9,22 @@ import {
   type PoolInput,
 } from './sentencePool'
 import { toSentenceView, type SentenceView } from '../domain/Sentence'
+import { recordEventSafe } from '../../analytics/application/recordEvent'
+
+// Lightweight usage metric (Epic 16). Best-effort and off the critical path — serving the
+// sentence must never depend on the event landing.
+function trackSentenceShown(input: PoolInput): void {
+  void recordEventSafe({
+    name: 'sentence_shown',
+    userId: input.user.id,
+    props: {
+      learnLanguage: input.learnLanguage,
+      guessLanguage: input.guessLanguage,
+      locale: input.locale,
+      level: input.level ?? null,
+    },
+  })
+}
 
 export async function getNextSentence(input: PoolInput): Promise<SentenceView> {
   // A non-approved account may not spend the operator key, and the global spend pause
@@ -39,6 +55,7 @@ export async function getNextSentence(input: PoolInput): Promise<SentenceView> {
   if (!sentence) {
     throw new Error('sentence_cache empty after refill')
   }
+  trackSentenceShown(input)
   return toSentenceView(sentence)
 }
 

@@ -17,6 +17,8 @@ import historyController from './modules/history/controllers/historyController'
 import palabradexController from './modules/palabradex/controllers/palabradexController'
 import languageController from './modules/language/controllers/languageController'
 import translatorController from './modules/translator/controllers/translatorController'
+import feedbackController from './modules/feedback/controllers/feedbackController'
+import analyticsController from './modules/analytics/controllers/analyticsController'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -44,6 +46,8 @@ app.use('/api/history', historyController)
 app.use('/api/palabradex', palabradexController)
 app.use('/api/language', languageController)
 app.use('/api/translate', translatorController)
+app.use('/api/feedback', feedbackController)
+app.use('/api/events', analyticsController)
 
 if (env.NODE_ENV === 'production') {
   const clientDist = path.resolve(__dirname, '..', 'dist')

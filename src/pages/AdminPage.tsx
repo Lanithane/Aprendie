@@ -15,6 +15,8 @@ import type { ChipProps } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import LimitsPanel from '../components/Admin/LimitsPanel'
+import FeedbackPanel from '../components/Admin/FeedbackPanel'
+import AnalyticsPanel from '../components/Admin/AnalyticsPanel'
 import { useAdminContext } from '../components/Admin/AdminLayout'
 import { useNow } from '../hooks/useNow'
 
@@ -40,6 +42,10 @@ export default function AdminPage() {
       <Box sx={{ mb: 3 }}>
         <LimitsPanel users={users} />
       </Box>
+      <Stack spacing={3} sx={{ mb: 3 }}>
+        <AnalyticsPanel />
+        <FeedbackPanel />
+      </Stack>
       {error && (
         <Stack spacing={2} sx={{ mb: 2, alignItems: 'flex-start' }}>
           <Alert severity='error' sx={{ width: '100%' }}>

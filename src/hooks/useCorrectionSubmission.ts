@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { submitCorrection, type CorrectionDto } from '../api/correctionApi'
+import { trackEvent } from '../api/analyticsApi'
 
 interface UseCorrectionSubmissionResult {
   correction: CorrectionDto | null
@@ -17,9 +18,12 @@ export function useCorrectionSubmission(): UseCorrectionSubmissionResult {
   const submit = useCallback(async (sentenceId: string, userAnswer: string) => {
     setSubmitting(true)
     setError(null)
+    // Lightweight usage metrics (Epic 16); fire-and-forget, never blocks the grade.
+    trackEvent('guess_submitted', { sentenceId })
     try {
       const result = await submitCorrection(sentenceId, userAnswer)
       setCorrection(result)
+      trackEvent('grade_received', { sentenceId, score: result.score, isCorrect: result.isCorrect })
       return result
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to correct')

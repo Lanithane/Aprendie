@@ -10,7 +10,9 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from '@mui/material'
+import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined'
 import SectionCard from '../components/shared/SectionCard'
+import { useFeedback } from '../components/Feedback/FeedbackProvider'
 import LanguagePairPicker from '../components/LanguagePairPicker/LanguagePairPicker'
 import VoicePicker from '../components/VoicePicker/VoicePicker'
 import AutoSpeakControls from '../components/AutoSpeakControls/AutoSpeakControls'
@@ -25,6 +27,7 @@ export default function SettingsPage() {
   const { user } = useAuth()
   const { pref, setPref } = useLevelPreference()
   const { mode, setMode } = useThemeMode()
+  const { openFeedback } = useFeedback()
 
   return (
     <Box>
@@ -89,6 +92,15 @@ export default function SettingsPage() {
               ))}
             </Select>
           </FormControl>
+        </SectionCard>
+
+        <SectionCard
+          title='Feedback'
+          description='Spot a bug or have an idea? Send it straight to the team.'
+        >
+          <Button variant='contained' startIcon={<FeedbackOutlinedIcon />} onClick={openFeedback}>
+            Send feedback
+          </Button>
         </SectionCard>
 
         <SectionCard title='Account' description={user?.email}>
