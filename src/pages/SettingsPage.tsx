@@ -101,7 +101,7 @@ export default function SettingsPage() {
           </Stack>
         </SectionCard>
 
-        {isMobile && <ContributeCard userId={user?.id} />}
+        <ContributeCard userId={user?.id} />
 
         <SectionCard
           title='Feedback'

@@ -94,7 +94,7 @@ const navSx = (rail: boolean) => ({
   mx: 1,
   my: 0.5,
   minHeight: 48,
-  borderRadius: 999,
+  borderRadius: '16px',
   justifyContent: rail ? 'center' : 'flex-start',
   '& .MuiListItemIcon-root': { minWidth: rail ? 0 : 40, justifyContent: 'center' },
 })
