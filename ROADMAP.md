@@ -809,6 +809,57 @@ The learner picks the rewrite _task_ via a **button-group toggle** on the practi
 
 ---
 
+## ⬜ Epic 19 — Grammar building blocks reference
+
+A reference **info page** that explains the grammatical building blocks of the learner's currently
+selected language — **verbs, nouns, adjectives, articles, pronouns, prepositions, conjunctions**,
+etc. — reached from a dedicated **main-sidebar icon**. Content is keyed to the active
+`learnLanguage` (+ `locale`) from Settings, so a learner studying Spanish sees Spanish grammar and a
+learner studying French sees French. Complements immersion practice with an on-demand "how the
+language is built" view.
+
+**Decided:**
+
+- **Claude-generated content** — a new bounded context (provisional `grammar`) generates the
+  per-language grammar overview + detail via `anthropicClientForUser`
+  ([resolveAnthropicClient.ts](server/modules/apiKey/application/resolveAnthropicClient.ts)), reusing
+  the Epic 12 access-gate + daily-cap spend path. **Cache per (learnLanguage, locale)** so a visit
+  doesn't regenerate (persist generated grammar like `word_breakdown`/`lexeme_stats` are cached) —
+  generation should be rare, not per page view.
+- **Overview + detail drill-down** — a part-of-speech overview (one section per POS: short
+  explanation + example words in the learn language), each expandable into detail: verb
+  conjugation patterns, article gender/number, adjective agreement, pronoun sets, etc.
+- **Stateless from the UI's perspective** — no user-specific history; the page just reads the active
+  pair and requests (or pulls cached) grammar for that language.
+
+- [ ] **`grammar` bounded context** — `server/modules/grammar/` with the four layers
+      (`domain`/`application`/`persistence`/`controllers`); `application` orchestrates the Claude
+      call through `anthropicClientForUser` and asserts access + daily cap; response parsed via
+      [responseParser](server/infrastructure/claude/responseParser.ts) into a typed grammar model
+      (POS sections + drill-down blocks).
+- [ ] **Caching + schema** — persist generated grammar keyed by `(learnLanguage, locale)` (new
+      table via `npm run db:generate`, snapshot + journal per the migration rules in
+      [CLAUDE.md](CLAUDE.md)); `application` returns the cached row when present, else generates +
+      stores.
+- [ ] **`GET /api/grammar`** controller — resolves the requesting user's pair, returns cached-or-
+      generated grammar JSON for the active language; 403/429 surface the existing access/cap codes.
+- [ ] **API wrapper** — `src/api/grammarApi.ts` on top of
+      [client.ts](src/api/client.ts) (no direct `fetch`); a `useGrammar` data hook in
+      [src/hooks/](src/hooks/) that reads `useLanguagePair().pair` and fetches on mount / pair
+      change.
+- [ ] **Page + components** — thin `src/pages/GrammarPage.tsx` composing the hook + a
+      `src/components/Grammar/` POS-overview + expandable-detail UI, MD3-styled (theme tokens,
+      `@emotion/styled`, [components/shared/](src/components/shared/) loading/section cards) per
+      [CLAUDE.md](CLAUDE.md).
+- [ ] **Sidebar + route** — add a `Grammar` item with an icon (e.g. an MUI grammar/`Spellcheck`/
+      `MenuBook`-family icon, or a custom one like [BangIcon.tsx](src/components/AppShell/BangIcon.tsx))
+      to `NAV_ITEMS` in [navigation.ts](src/components/AppShell/navigation.ts); wire `/grammar` in
+      [routes.tsx](src/routes.tsx) inside the authed `AppShell` block.
+- [ ] **Language-change behaviour** — switching the learn language in Settings re-fetches (or pulls
+      the cached) grammar for the new language so the page always matches the active pair.
+
+---
+
 ## Verification
 
 Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
@@ -848,6 +899,12 @@ Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
   popover; switch to A1+ and confirm the popover never shows a meaning _while practicing_ (immersion
   intact). Then submit an A1+ answer and on the results screen confirm the prompt's words are
   clickable and **do** show their meaning (new sentence needed for a gloss to exist above Starter).
+- **Epic 19** — open the Grammar page from the sidebar icon; confirm it shows the POS overview for
+  your current learn language with example words in that language, and that each section expands into
+  detail (conjugation/agreement tables). Change the learn language in Settings and confirm the page
+  re-renders with the new language's grammar (served from cache on the second visit, not
+  regenerated). Confirm access-gate/daily-cap behaviour matches other spend paths, and QA the page in
+  light/dark/system + mobile with no hardcoded colors.
 
 Use the `/verify` skill for end-to-end confirmation and `/code-review` before declaring an epic
 done. Each epic is a natural PR/commit boundary.
