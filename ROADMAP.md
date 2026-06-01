@@ -33,7 +33,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 10   | Built-in translator (known → learning+locale, + usage note)                   | ✅ Done (local; QA pending)         |
 | 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ✅ Done (local; QA pending)         |
 | 12   | Operator key + access gate + daily cap                                        | ✅ Done (shipped to main)           |
-| 13   | Branding & identity (logo, favicon, PWA icons)                                | ⬜ Not started                      |
+| 13   | Branding & identity (logo, favicon, PWA icons)                                | ✅ Done                             |
 | 14   | Forgiving scoring & letter grades (A+…F)                                      | ✅ Done (shipped to main)           |
 | 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                    | ✅ Done                             |
 | 16   | Feedback & analytics (self-hosted, in admin)                                  | ✅ Done                             |
@@ -602,20 +602,20 @@ override is a later pass); daily cap of **100 graded sentences / user / day** (a
 
 ---
 
-## ⬜ Epic 13 — Branding & identity
+## ✅ Epic 13 — Branding & identity
 
 A real visual identity to replace the default Vite favicon. Pure frontend + static assets; no backend.
 
 **Decided:** brand asset colours live in committed SVG/PNG files (not `src` hex), so the
 `grep -rE '#[0-9a-f]{3,6}' src` rule in [CLAUDE.md](CLAUDE.md) keeps passing.
 
-- [ ] **Icon/favicon set** — replace the default `vite.svg` referenced in [index.html](index.html):
+- [x] **Icon/favicon set** — replace the default `vite.svg` referenced in [index.html](index.html):
       add `favicon.svg` + `favicon.ico` + `apple-touch-icon.png` in a new `public/` folder and link
       them; add `<meta name="description">` and retune the existing `theme-color` meta (currently
       `#1976d2`) to the brand.
-- [ ] **PWA manifest** — `public/manifest.webmanifest` + maskable 192/512 icons so "add to home
+- [x] **PWA manifest** — `public/manifest.webmanifest` + maskable 192/512 icons so "add to home
       screen" shows the app icon; link it from [index.html](index.html).
-- [ ] **Logo in the app bar** — a reusable `src/components/Logo/Logo.tsx`, rendered where the
+- [x] **Logo in the app bar** — a reusable `src/components/Logo/Logo.tsx`, rendered where the
       "Aprendie" wordmark sits today in [AppShell.tsx](src/components/AppShell/AppShell.tsx) (mobile
       header) and on [LoginPage.tsx](src/pages/LoginPage.tsx). Theme-agnostic chrome, MD3 rounded.
 - [ ] _Note:_ the mark itself may want a designer / AI-generated asset; this epic covers the asset set + wiring, not the visual design exploration.
