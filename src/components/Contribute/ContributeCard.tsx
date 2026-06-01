@@ -25,7 +25,7 @@ export default function ContributeCard({ userId }: { userId: string | undefined 
         <Box>
           <Typography variant='h6'>{usd}</Typography>
           <Typography variant='body2' color='text.secondary'>
-            spent so far · ~{water} water (estimated)
+            Spent so far · ~{water} water (estimated)
           </Typography>
         </Box>
         <Stack direction='row' spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
