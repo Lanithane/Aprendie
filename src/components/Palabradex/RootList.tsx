@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Divider, List, Paper } from '@mui/material'
 import RootCard from './RootCard'
-import type { LexemeStatsDto } from '../../api/pokedexApi'
+import type { LexemeStatsDto } from '../../api/palabradexApi'
 import type { LanguageCode } from '../../../shared/languages'
 
 interface RootListProps {

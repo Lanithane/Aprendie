@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { fetchPokedex, type LexemeSort, type LexemeStatsDto } from '../api/pokedexApi'
+import { fetchPalabradex, type LexemeSort, type LexemeStatsDto } from '../api/palabradexApi'
 import { ApiError } from '../api/client'
 import type { LanguageCode } from '../../shared/languages'
 
-interface UsePokedexResult {
+interface UsePalabradexResult {
   entries: LexemeStatsDto[]
   loading: boolean
   error: string | null
@@ -13,11 +13,11 @@ interface UsePokedexResult {
 // Loads the per-user root list for one learn language + sort. Refetches whenever the user,
 // language, or sort changes (the lone, deliberate data fetch lives behind this hook per the
 // useEffect rules).
-export function usePokedex(
+export function usePalabradex(
   userId: string | undefined,
   learnLanguage: LanguageCode | undefined,
   sort: LexemeSort
-): UsePokedexResult {
+): UsePalabradexResult {
   const [entries, setEntries] = useState<LexemeStatsDto[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,7 +30,7 @@ export function usePokedex(
     setLoading(true)
     setError(null)
     try {
-      setEntries(await fetchPokedex(learnLanguage, sort))
+      setEntries(await fetchPalabradex(learnLanguage, sort))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to load your word collection')
     } finally {

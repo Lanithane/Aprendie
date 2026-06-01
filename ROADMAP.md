@@ -3,13 +3,13 @@
 Living roadmap for the post-MVP feature work. Build order was chosen deliberately: the
 **language generalization refactor first** (it touches the most files), then the small
 contained features, then the **backend-heavy epics** (RBAC + admin, server-side history,
-usage-cost showback, API-key hardening, the Pokédex). See [BLUEPRINT.md](BLUEPRINT.md) for
+usage-cost showback, API-key hardening, the Palabradex). See [BLUEPRINT.md](BLUEPRINT.md) for
 product/architecture context and [CLAUDE.md](CLAUDE.md) for the layer rules that govern every
 change here.
 
 **Reprioritized (2026-05-29):** an **accessibility pass** (Epic A, done) lands first, then the
 **MD3 overhaul (Epic 9) moves next** — we'd rather settle the final visual language before
-building the remaining feature UI (TTS, showback, Pokédex), so those screens are styled in MD3
+building the remaining feature UI (TTS, showback, Palabradex), so those screens are styled in MD3
 from the start instead of being restyled afterward. The backend-heavy epics (3, 6, 7, 8) follow.
 Epic numbers are stable identifiers, not build order — see the status table.
 
@@ -28,7 +28,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 5    | History → Postgres, per user account                                          | ✅ Done (local migrated)            |
 | 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started                      |
 | 7    | API-key security hardening                                                    | ✅ Done (AAD+HKDF+vitest)           |
-| 8    | Word "Pokédex" (seen roots + variants)                                        | ✅ Done (lexeme_stats + backfill)   |
+| 8    | Word "Palabradex" (seen roots + variants)                                        | ✅ Done (lexeme_stats + backfill)   |
 | 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
 | 10   | Built-in translator (known → learning+locale, + usage note)                   | ✅ Done (local; QA pending)         |
 | 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ✅ Done (local; QA pending)         |
@@ -59,7 +59,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
   user's key or re-test it against Anthropic, but plaintext is never decrypted to the admin.
 - **Contribute CTAs (Epic 6):** compute showback now; the two sidebar buttons are **config-link
   CTAs** (offset-provider URL + tip/sponsor URL set via config later) — no vendor wiring this epic.
-- **Pokédex counts (Epic 8):** correct/incorrect are **derived from correction
+- **Palabradex counts (Epic 8):** correct/incorrect are **derived from correction
   `mistakes[].sourceText`** (a lemma is "incorrect" for an attempt when it appears in that attempt's
   mistakes, else "correct"; every appearance counts "seen"). Its sole data source is the Epic 5
   Postgres history — **Epic 8 builds only after Epic 5.**
@@ -230,7 +230,7 @@ again, or run `UPDATE users SET role='admin' WHERE email='…'` once.
 
 Moves history off `localStorage` into a per-user `attempts` table. The table is denormalized (a
 full snapshot per attempt) so history survives `sentence_cache` pruning — and it becomes the
-**single aggregation source for the Epic 8 Pokédex.**
+**single aggregation source for the Epic 8 Palabradex.**
 
 - [x] **DB migration `0003`** ([drizzle/0003_attempts_history.sql](drizzle/0003_attempts_history.sql))
       — new `attempts`: id, `userId` FK→users (cascade), nullable `sentenceId` (soft ref, no FK, so
@@ -331,12 +331,12 @@ runner in this epic (`npm test`).
       see Open questions**); ciphertext in a dedicated table; rate-limit key endpoints + a small
       `key_audit` log of admin key ops.
 
-## ✅ Epic 8 — Word "Pokédex"
+## ✅ Epic 8 — Word "Palabradex"
 
 A per-user "seen root words" page with correct/incorrect counts; drilling into a root reveals its
 variants with their own seen counts.
 
-**Hard dependency (user-confirmed): build only after Epic 5.** The Pokédex's sole data source is
+**Hard dependency (user-confirmed): build only after Epic 5.** The Palabradex's sole data source is
 the **Postgres-persisted history** (`attempts`) from Epic 5 — its `wordBreakdown` and `mistakes`.
 It never reads localStorage or any client source; both live aggregation and backfill read that
 table.
@@ -352,33 +352,33 @@ attempt when it appears in that attempt's mistakes, else "correct"; every appear
       seenCount, lastSeenAt, unique `(userId, learnLanguage, lemma, surface)`. Applied to **local +
       Railway prod**. (Numbered 0017, not the roadmap's stale "0005" — that was the migration count
       when this epic was scoped.)
-- [x] **New `modules/pokedex/`** (full DDD) — pure heuristic in
-      [domain/seenWords.ts](server/modules/pokedex/domain/seenWords.ts) (`computeSeenDeltas`):
+- [x] **New `modules/palabradex/`** (full DDD) — pure heuristic in
+      [domain/seenWords.ts](server/modules/palabradex/domain/seenWords.ts) (`computeSeenDeltas`):
       tokenizes every `mistakes[].sourceText` into a normalized word-set (NFC + lowercase,
       word-boundary via the same `WORD_RE` idea as
       [tokenize.ts](src/components/SentenceTokens/tokenize.ts), reimplemented server-side), then per
       `WordToken` counts one "seen" and routes it to incorrect when the edge-stripped surface is in
       that set, else correct; grouped per lemma + per (lemma, surface). Views in
-      [domain/Lexeme.ts](server/modules/pokedex/domain/Lexeme.ts). Persistence
-      [pokedexRepository.ts](server/modules/pokedex/persistence/pokedexRepository.ts) — batched
+      [domain/Lexeme.ts](server/modules/palabradex/domain/Lexeme.ts). Persistence
+      [palabradexRepository.ts](server/modules/palabradex/persistence/palabradexRepository.ts) — batched
       additive `onConflictDoUpdate` upserts (`least`/`greatest` for the first/last-seen window,
       partOfSpeech kept on first sight), `listLexemes(sort)`, `getLexeme`, `listVariants`,
-      `distinctLanguages`, `clearAll`. Read application `listPokedex` / `getRootDetail` /
+      `distinctLanguages`, `clearAll`. Read application `listPalabradex` / `getRootDetail` /
       `listLanguages`; write application `recordSeenWords` called from history's `recordAttempt`
-      (cross-module history→pokedex, wrapped try/catch so a derived-store failure never loses the
-      graded attempt). Controllers `/api/pokedex` (`GET /languages`, `GET /?learnLanguage&sort`,
+      (cross-module history→palabradex, wrapped try/catch so a derived-store failure never loses the
+      graded attempt). Controllers `/api/palabradex` (`GET /languages`, `GET /?learnLanguage&sort`,
       `GET /:lemma?learnLanguage`), requireAuth. Unit-tested
-      ([seenWords.test.ts](server/modules/pokedex/domain/seenWords.test.ts)).
-- [x] **Backfill** ([scripts/backfill-pokedex.ts](scripts/backfill-pokedex.ts), `npm run
-      db:backfill:pokedex`) — clears both tables then replays every `attempt` in
+      ([seenWords.test.ts](server/modules/palabradex/domain/seenWords.test.ts)).
+- [x] **Backfill** ([scripts/backfill-palabradex.ts](scripts/backfill-palabradex.ts), `npm run
+      db:backfill:palabradex`) — clears both tables then replays every `attempt` in
       `(userId, createdAt asc)` order through `recordSeenWords`; re-runnable (idempotent). Seeded
       **local + prod**.
-- [x] **Frontend** — [src/api/pokedexApi.ts](src/api/pokedexApi.ts);
-      [usePokedex.ts](src/hooks/usePokedex.ts) + [usePokedexEntry.ts](src/hooks/usePokedexEntry.ts)
-      (lazy variant fetch on drill-in) + [usePokedexLanguages.ts](src/hooks/usePokedexLanguages.ts);
-      thin [PokedexPage.tsx](src/pages/PokedexPage.tsx) (language tabs + seen/mistakes/A–Z sort) +
-      `src/components/Pokedex/` (RootList / RootCard / VariantList) reusing `components/shared/`;
-      `/pokedex` route in [routes.tsx](src/routes.tsx) + "Words" nav item in
+- [x] **Frontend** — [src/api/palabradexApi.ts](src/api/palabradexApi.ts);
+      [usePalabradex.ts](src/hooks/usePalabradex.ts) + [usePalabradexEntry.ts](src/hooks/usePalabradexEntry.ts)
+      (lazy variant fetch on drill-in) + [usePalabradexLanguages.ts](src/hooks/usePalabradexLanguages.ts);
+      thin [PalabradexPage.tsx](src/pages/PalabradexPage.tsx) (language tabs + seen/mistakes/A–Z sort) +
+      `src/components/Palabradex/` (RootList / RootCard / VariantList) reusing `components/shared/`;
+      `/palabradex` route in [routes.tsx](src/routes.tsx) + "Words" nav item in
       [navigation.ts](src/components/AppShell/navigation.ts). MD3 throughout (theme tokens, fixed
       success/warning/error ramp for the accuracy dot).
 
@@ -473,7 +473,7 @@ redundant with Epic 6, but Epic 6 is usage-cost showback, not word lookup — an
 decision keeps it): the model returns **one optional** short note (register/gender/false-friend/
 locale word-choice), omitted when nothing is notable, so it never duplicates a dictionary entry.
 **It is purely a convenience tool** — a learner curious about a phrase stays in-app instead of reaching
-for a separate translator — and it deliberately feeds **nothing** into the Pokédex/lexeme stats (no
+for a separate translator — and it deliberately feeds **nothing** into the Palabradex/lexeme stats (no
 `recordSeenWords`, no persistence). typecheck + lint + build all green; **QA'd on local (2026-05-31) —
 looks good.**
 

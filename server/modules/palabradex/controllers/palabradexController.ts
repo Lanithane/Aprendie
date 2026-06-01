@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { UserRow } from '../../../infrastructure/db/schema'
 import { requireAuth } from '../../../infrastructure/http/requireAuth'
 import { asyncHandler } from '../../../infrastructure/http/asyncHandler'
-import { listPokedex, getRootDetail, listLanguages } from '../application/listPokedex'
+import { listPalabradex, getRootDetail, listLanguages } from '../application/listPalabradex'
 import { LEXEME_SORTS, type LexemeSort } from '../domain/Lexeme'
 
 const router = Router()
@@ -36,7 +36,7 @@ router.get(
       return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
     }
     const { learnLanguage, sort } = parsed.data
-    const entries = await listPokedex((req.user as UserRow).id, learnLanguage, sort ?? 'seen')
+    const entries = await listPalabradex((req.user as UserRow).id, learnLanguage, sort ?? 'seen')
     res.json(entries)
   })
 )

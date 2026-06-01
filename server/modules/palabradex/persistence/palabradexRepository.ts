@@ -147,7 +147,7 @@ export async function distinctLanguages(userId: string): Promise<string[]> {
   return rows.map((r) => r.learnLanguage)
 }
 
-// Wipe both grains for everyone — used by the one-off backfill so it can rebuild the Pokédex
+// Wipe both grains for everyone — used by the one-off backfill so it can rebuild the Palabradex
 // from `attempts` and stay re-runnable (otherwise a second run would double the counts).
 export async function clearAll(): Promise<void> {
   await db.delete(lexemeVariantStats)

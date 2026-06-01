@@ -11,7 +11,7 @@ import LoginPage from './pages/LoginPage'
 const HomePage = lazy(() => import('./pages/HomePage'))
 const TranslatorPage = lazy(() => import('./pages/TranslatorPage'))
 const HistoryPage = lazy(() => import('./pages/HistoryPage'))
-const PokedexPage = lazy(() => import('./pages/PokedexPage'))
+const PalabradexPage = lazy(() => import('./pages/PalabradexPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const AdminUserDetailPage = lazy(() => import('./pages/AdminUserDetailPage'))
@@ -49,7 +49,7 @@ export default function AppRoutes() {
         <Route path='/' element={<HomePage />} />
         <Route path='/translator' element={<TranslatorPage />} />
         <Route path='/history' element={<HistoryPage />} />
-        <Route path='/pokedex' element={<PokedexPage />} />
+        <Route path='/palabradex' element={<PalabradexPage />} />
         <Route path='/settings' element={<SettingsPage />} />
         <Route
           path='/admin'

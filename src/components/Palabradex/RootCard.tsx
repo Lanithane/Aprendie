@@ -3,8 +3,8 @@ import { styled } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import VariantList from './VariantList'
 import LoadingSpinner from '../shared/LoadingSpinner'
-import { usePokedexEntry } from '../../hooks/usePokedexEntry'
-import type { LexemeStatsDto } from '../../api/pokedexApi'
+import { usePalabradexEntry } from '../../hooks/usePalabradexEntry'
+import type { LexemeStatsDto } from '../../api/palabradexApi'
 import type { LanguageCode } from '../../../shared/languages'
 
 // Accuracy = correct sightings ÷ total sightings. The dot uses the theme's fixed semantic ramp
@@ -37,7 +37,7 @@ interface RootCardProps {
 
 export default function RootCard({ entry, learnLanguage, open, onToggle }: RootCardProps) {
   // Lazy: only fetch variants once this row is expanded (lemma undefined keeps the hook idle).
-  const { detail, loading } = usePokedexEntry(learnLanguage, open ? entry.lemma : undefined)
+  const { detail, loading } = usePalabradexEntry(learnLanguage, open ? entry.lemma : undefined)
   const tone = accuracyColor(entry.correctCount, entry.seenCount)
   const accuracyPct =
     entry.seenCount === 0 ? 0 : Math.round((entry.correctCount / entry.seenCount) * 100)

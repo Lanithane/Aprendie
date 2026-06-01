@@ -1,5 +1,5 @@
 import type { LanguageCode, WordToken } from '../../../../shared/languages'
-import * as pokedexRepository from '../persistence/pokedexRepository'
+import * as palabradexRepository from '../persistence/palabradexRepository'
 import { computeSeenDeltas, type SeenMistake } from '../domain/seenWords'
 
 export interface RecordSeenWordsInput {
@@ -12,12 +12,17 @@ export interface RecordSeenWordsInput {
   seenAt: Date
 }
 
-// Fold one graded attempt into the per-user Pokédex (root + variant grains). Called from
+// Fold one graded attempt into the per-user Palabradex (root + variant grains). Called from
 // history's `recordAttempt` (cross-module application orchestration). Pure delta computation
 // lives in the domain; this only persists.
 export async function recordSeenWords(input: RecordSeenWordsInput): Promise<void> {
   if (input.wordBreakdown.length === 0) return
   const { lexemes, variants } = computeSeenDeltas(input.wordBreakdown, input.mistakes)
-  await pokedexRepository.upsertLexemes(input.userId, input.learnLanguage, lexemes, input.seenAt)
-  await pokedexRepository.upsertVariants(input.userId, input.learnLanguage, variants, input.seenAt)
+  await palabradexRepository.upsertLexemes(input.userId, input.learnLanguage, lexemes, input.seenAt)
+  await palabradexRepository.upsertVariants(
+    input.userId,
+    input.learnLanguage,
+    variants,
+    input.seenAt
+  )
 }

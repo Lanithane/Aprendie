@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { fetchRootDetail, type RootDetailDto } from '../api/pokedexApi'
+import { fetchRootDetail, type RootDetailDto } from '../api/palabradexApi'
 import { ApiError } from '../api/client'
 import type { LanguageCode } from '../../shared/languages'
 
-interface UsePokedexEntryResult {
+interface UsePalabradexEntryResult {
   detail: RootDetailDto | null
   loading: boolean
   error: string | null
@@ -11,10 +11,10 @@ interface UsePokedexEntryResult {
 
 // Lazy-loads one root's detail (its variants) when a row is drilled into. `lemma` is undefined
 // while the row is collapsed; the fetch only fires once a lemma is provided.
-export function usePokedexEntry(
+export function usePalabradexEntry(
   learnLanguage: LanguageCode | undefined,
   lemma: string | undefined
-): UsePokedexEntryResult {
+): UsePalabradexEntryResult {
   const [detail, setDetail] = useState<RootDetailDto | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

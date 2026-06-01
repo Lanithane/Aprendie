@@ -1,6 +1,6 @@
 import { Box, Chip, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import type { VariantStatsDto } from '../../api/pokedexApi'
+import type { VariantStatsDto } from '../../api/palabradexApi'
 import type { LanguageCode } from '../../../shared/languages'
 
 const VariantRow = styled(Box)`

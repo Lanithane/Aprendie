@@ -1,4 +1,4 @@
-import * as pokedexRepository from '../persistence/pokedexRepository'
+import * as palabradexRepository from '../persistence/palabradexRepository'
 import {
   toLexemeStatsView,
   toVariantStatsView,
@@ -7,12 +7,12 @@ import {
   type RootDetailView,
 } from '../domain/Lexeme'
 
-export async function listPokedex(
+export async function listPalabradex(
   userId: string,
   learnLanguage: string,
   sort: LexemeSort
 ): Promise<LexemeStatsView[]> {
-  const rows = await pokedexRepository.listLexemes(userId, learnLanguage, sort)
+  const rows = await palabradexRepository.listLexemes(userId, learnLanguage, sort)
   return rows.map(toLexemeStatsView)
 }
 
@@ -21,12 +21,12 @@ export async function getRootDetail(
   learnLanguage: string,
   lemma: string
 ): Promise<RootDetailView | null> {
-  const root = await pokedexRepository.getLexeme(userId, learnLanguage, lemma)
+  const root = await palabradexRepository.getLexeme(userId, learnLanguage, lemma)
   if (!root) return null
-  const variants = await pokedexRepository.listVariants(userId, learnLanguage, lemma)
+  const variants = await palabradexRepository.listVariants(userId, learnLanguage, lemma)
   return { ...toLexemeStatsView(root), variants: variants.map(toVariantStatsView) }
 }
 
 export async function listLanguages(userId: string): Promise<string[]> {
-  return pokedexRepository.distinctLanguages(userId)
+  return palabradexRepository.distinctLanguages(userId)
 }
