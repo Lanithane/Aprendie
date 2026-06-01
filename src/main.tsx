@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './auth/AuthContext'
 import { ThemeModeProvider } from './ThemeModeProvider'
+import { FeedbackProvider } from './components/Feedback/FeedbackProvider'
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
@@ -18,7 +19,9 @@ ReactDOM.createRoot(rootEl).render(
     <AuthProvider>
       <ThemeModeProvider>
         <BrowserRouter>
-          <App />
+          <FeedbackProvider>
+            <App />
+          </FeedbackProvider>
         </BrowserRouter>
       </ThemeModeProvider>
     </AuthProvider>
