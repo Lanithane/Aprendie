@@ -39,6 +39,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 16   | Feedback & analytics (self-hosted, in admin)                                  | ⬜ Not started                      |
 | 17   | Single Starter level (drop Foundation) + Starter word-meaning hints           | ✅ Done                             |
 | 18   | Same-language practice mode (paraphrase / tense-shift, by difficulty)          | ⬜ Not started                      |
+| 19   | Grammar building blocks reference (POS overview + drill-down, per learn language) | ⬜ Not started                      |
 
 ### Decisions locked (from clarifying Q&A)
 
