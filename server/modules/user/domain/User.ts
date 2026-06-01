@@ -45,6 +45,8 @@ export interface AdminUserView {
   dailyCapOverride: number | null
   // ISO timestamp of a temporary uncap, or null. The client treats a future value as "uncapped".
   capExemptUntil: string | null
+  // Cumulative operator-key spend on this account's behalf (Epic 6 showback). Informational.
+  totalCostUsd: number
 }
 
 export function toUserView(row: UserRow): UserView {
@@ -69,6 +71,7 @@ export function toUserView(row: UserRow): UserView {
 export interface AdminUserUsage {
   usedToday: number
   globalCap: number
+  totalCostUsd: number
 }
 
 export function toAdminUserView(row: UserRow, usage: AdminUserUsage): AdminUserView {
@@ -83,5 +86,6 @@ export function toAdminUserView(row: UserRow, usage: AdminUserUsage): AdminUserV
     effectiveCap: row.dailyCapOverride ?? usage.globalCap,
     dailyCapOverride: row.dailyCapOverride ?? null,
     capExemptUntil: row.capExemptUntil ? row.capExemptUntil.toISOString() : null,
+    totalCostUsd: usage.totalCostUsd,
   }
 }

@@ -26,7 +26,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 3    | Text-to-speech + rate slider                                                  | ✅ Done                             |
 | 4    | RBAC + admin console (roles, users CRUD, key support)                         | ✅ Done (migration on prod)         |
 | 5    | History → Postgres, per user account                                          | ✅ Done (local migrated)            |
-| 6    | Usage-cost showback + contribute CTAs                                         | ⬜ Not started                      |
+| 6    | Usage-cost showback + contribute CTAs                                         | ✅ Done (CTA URLs are config) |
 | 7    | API-key security hardening                                                    | ✅ Done (AAD+HKDF+vitest)           |
 | 8    | Word "Palabradex" (seen roots + variants)                                        | ✅ Done (lexeme_stats + backfill)   |
 | 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
@@ -204,7 +204,7 @@ a user's key but **never view** plaintext.
       (new) — 403 unless `req.user.role === 'admin'`; composes after
       [requireAuth.ts](server/infrastructure/http/requireAuth.ts).
 - [x] **[User.ts](server/modules/user/domain/User.ts)** — added `role` to `UserView`; added
-      `AdminUserView` (id, email, name, role, hasApiKey, createdAt; `totalCostUsd` once Epic 6 lands).
+      `AdminUserView` (id, email, name, role, hasApiKey, createdAt; `totalCostUsd` added in Epic 6).
       Never exposes `encryptedAnthropicKey`.
 - [x] **[userRepository.ts](server/modules/user/persistence/userRepository.ts)** — `listAll()`,
       `updateRole(id, role)`, `countAdmins()`; reuses `updateEncryptedApiKey(id, null)` for revoke.
@@ -266,7 +266,7 @@ full snapshot per attempt) so history survives `sentence_cache` pruning — and 
 - [ ] _Optional (deferred):_ admin view of a user's history via `/api/admin/users/:id/history`
       reusing `listForUser`.
 
-## 🟦 Epic 6 — Usage-cost showback + contribute CTAs
+## ✅ Epic 6 — Usage-cost showback + contribute CTAs
 
 Captures Claude token usage per user (a showback table keyed by `userId`), surfaces each account's
 cost, and adds a sidebar "contribute" section sized by that cost. Showback is **informational** —
@@ -302,8 +302,10 @@ operator spend per user, not per-user keys.
       free" reassurance tooltip, **Offset water footprint**, **Support the developer** GitHub Sponsors),
       links config-gated on `VITE_OFFSET_URL` / `VITE_SUPPORT_URL`. On mobile (no sidebar) it surfaces
       as a `ContributeCard` in Settings.
-- [ ] **Admin fold-in** — `getShowbackForAllUsers()` is built and ready, but `totalCostUsd` is not yet
-      surfaced in Epic 4's `AdminUserView` (the only remaining task).
+- [x] **Admin fold-in** — `AdminUserView` now carries `totalCostUsd`; `listUsers` folds in
+      `getShowbackForAllUsers()` (no N+1) and per-user mutations re-project via `getUserShowback`.
+      Surfaced as a spend chip in [AdminPage.tsx](src/pages/AdminPage.tsx) and in the Account section
+      of [AdminUserDetailPage.tsx](src/pages/AdminUserDetailPage.tsx).
 - [ ] _Open:_ the two CTA URLs + (optionally) tuning the carbon/water factor methodology.
 
 ## ✅ Epic 7 — API-key security hardening ("super doubly secure")

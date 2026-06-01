@@ -23,6 +23,7 @@ import UserHistoryPanel from '../components/Admin/UserHistoryPanel'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAdminContext } from '../components/Admin/AdminLayout'
 import { useAuth } from '../auth/AuthContext'
+import { formatUsd } from '../components/Contribute/contribute'
 import type { UserRole, AccessState } from '../api/userApi'
 
 export default function AdminUserDetailPage() {
@@ -145,7 +146,9 @@ export default function AdminUserDetailPage() {
 
         <SectionCard
           title='Account'
-          description={`Joined ${format(new Date(user.createdAt), 'MMMM d, yyyy')}`}
+          description={`Joined ${format(new Date(user.createdAt), 'MMMM d, yyyy')} · ${formatUsd(
+            user.totalCostUsd
+          )} operator-key spend (informational)`}
         />
 
         <SectionCard title='History' description='Recent practice attempts (read-only).'>
