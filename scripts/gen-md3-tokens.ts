@@ -49,15 +49,18 @@ const THEME_SPECS: ThemeSpec[] = [
     lightSurface: '#F4F1DE',
     darkSurface: '#3D405B',
   },
-  // Cerezo (cherry blossom) — Baby Pink / Cotton Rose / Frosted Mint / Lemon Chiffon / Mauve.
+  // Cerezo (cherry blossom) — Baby Pink / Frosted Mint / Mauve / Blossom White / Cherry-wine Night.
+  // Surfaces seed the cherry-blossom canvas: a rosy petal-white in light, a deep cherry-wine in dark
+  // (redder than Lavanda's violet plum, so the two stay distinct). The old lemon/peach surface seeds
+  // clashed with the pink accents and the peach collided with Mango's dark seed.
   {
     id: 'cerezo',
     name: 'Cerezo',
     primary: '#FF99C8',
     secondary: '#D0F4DE',
     tertiary: '#E4C1F9',
-    lightSurface: '#FCF6BD',
-    darkSurface: '#FEC8C3',
+    lightSurface: '#FCE4EC',
+    darkSurface: '#2E1A24',
   },
   // Costa (coast) — Sky Blue / Blue Green / Deep Space Blue / Amber Flame / Princeton Orange.
   {
