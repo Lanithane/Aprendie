@@ -16,9 +16,9 @@ export const ADMIN_NAV_ITEM = {
 // Settings always sits last; Admin (when present) is inserted just before it.
 export const NAV_ITEMS = [
   { to: '/', label: 'Practice', Icon: HomeIcon },
-  { to: '/translator', label: 'Translate', Icon: BangIcon },
   { to: '/history', label: 'History', Icon: HistoryIcon },
-  { to: '/palabradex', label: 'Words', Icon: MenuBookIcon },
+  { to: '/palabradex', label: 'Palabradex', Icon: MenuBookIcon },
+  { to: '/translator', label: 'Translate', Icon: BangIcon },
   SETTINGS_NAV_ITEM,
 ] as const
 
