@@ -35,7 +35,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 12   | Operator key + access gate + daily cap                                        | ✅ Done (shipped to main)           |
 | 13   | Branding & identity (logo, favicon, PWA icons)                                | ⬜ Not started                      |
 | 14   | Forgiving scoring & letter grades (A+…F)                                      | ✅ Done (shipped to main)           |
-| 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                    | ⬜ Not started                      |
+| 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                    | ✅ Done                             |
 | 16   | Feedback & analytics (self-hosted, in admin)                                  | ⬜ Not started                      |
 | 17   | Single Starter level (drop Foundation) + Starter word-meaning hints           | ✅ Done                             |
 
@@ -610,29 +610,43 @@ answer (e.g. "I am enchanted by you", "How many years do you have") at the **A**
 - [x] **Display the letter** — `scoreColor.ts` thresholds re-aligned; `CorrectionDisplay`, `HistoryPage`, `HomePage` all show the letter grade.
 - [x] **Migration `0013`** — nullable `grade text` column added to `attempts` via `drizzle/0013_pink_archangel.sql`.
 
-## ⬜ Epic 15 — Auto-speak on load + smart voice defaults
+## ✅ Epic 15 — Auto-speak on load + smart voice defaults
 
 **Extends Epic 3** — TTS already shipped ([useSpeech.ts](src/hooks/useSpeech.ts),
 [useSpeechRate.ts](src/hooks/useSpeechRate.ts), [useSpeechVoice.ts](src/hooks/useSpeechVoice.ts), the
 [PracticeCard](src/components/PracticeCard/PracticeCard.tsx) speaker button, and
 [VoicePicker](src/components/VoicePicker/VoicePicker.tsx)). This epic adds **automatic** playback and
-better default voices; the manual speak button already exists. Pure frontend (Web Speech API).
+better default voices; the manual speak button already exists. Mostly frontend (Web Speech API); prefs
+persist server-side per account.
 
-- [ ] **Auto-speak on new sentence** — opt-in; when a new sentence renders in
+**Decided (diverged from the original spec):** the auto-speak prefs are stored **per account in
+Postgres** (`users.auto_speak`, `users.auto_speak_delay_ms`), not localStorage — they follow the user
+across devices like the other account prefs. Defaults are **auto-speak on at a 500 ms delay** (not off
+at 1 s): the manual speaker button always works, so a short auto-play is the better first-run
+experience. Delay bounds (0–3000 ms) and the defaults are shared client+server in
+[shared/speech.ts](shared/speech.ts), validated on both ends.
+
+- [x] **Auto-speak on new sentence** — when a new sentence renders in
       [PracticeCard.tsx](src/components/PracticeCard/PracticeCard.tsx) (over
-      [SentenceTokens](src/components/SentenceTokens/SentenceTokens.tsx)), call the existing
-      `useSpeech().speak(...)` after a configurable delay. Keep the timer in a small hook
-      (`src/hooks/useAutoSpeak.ts`) per the [CLAUDE.md](CLAUDE.md) useEffect rules; cancel on the next
-      sentence / unmount.
-- [ ] **Persisted prefs** — `useAutoSpeakPreference` (`aprendie:autoSpeak`, default off) + delay
-      (`aprendie:autoSpeakDelayMs`, **default 1000**), same localStorage pattern as
-      [useSpeechRate.ts](src/hooks/useSpeechRate.ts). The 1 s default gives the learner a moment to read
-      the sentence before the audio plays.
-- [ ] **Settings audio controls** — extend the **Pronunciation** SectionCard in
-      [SettingsPage.tsx](src/pages/SettingsPage.tsx) (next to `VoicePicker`) with the auto-speak toggle + a delay control.
-- [ ] **Smart voice defaults (research)** — document the best default voice per OS/browser/locale and
-      encode it in a `src/audio/voiceDefaults.ts` registry that seeds `pickVoice()` in
-      [useSpeech.ts](src/hooks/useSpeech.ts) (only when the user hasn't chosen one in `VoicePicker`).
+      [SentenceTokens](src/components/SentenceTokens/SentenceTokens.tsx)), the existing
+      `useSpeech().speak(...)` fires after the configured delay. The timer lives in
+      [useAutoSpeak.ts](src/hooks/useAutoSpeak.ts) per the [CLAUDE.md](CLAUDE.md) useEffect rules; it
+      re-arms only when the sentence text changes (so a rate tweak or async voice load doesn't restart
+      playback) and is cleared on the next sentence / unmount.
+- [x] **Persisted prefs** — [useAutoSpeakPreference.ts](src/hooks/useAutoSpeakPreference.ts) reads the
+      account's `autoSpeak` + `autoSpeakDelayMs` and writes them via `PATCH /api/me/auto-speak`
+      ([userController](server/modules/user/controllers/userController.ts) →
+      [setUserAutoSpeak](server/modules/user/application/setUserAutoSpeak.ts)), mirroring
+      `useLevelPreference`'s optimistic-override pattern. Backed by migration
+      [0015](drizzle/0015_old_lionheart.sql) and the shared defaults/clamp in
+      [shared/speech.ts](shared/speech.ts).
+- [x] **Settings audio controls** — [AutoSpeakControls.tsx](src/components/AutoSpeakControls/AutoSpeakControls.tsx)
+      (toggle + delay slider, slider dims when off) sits in the **Pronunciation** SectionCard in
+      [SettingsPage.tsx](src/pages/SettingsPage.tsx) next to `VoicePicker`.
+- [x] **Smart voice defaults** — [src/audio/voiceDefaults.ts](src/audio/voiceDefaults.ts) scores the
+      language's voices (locale specificity → Google voices → per-language named preferences → generic
+      quality markers, demoting Apple novelty voices) and seeds `pickVoice()` in
+      [useSpeech.ts](src/hooks/useSpeech.ts), used only when the user hasn't pinned one in `VoicePicker`.
 - [ ] _Backlog:_ cloud neural TTS for higher, consistent voice quality.
 
 ## ⬜ Epic 16 — Feedback & analytics
