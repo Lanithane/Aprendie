@@ -206,7 +206,7 @@ export default function AdminUserDetailPage() {
             }}
           />
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 2.5, pt: 1 }}>
           <Button
             onClick={() => {
               setDeleteOpen(false)
