@@ -24,7 +24,7 @@
     "db:start": "open -a Postgres && until pg_isready -q -h localhost -p 5432; do sleep 0.3; done && echo 'postgres ready on 5432'",
     "db:stop": "osascript -e 'quit app \"Postgres\"'",
     "db:status": "pg_isready -h localhost -p 5432",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate && tsx scripts/normalize-migration-journal.ts",
     "db:migrate": "tsx --env-file=.env server/infrastructure/db/migrate.ts",
     "db:migrate:prod": "DB_TARGET=prod tsx --env-file=.env server/infrastructure/db/migrate.ts",
     "db:migrate:deploy": "tsx server/infrastructure/db/migrate.ts",
