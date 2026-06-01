@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from 'react'
+import { useState } from 'react'
 import { Alert, Box, Button, CircularProgress, Stack, TextField, Typography } from '@mui/material'
 import TranslateIcon from '@mui/icons-material/Translate'
 import { styled } from '@mui/material/styles'
@@ -38,13 +38,6 @@ export default function TranslatorWidget({ pair }: TranslatorWidgetProps) {
     })
   }
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-      event.preventDefault()
-      handleSubmit()
-    }
-  }
-
   const handleChange = (value: string) => {
     setText(value)
     if (result) reset()
@@ -59,13 +52,12 @@ export default function TranslatorWidget({ pair }: TranslatorWidgetProps) {
             placeholder={`Type something in ${knownName}…`}
             value={text}
             onChange={(event) => handleChange(event.target.value)}
-            onKeyDown={handleKeyDown}
             multiline
             minRows={3}
             fullWidth
             autoFocus
           />
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               variant='contained'
               onClick={handleSubmit}
@@ -76,9 +68,6 @@ export default function TranslatorWidget({ pair }: TranslatorWidgetProps) {
             >
               {loading ? 'Translating…' : 'Translate'}
             </Button>
-            <Typography variant='caption' color='text.secondary'>
-              ⌘/Ctrl + Enter
-            </Typography>
           </Box>
         </Stack>
       </SectionCard>
