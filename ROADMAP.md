@@ -39,7 +39,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 16   | Feedback & analytics (self-hosted, in admin)                                  | ✅ Done                             |
 | 17   | Single Starter level (drop Foundation) + Starter word-meaning hints           | ✅ Done                             |
 | 18   | Same-language practice mode (paraphrase / tense-shift, by difficulty)          | ⬜ Not started                      |
-| 19   | Grammar building blocks reference (POS overview + drill-down, per learn language) | ⬜ Not started                      |
+| 19   | Grammar reference inside the Palabradex (POS inventory + example sentence, per learn language) | ⬜ Not started                      |
 | 20   | Shared sentence corpus + per-user exposure ledger (kill per-user generation dup)  | ✅ Done                             |
 | 21   | Tunable review / selection policy ("sliding scale" resurfacing)                   | ⬜ Not started (deferred, needs 20) |
 | 22   | Batch-API background sentence fills (50% off) + durable collector                 | ⬜ Not started (deferred, needs 20) |
@@ -828,14 +828,25 @@ The learner picks the rewrite _task_ via a **button-group toggle** on the practi
 
 ---
 
-## ⬜ Epic 19 — Grammar building blocks reference
+## ⬜ Epic 19 — Grammar reference inside the Palabradex
 
-A reference **info page** that explains the grammatical building blocks of the learner's currently
-selected language — **verbs, nouns, adjectives, articles, pronouns, prepositions, conjunctions**,
-etc. — reached from a dedicated **main-sidebar icon**. Content is keyed to the active
-`learnLanguage` (+ `locale`) from Settings, so a learner studying Spanish sees Spanish grammar and a
-learner studying French sees French. Complements immersion practice with an on-demand "how the
-language is built" view.
+A **second mode of the existing Palabradex** ([PalabradexPage.tsx](src/pages/PalabradexPage.tsx),
+`/palabradex`, Epic 8) — **not** a new page or sidebar icon. Where the Palabradex today answers
+"which words have *I* met" (per-user seen roots + variants + accuracy), this adds "**what are the
+building blocks of *this language***": the grammatical building blocks — **verbs, nouns, adjectives,
+articles, pronouns, prepositions, conjunctions**, etc. — of the learner's currently selected
+language. Content is keyed to the active `learnLanguage` (+ `locale`) from Settings, so a learner
+studying Spanish sees Spanish grammar and a learner studying French sees French. Complements
+immersion practice with an on-demand "how the language is built" view, living right beside the word
+collection it explains.
+
+**The "by part of speech" view (the core idea).** A POS-grouped reference: one group per part of
+speech (preposition, article, pronoun, conjunction, …), each listing that language's common members
+**with a short, simple example sentence** for at least one member — e.g. a preposition shown inside
+a sentence so the learner sees it in use ("these are the prepositions in this language; here's one
+in a sentence"). This is **reference inventory** (the language's prepositions), deliberately
+distinct from the personal "your seen words" list — the two are different data sources and must not
+be conflated.
 
 **Decided:**
 
@@ -845,37 +856,43 @@ language is built" view.
   the Epic 12 access-gate + daily-cap spend path. **Cache per (learnLanguage, locale)** so a visit
   doesn't regenerate (persist generated grammar like `word_breakdown`/`lexeme_stats` are cached) —
   generation should be rare, not per page view.
-- **Overview + detail drill-down** — a part-of-speech overview (one section per POS: short
-  explanation + example words in the learn language), each expandable into detail: verb
-  conjugation patterns, article gender/number, adjective agreement, pronoun sets, etc.
-- **Stateless from the UI's perspective** — no user-specific history; the page just reads the active
-  pair and requests (or pulls cached) grammar for that language.
+- **Overview + detail drill-down, rendered as a Palabradex mode** — a part-of-speech overview (one
+  section per POS: short explanation + example members + an example sentence), each expandable into
+  detail: verb conjugation patterns, article gender/number, adjective agreement, pronoun sets, etc.
+- **Reference data is language-scoped, not user-scoped** — explicitly stateless/shared, sitting
+  *beside* the per-user lexeme stats (its own `grammar` context + cache), never mixed into them. The
+  UI just reads the active pair and requests (or pulls cached) grammar for that language.
 
+- [ ] **Palabradex mode switch (UI)** — add a mode toggle to
+      [PalabradexPage.tsx](src/pages/PalabradexPage.tsx) (e.g. "Your words" ⇄ "Language", as Tabs or
+      a `ToggleButtonGroup`, MD3, matching the existing sort-toggle pattern). "Your words" stays
+      today's `RootList`; "Language" renders the new grammar reference. Page stays thin per
+      [CLAUDE.md](CLAUDE.md) — new UI goes in [src/components/Palabradex/](src/components/Palabradex/).
 - [ ] **`grammar` bounded context** — `server/modules/grammar/` with the four layers
       (`domain`/`application`/`persistence`/`controllers`); `application` orchestrates the Claude
       call through `anthropicClientForUser` and asserts access + daily cap; response parsed via
       [responseParser](server/infrastructure/claude/responseParser.ts) into a typed grammar model
-      (POS sections + drill-down blocks).
+      (POS sections + example members + example sentence + drill-down blocks). Kept as its own
+      context — generated language-reference data, not part of the per-user palabradex persistence.
 - [ ] **Caching + schema** — persist generated grammar keyed by `(learnLanguage, locale)` (new
       table via `npm run db:generate`, snapshot + journal per the migration rules in
       [CLAUDE.md](CLAUDE.md)); `application` returns the cached row when present, else generates +
       stores.
 - [ ] **`GET /api/grammar`** controller — resolves the requesting user's pair, returns cached-or-
       generated grammar JSON for the active language; 403/429 surface the existing access/cap codes.
-- [ ] **API wrapper** — `src/api/grammarApi.ts` on top of
+- [ ] **API wrapper + hook** — `src/api/grammarApi.ts` on top of
       [client.ts](src/api/client.ts) (no direct `fetch`); a `useGrammar` data hook in
-      [src/hooks/](src/hooks/) that reads `useLanguagePair().pair` and fetches on mount / pair
-      change.
-- [ ] **Page + components** — thin `src/pages/GrammarPage.tsx` composing the hook + a
-      `src/components/Grammar/` POS-overview + expandable-detail UI, MD3-styled (theme tokens,
-      `@emotion/styled`, [components/shared/](src/components/shared/) loading/section cards) per
-      [CLAUDE.md](CLAUDE.md).
-- [ ] **Sidebar + route** — add a `Grammar` item with an icon (e.g. an MUI grammar/`Spellcheck`/
-      `MenuBook`-family icon, or a custom one like [BangIcon.tsx](src/components/AppShell/BangIcon.tsx))
-      to `NAV_ITEMS` in [navigation.ts](src/components/AppShell/navigation.ts); wire `/grammar` in
-      [routes.tsx](src/routes.tsx) inside the authed `AppShell` block.
-- [ ] **Language-change behaviour** — switching the learn language in Settings re-fetches (or pulls
-      the cached) grammar for the new language so the page always matches the active pair.
+      [src/hooks/](src/hooks/) that reads `useLanguagePair().pair` and fetches when the Palabradex
+      "Language" mode is active / the pair changes.
+- [ ] **Grammar reference components** — a POS-overview + expandable-detail UI under
+      [src/components/Palabradex/](src/components/Palabradex/) (or a `Grammar/` subfolder there),
+      MD3-styled (theme tokens, `@emotion/styled`, [components/shared/](src/components/shared/)
+      loading/section cards) per [CLAUDE.md](CLAUDE.md). **No standalone `GrammarPage`, `/grammar`
+      route, or new sidebar item** — the reference lives at `/palabradex`, reusing the existing nav
+      entry.
+- [ ] **Language-change behaviour** — switching the learn language in Settings (or via the
+      Palabradex language tabs) re-fetches (or pulls the cached) grammar for the new language so the
+      "Language" mode always matches the active pair.
 
 ---
 
