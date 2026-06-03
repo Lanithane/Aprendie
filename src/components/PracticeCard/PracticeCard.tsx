@@ -105,16 +105,19 @@ export default function PracticeCard({
   const menuOpen = Boolean(anchorEl)
   const [rateAnchor, setRateAnchor] = useState<HTMLElement | null>(null)
   const rateOpen = Boolean(rateAnchor)
-  const { speak, cancel, speaking, supported: speechSupported } = useSpeech()
+  const { speak, cancel, speaking, supported: speechSupported, voices } = useSpeech()
   const { rate, setRate } = useSpeechRate()
   const { autoSpeak, delayMs } = useAutoSpeakPreference()
   // Opt-in auto-playback: read each new sentence aloud after the configured delay (Epic 15).
+  // `ready` (voices loaded) lets auto-speak retry once the async voice list arrives — on mobile it
+  // is empty on cold load, which is why playback sometimes didn't fire (see useAutoSpeak).
   useAutoSpeak({
     text: promptText,
     locale,
     rate,
     enabled: autoSpeak && speechSupported,
     delayMs,
+    ready: voices.length > 0,
     speak,
   })
 
