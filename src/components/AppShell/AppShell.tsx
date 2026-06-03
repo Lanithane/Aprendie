@@ -5,7 +5,7 @@ import { Box, useMediaQuery, BottomNavigation, BottomNavigationAction, Paper } f
 import { useAuth } from '../../auth/AuthContext'
 import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed'
 import Sidebar from '../Sidebar/Sidebar'
-import { buildNavItems, isActiveRoute } from './navigation'
+import { ADMIN_NAV_ITEM, buildNavItems, isActiveRoute } from './navigation'
 
 const SIDEBAR_WIDTH = 240
 const SIDEBAR_COLLAPSED_WIDTH = 64
@@ -69,12 +69,16 @@ const MobileNavSurface = styled(Paper)`
 export default function AppShell({ children }: { children: ReactNode }) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const isXs = useMediaQuery(theme.breakpoints.only('xs'))
   const { isAdmin } = useAuth()
   const loc = useLocation()
   // Desktop sidebar defaults to the collapsed rail; users expand it on demand. The choice is
   // persisted to localStorage so it survives reloads.
   const { collapsed, toggleCollapsed } = useSidebarCollapsed()
   const navItems = buildNavItems(isAdmin)
+  // The bottom bar can't fit six items on the narrowest phones, so drop Admin on xs — admins
+  // reach it from the button at the top of Settings instead.
+  const mobileNavItems = isXs ? navItems.filter(({ to }) => to !== ADMIN_NAV_ITEM.to) : navItems
   const activePath = navItems.find(({ to }) => isActiveRoute(loc.pathname, to))?.to ?? false
 
   return (
@@ -94,7 +98,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       {isMobile && (
         <MobileNavSurface elevation={8}>
           <BottomNavigation showLabels value={activePath} aria-label='Primary navigation'>
-            {navItems.map(({ to, label, Icon }) => (
+            {mobileNavItems.map(({ to, label, Icon }) => (
               <BottomNavigationAction
                 key={to}
                 label={label}

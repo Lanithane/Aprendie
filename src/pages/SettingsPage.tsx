@@ -11,6 +11,9 @@ import {
   ToggleButtonGroup,
 } from '@mui/material'
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined'
+import ShieldIcon from '@mui/icons-material/Shield'
+import { Link as RouterLink } from 'react-router-dom'
+import { ADMIN_NAV_ITEM } from '../components/AppShell/navigation'
 import SectionCard from '../components/shared/SectionCard'
 import ContributeCard from '../components/Contribute/ContributeCard'
 import { useFeedback } from '../components/Feedback/FeedbackProvider'
@@ -25,7 +28,7 @@ import { useThemeMode, type ThemeMode } from '../ThemeModeProvider'
 import { LEVELS, levelLabel } from '../../shared/levels'
 
 export default function SettingsPage() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const { pref, setPref } = useLevelPreference()
   const { mode, setMode } = useThemeMode()
   const { openFeedback } = useFeedback()
@@ -36,6 +39,18 @@ export default function SettingsPage() {
         Settings
       </Typography>
       <Stack spacing={2}>
+        {isAdmin && (
+          <Button
+            variant='outlined'
+            color='secondary'
+            startIcon={<ShieldIcon />}
+            component={RouterLink}
+            to={ADMIN_NAV_ITEM.to}
+            sx={{ alignSelf: 'flex-start' }}
+          >
+            {ADMIN_NAV_ITEM.label}
+          </Button>
+        )}
         <SectionCard
           title='Appearance'
           description='Pick a color theme and your light/dark preference. Every theme adapts to both.'
