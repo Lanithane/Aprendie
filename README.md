@@ -1,6 +1,6 @@
 # Aprendie
 
-A Spanish-language learning SPA. You're shown a sentence in Spanish; you type an English translation; the Claude API scores it and walks you through any mistakes (including which Spanish source words you misunderstood). A "Next" button advances to a fresh sentence.
+A language reading and listening learning application. You're shown a sentence in a language you choose, then you type its translation; the Claude API scores it and walks you through any mistakes (including which source words you misunderstood). A "Next" button advances to a fresh sentence.
 
 ## Stack
 
