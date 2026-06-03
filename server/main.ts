@@ -21,6 +21,7 @@ import feedbackController from './modules/feedback/controllers/feedbackControlle
 import analyticsController from './modules/analytics/controllers/analyticsController'
 import showbackController from './modules/showback/controllers/showbackController'
 import metricsController from './modules/metrics/controllers/metricsController'
+import { startBatchCollector } from './modules/sentence/application/batchCollector'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -79,4 +80,7 @@ app.use(errorHandler)
 
 app.listen(env.PORT, () => {
   console.log(`[server] listening on :${env.PORT} (${env.NODE_ENV})`)
+  // Drain half-price background sentence-fill batches (Epic 22). Only meaningful with an operator
+  // key — without one no batches are ever submitted, so there's nothing to collect.
+  if (env.OPERATOR_ANTHROPIC_KEY) startBatchCollector()
 })
