@@ -40,6 +40,9 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 17   | Single Starter level (drop Foundation) + Starter word-meaning hints           | ✅ Done                             |
 | 18   | Same-language practice mode (paraphrase / tense-shift, by difficulty)          | ⬜ Not started                      |
 | 19   | Grammar building blocks reference (POS overview + drill-down, per learn language) | ⬜ Not started                      |
+| 20   | Shared sentence corpus + per-user exposure ledger (kill per-user generation dup)  | ⬜ Not started (deferred)           |
+| 21   | Tunable review / selection policy ("sliding scale" resurfacing)                   | ⬜ Not started (deferred, needs 20) |
+| 22   | Batch-API background sentence fills (50% off) + durable collector                 | ⬜ Not started (deferred, needs 20) |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -876,6 +879,113 @@ language is built" view.
 
 ---
 
+## ⬜ Epics 20–22 — Sentence-generation cost overhaul (deferred)
+
+**Motivation.** Sentence generation is now the dominant operator-key cost, and we generate ~2×
+more sentences than learners consume. Two compounding causes:
+
+1. **Pools are per-user.** Every pool is keyed by `user.id`
+   ([sentencePool.ts](server/modules/sentence/application/sentencePool.ts) `poolKey`,
+   [sentenceRepository.ts](server/modules/sentence/persistence/sentenceRepository.ts)
+   `poolFilters`), so N users practicing the same `(learn, guess, locale, level)` each generate
+   a separate batch of interchangeable content — cost scales with *users × sentences practiced*,
+   not *unique sentences needed*.
+2. **Three over-generation leaks:** an **abandoned mixed-level batch** (onboarding sets the pair
+   before the level, so [setUserLanguagePair.ts](server/modules/user/application/setUserLanguagePair.ts)
+   fires a mixed-level batch, then [setUserLevel.ts](server/modules/user/application/setUserLevel.ts)
+   fires another; serving always filters by the concrete level, stranding the off-level half); a
+   **bootstrap race** (`/api/me` bootstrap + `/api/sentence` cold start →
+   `1 inline + 10 background`); and a **non-durable in-memory refill guard**
+   ([sentencePool.ts](server/modules/sentence/application/sentencePool.ts) `refillsInFlight`)
+   that doesn't dedupe across instances.
+
+The fix (caching *and* "datalake" in one move): a **shared, deduplicated, durable sentence
+corpus** keyed by `(learn, guess, locale, level)` plus a **per-user exposure ledger** so nobody
+repeats — generation then amortizes toward zero as the corpus saturates. Split into three
+independently shippable epics; **Epic 20 is the dependency and the main cost win.** Full design,
+data model, and step-by-step plan live in
+`~/.claude/plans/roadmap-md-we-need-to-stateless-donut.md`.
+
+**Two boundaries locked at the schema level (cheap now, annoying to retrofit):**
+
+- **Cache scope = sentence generations only.** The corpus is keyed on `(learn, guess, locale,
+  level, contentHash)` — sentence + pair + locale + level — so one sentence is reused across many
+  learners (where the hit rate comes from). **Corrections are never corpus'd**: a correction
+  prompt embeds the user's translation attempt, so each response is unique and not reusable. This
+  is orthogonal to the existing Anthropic prompt cache (`cache_control` on the system blocks),
+  which stays for both paths.
+- **Per-record token attribution from day one.** Each `sentences` row stores the **amortized**
+  generation token cost (`genInputTokens`/`genOutputTokens`/`genCachedInputTokens` = batch usage
+  ÷ batch size at insert), so cost-per-sentence / cost-per-served-sentence falls out for free on
+  top of the existing per-batch `usage_events`.
+
+### ⬜ Epic 20 — Shared sentence corpus + exposure ledger
+
+One shared, deduplicated corpus per `(learn, guess, locale, level)` instead of N per-user pools,
+plus a per-user exposure ledger so nobody repeats. Ships with a simple "prefer unseen, else
+least-recently-seen" picker behind a `selectNext()` seam (Epic 21 makes it tunable). Fixes all
+three leaks as a side effect.
+
+- [ ] **New `sentences` corpus table** (replaces per-user `sentence_cache`) in
+      [schema.ts](server/infrastructure/db/schema.ts) — drop `userId`/`consumedAt`; add `theme`
+      (category, for Epic 21 same-category review), `contentHash` with a unique constraint on
+      `(learn, guess, locale, level, contentHash)` for dedup (the cross-user cache key), and
+      **amortized generation token columns** `genInputTokens`/`genOutputTokens`/
+      `genCachedInputTokens` (batch usage ÷ batch size at insert, for per-sentence cost
+      attribution); index `(learn, guess, locale, level)`. Migration via `npm run db:generate`
+      (snapshot + journal per [CLAUDE.md](CLAUDE.md)).
+- [ ] **New `sentence_exposures` ledger** — `userId` FK cascade, `sentenceId` FK cascade,
+      `seenCount`, `firstSeenAt`, `lastSeenAt`, unique `(userId, sentenceId)`. Mistake/score
+      signal read from existing `attempts` (soft `sentenceId`), no denormalization.
+- [ ] **Backfill** `scripts/backfill-sentence-corpus.ts` (`npm run db:backfill:corpus`,
+      idempotent, mirroring [scripts/backfill-palabradex.ts](scripts/backfill-palabradex.ts)) —
+      dedupe old rows into `sentences`, convert each old `userId`/`consumedAt` into an exposure;
+      then drop `sentence_cache`.
+- [ ] **Persistence rewrite** — replace `countUnconsumed`/`takeNextUnconsumed`/`poolFilters`
+      with corpus-scoped `listCorpus`/`countCorpus`, `listExposuresForUser`, and an additive
+      `recordExposure` upsert (Palabradex `onConflictDoUpdate` pattern).
+- [ ] **Serving rewrite** — [getNextSentence.ts](server/modules/sentence/application/getNextSentence.ts):
+      load corpus slice + user exposures → `selectNext()` (prefer-unseen default) →
+      `recordExposure` → return; keep `assertCanSpend`/`assertSpendEnabled` + `sentence_shown`.
+      Refill trigger becomes "unseen-for-this-user low" (background) / "corpus empty" (sync cold
+      start).
+- [ ] **Leak fixes** — `setUserLanguagePair`/`setUserLevel` warm only the concrete `(pair,
+      level)` slice and skip when level unknown; add `theme` to the generator JSON schema in
+      [generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts).
+
+### ⬜ Epic 21 — Tunable review / selection policy ("sliding scale") — needs Epic 20
+
+Replaces the simple picker with a tunable, weighted policy that resurfaces previously-seen and
+same-category sentences for review (e.g. more review when a learner keeps making mistakes).
+
+- [ ] **Pure policy** `server/modules/sentence/domain/selectSentence.ts` —
+      `selectNext(candidates, exposures, signal, weights)`: prefer unseen; when scarce/review is
+      due, weight seen sentences by time-since-last-seen, recent mistakes, and struggling
+      categories (from `attempts` / `lexeme_stats`). Knobs in a `SelectionWeights` config object
+      so behaviour evolves without touching serving code. Unit-tested like
+      [seenWords.test.ts](server/modules/palabradex/domain/seenWords.test.ts).
+- [ ] _Future:_ expose weights via admin/env once defaults are validated.
+
+### ⬜ Epic 22 — Batch-API background fills (50% off) + collector — needs Epic 20
+
+Move bulk (background/prewarm) generation onto Anthropic's Message Batches API at half price;
+cold starts stay synchronous so first load is never slow.
+
+- [ ] **`server/infrastructure/claude/batchClient.ts`** — submit a Message Batch
+      (`client.messages.batches.create`), each request reusing the cached system block; one
+      request per slice needing a fill, `custom_id` encoding the slice.
+- [ ] **`sentence_batch_jobs` table** (batchId, slices json, status, createdAt) — durable
+      in-flight tracking that **replaces the in-memory `refillsInFlight` Set** and fixes the
+      multi-instance dedupe leak.
+- [ ] **Collector** — interval poller in [main.ts](server/main.ts) (guarded by `FOR UPDATE SKIP
+      LOCKED`): retrieve ended batches → parse via
+      [responseParser](server/infrastructure/claude/responseParser.ts) → upsert-dedupe into the
+      corpus → `recordUsage` at the batch rate.
+- [ ] **Pricing** — `costUsd` in [pricing.ts](server/infrastructure/claude/pricing.ts) gains a
+      `batch` flag applying the 0.5 multiplier so showback reflects the half-price spend.
+
+---
+
 ## Verification
 
 Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
@@ -921,6 +1031,16 @@ Per epic, run `npm run typecheck` (both tsconfigs) + `npm run lint`, then:
   re-renders with the new language's grammar (served from cache on the second visit, not
   regenerated). Confirm access-gate/daily-cap behaviour matches other spend paths, and QA the page in
   light/dark/system + mobile with no hardcoded colors.
+
+- **Epic 20** — two users on the same `(pair, locale, level)` practice; confirm only **one**
+  shared corpus is generated (not one per user), neither user repeats a sentence, and the corpus
+  grows only when unseen runs low. Backfill is idempotent (re-run is a no-op). Setting the pair
+  before the level generates **no** mixed-level batch; an empty-corpus slice still returns the
+  first sentence synchronously (no long spinner).
+- **Epic 21** — unit tests cover prefer-unseen, mistake-driven resurfacing, and same-category
+  review; a learner who keeps missing a category sees more of it.
+- **Epic 22** — `usage_events` shows background fills at the **batch (½) rate** while cold start
+  bills normally; a slice already in-flight is not resubmitted (jobs-table dedupe).
 
 Use the `/verify` skill for end-to-end confirmation and `/code-review` before declaring an epic
 done. Each epic is a natural PR/commit boundary.
