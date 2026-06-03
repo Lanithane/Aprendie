@@ -17,6 +17,9 @@ export interface GeneratedSentence {
   promptText: string
   answerText: string
   level: LevelCode
+  // The everyday-domain category the model based the sentence on (e.g. "food, cooking and eating
+  // out"). Echoed back per sentence so the corpus row records it for Epic 21's same-category review.
+  theme: string | null
   wordBreakdown: WordToken[]
 }
 

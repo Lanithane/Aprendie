@@ -9,15 +9,18 @@ export async function setUserLanguagePair(
   pair: LanguagePairPatch
 ): Promise<UserView> {
   const updated = await updateLanguagePair(userId, pair)
-  // Seed the pool immediately in the background so the first sentence fetch is warm.
-  const { learnLanguage, guessLanguage, locale } = updated
-  if (learnLanguage && guessLanguage && locale) {
+  // Warm the shared corpus for the chosen slice in the background so the first sentence fetch is
+  // warm — but ONLY once the level is known. Onboarding sets the pair before the level, so firing
+  // here without a concrete level used to generate a mixed-level batch whose off-level half was
+  // stranded (Epic 20 leak fix). With no level yet, `setUserLevel` warms the slice instead.
+  const { learnLanguage, guessLanguage, locale, level } = updated
+  if (learnLanguage && guessLanguage && locale && level != null && isLevelCode(level)) {
     triggerBackgroundRefill({
       user: updated,
       learnLanguage: learnLanguage as LanguageCode,
       guessLanguage: guessLanguage as LanguageCode,
       locale,
-      level: updated.level != null && isLevelCode(updated.level) ? updated.level : undefined,
+      level,
     })
   }
   return toUserView(updated)

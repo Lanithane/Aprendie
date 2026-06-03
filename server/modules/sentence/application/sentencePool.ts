@@ -7,6 +7,7 @@ import {
 } from '../../../infrastructure/claude/anthropicClient'
 import { recordUsage } from '../../showback/application/recordUsage'
 import * as sentenceRepository from '../persistence/sentenceRepository'
+import { contentHash } from '../domain/contentHash'
 import { generateSentenceBatch } from './generateSentenceBatch'
 
 // Keep a small buffer so we can serve instantly while a refill runs in the
@@ -21,8 +22,9 @@ export const REFILL_THRESHOLD = 3
 // then filled by a background refill so the next Next press is already warm.
 export const COLD_START_SIZE = 1
 
-// Identifies a single `(user, learn, guess, locale, level)` sentence pool. Shared by every
-// path that serves or warms a pool so the in-flight refill guard dedupes across all of them.
+// Identifies one serving/warming request: the shared corpus `(learn, guess, locale, level)` slice
+// plus the user it serves (needed for spend attribution and the access gates). `user` no longer
+// keys the corpus — it's shared — so the in-flight guard below dedupes per SLICE across all users.
 export interface PoolInput {
   user: UserRow
   learnLanguage: LanguageCode
@@ -31,8 +33,10 @@ export interface PoolInput {
   level?: LevelCode
 }
 
-export function poolKey(input: PoolInput): string {
-  return `${input.user.id}|${input.learnLanguage}|${input.guessLanguage}|${input.locale}|${input.level ?? ''}`
+// Slice key for the in-flight guard — deliberately user-independent so two learners on the same
+// `(pair, locale, level)` don't both kick off a fill for the one shared corpus.
+function poolKey(input: PoolInput): string {
+  return `${input.learnLanguage}|${input.guessLanguage}|${input.locale}|${input.level ?? ''}`
 }
 
 export async function refillPool(input: PoolInput, count?: number): Promise<void> {
@@ -48,8 +52,8 @@ export async function refillPool(input: PoolInput, count?: number): Promise<void
     count
   )
 
-  // Snapshot the batch's spend for showback, attributed to the user the pool serves. Never
-  // let a usage-recording failure fail the refill.
+  // Snapshot the batch's spend for showback, attributed to the user whose request warmed the
+  // corpus. Never let a usage-recording failure fail the refill.
   recordUsage({
     userId: input.user.id,
     operation: 'sentence_batch',
@@ -57,16 +61,30 @@ export async function refillPool(input: PoolInput, count?: number): Promise<void
     usage,
   }).catch((err) => console.error('[showback] recordUsage(sentence_batch) failed:', err))
 
-  await sentenceRepository.insertBatch(
+  // Amortize the batch's token cost across its sentences so every corpus row carries a
+  // cost-per-sentence (the whole batch was one API call). Floored ints — close enough for the
+  // informational cost-per-served-sentence the corpus is meant to expose.
+  const n = sentences.length
+  const genInputTokens = Math.floor(usage.inputTokens / n)
+  const genOutputTokens = Math.floor(usage.outputTokens / n)
+  const genCachedInputTokens = Math.floor(usage.cacheReadInputTokens / n)
+
+  // Insert into the SHARED corpus — keyed on (pair, locale, level, contentHash), so a sentence
+  // another user already generated is de-duplicated away rather than stored per-user.
+  await sentenceRepository.insertCorpus(
     sentences.map((s) => ({
-      userId: input.user.id,
       learnLanguage: input.learnLanguage,
       guessLanguage: input.guessLanguage,
       locale: input.locale,
+      level: s.level,
       promptText: s.promptText,
       answerText: s.answerText,
-      level: s.level,
       wordBreakdown: s.wordBreakdown,
+      theme: s.theme,
+      contentHash: contentHash(s.promptText),
+      genInputTokens,
+      genOutputTokens,
+      genCachedInputTokens,
     }))
   )
 }

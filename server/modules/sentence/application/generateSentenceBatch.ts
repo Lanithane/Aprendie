@@ -72,6 +72,7 @@ Output requirements:
 - Output exactly the number of distinct sentences requested in the user message.
 - "promptText" is the sentence in the LEARN language; "answerText" is a natural translation in the GUESS language.
 - Match the requested difficulty level, or vary across levels if asked to mix. Set "level" to the matching code.
+- "theme": echo back which everyday domain (from the list given in the user message) this sentence is based on, copied verbatim as the matching string.
 - Make each sentence natural and idiomatic for the given regional locale.
 - Variety matters: across a batch, vary the grammatical subject (don't open most sentences with the same word or pronoun), mix sentence types — statements, questions, requests, exclamations — wherever the difficulty level allows, and reach for different vocabulary instead of recycling the same handful of words. No batch should read like a list of near-identical greetings or textbook filler.
 - "wordBreakdown": one entry per meaningful word in promptText (skip pure punctuation). Decompose EVERY inflected word into the changes that derive it from its dictionary form. Each entry has:
@@ -99,6 +100,7 @@ JSON shape:
       "promptText": string,
       "answerText": string,
       "level": string,
+      "theme": string,
       "wordBreakdown": [ { "surface": string, "lemma": string, "partOfSpeech": string, "gloss": string, "modifiers": [ { "segment": string, "note": string } ] } ]
     }
   ]
@@ -121,6 +123,7 @@ interface RawSentence {
   promptText?: string
   answerText?: string
   level?: string
+  theme?: string
   wordBreakdown?: WordToken[]
 }
 
@@ -143,10 +146,12 @@ function normalizeToken(raw: Partial<WordToken>): WordToken {
 
 function normalize(raw: RawSentence, requestedLevel?: LevelCode): GeneratedSentence {
   const level = raw.level && isLevelCode(raw.level) ? raw.level : (requestedLevel ?? 'b1')
+  const theme = raw.theme?.trim()
   return {
     promptText: (raw.promptText ?? '').trim(),
     answerText: (raw.answerText ?? '').trim(),
     level,
+    theme: theme ? theme : null,
     wordBreakdown: Array.isArray(raw.wordBreakdown)
       ? raw.wordBreakdown.filter((t) => t?.surface).map(normalizeToken)
       : [],

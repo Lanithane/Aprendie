@@ -61,6 +61,11 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// LEGACY (pre-Epic 20): the per-user sentence pool. Superseded by the shared `sentences` corpus
+// + per-user `sentence_exposures` ledger below — every pool was keyed by `user.id`, so ten users
+// practicing the same `(pair, locale, level)` generated ten interchangeable batches. The table is
+// retained only so `scripts/backfill-sentence-corpus.ts` can migrate its rows into the corpus;
+// once prod has been backfilled it can be dropped in a follow-up migration.
 export const sentenceCache = pgTable(
   'sentence_cache',
   {
@@ -87,6 +92,71 @@ export const sentenceCache = pgTable(
     ),
     index('idx_sentence_cache_consumed').on(table.consumedAt),
   ]
+)
+
+// Epic 20 — the shared, de-duplicated sentence corpus. One row per distinct generated sentence
+// keyed by `(learnLanguage, guessLanguage, locale, level, contentHash)`, reusable across every
+// learner on that slice (one Spanish sentence serves many users) — this is where the generation
+// cost collapses. `theme` records the everyday-domain category (powers Epic 21's same-category
+// review). `contentHash` is a normalized hash of `promptText`; the unique index on
+// `(pair, locale, level, contentHash)` is the cache key so a sentence is never stored twice.
+// `gen*Tokens` carry the AMORTIZED token cost of generating this row (batch usage / sentenceCount
+// at insert), so cost-per-sentence is attributed from day one on top of the per-batch usage_events.
+export const sentences = pgTable(
+  'sentences',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    learnLanguage: text('learn_language').notNull(),
+    guessLanguage: text('guess_language').notNull(),
+    locale: text('locale').notNull(),
+    level: text('level'),
+    promptText: text('prompt_text').notNull(),
+    answerText: text('answer_text').notNull(),
+    wordBreakdown: json('word_breakdown').$type<WordToken[]>(),
+    theme: text('theme'),
+    contentHash: text('content_hash').notNull(),
+    genInputTokens: integer('gen_input_tokens').notNull().default(0),
+    genOutputTokens: integer('gen_output_tokens').notNull().default(0),
+    genCachedInputTokens: integer('gen_cached_input_tokens').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('uq_sentences_content').on(
+      table.learnLanguage,
+      table.guessLanguage,
+      table.locale,
+      table.level,
+      table.contentHash
+    ),
+    index('idx_sentences_slice').on(
+      table.learnLanguage,
+      table.guessLanguage,
+      table.locale,
+      table.level
+    ),
+  ]
+)
+
+// Epic 20 — per-user exposure ledger over the shared corpus. One row per (user, sentence) the user
+// has been shown; `seenCount` bumps and `lastSeenAt` advances on every exposure (`firstSeenAt` is
+// pinned on first sight). Drives the "prefer unseen, else least-recently-seen" picker (Epic 21
+// makes it tunable). Mistake/score signal is read from `attempts` — no denormalization here.
+// Cascades with both the user and the corpus sentence.
+export const sentenceExposures = pgTable(
+  'sentence_exposures',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    sentenceId: uuid('sentence_id')
+      .notNull()
+      .references(() => sentences.id, { onDelete: 'cascade' }),
+    seenCount: integer('seen_count').notNull().default(0),
+    firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('uq_sentence_exposures').on(table.userId, table.sentenceId)]
 )
 
 // Per-user attempt history. Fully denormalized (a snapshot per attempt) so it
@@ -289,8 +359,14 @@ export const session = pgTable(
 
 export type UserRow = typeof users.$inferSelect
 export type NewUserRow = typeof users.$inferInsert
-export type SentenceRow = typeof sentenceCache.$inferSelect
-export type NewSentenceRow = typeof sentenceCache.$inferInsert
+// Legacy per-user pool row (kept only for the corpus backfill).
+export type SentenceCacheRow = typeof sentenceCache.$inferSelect
+// `SentenceRow`/`NewSentenceRow` now point at the shared corpus (`sentences`), so consumers
+// (toSentenceView, correction, the repository) read/write the deduplicated corpus.
+export type SentenceRow = typeof sentences.$inferSelect
+export type NewSentenceRow = typeof sentences.$inferInsert
+export type SentenceExposureRow = typeof sentenceExposures.$inferSelect
+export type NewSentenceExposureRow = typeof sentenceExposures.$inferInsert
 export type AttemptRow = typeof attempts.$inferSelect
 export type NewAttemptRow = typeof attempts.$inferInsert
 export type LexemeStatsRow = typeof lexemeStats.$inferSelect
