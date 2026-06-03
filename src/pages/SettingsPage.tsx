@@ -41,8 +41,8 @@ export default function SettingsPage() {
       <Stack spacing={2}>
         {isAdmin && (
           <Button
-            variant='outlined'
-            color='secondary'
+            variant='contained'
+            color='primary'
             startIcon={<ShieldIcon />}
             component={RouterLink}
             to={ADMIN_NAV_ITEM.to}
