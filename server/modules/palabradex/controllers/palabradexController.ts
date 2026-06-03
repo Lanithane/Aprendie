@@ -4,7 +4,9 @@ import type { UserRow } from '../../../infrastructure/db/schema'
 import { requireAuth } from '../../../infrastructure/http/requireAuth'
 import { asyncHandler } from '../../../infrastructure/http/asyncHandler'
 import { listPalabradex, getRootDetail, listLanguages } from '../application/listPalabradex'
+import { defineLexeme } from '../application/defineLexeme'
 import { LEXEME_SORTS, type LexemeSort } from '../domain/Lexeme'
+import type { LanguageCode } from '../../../../shared/languages'
 
 const router = Router()
 
@@ -17,6 +19,11 @@ const listQuerySchema = z.object({
 
 const detailQuerySchema = z.object({
   learnLanguage: z.string().min(1),
+})
+
+const definitionQuerySchema = z.object({
+  learnLanguage: z.string().min(1),
+  guessLanguage: z.string().min(1),
 })
 
 // Must precede /:lemma so Express doesn't match "languages" as a lemma.
@@ -38,6 +45,24 @@ router.get(
     const { learnLanguage, sort } = parsed.data
     const entries = await listPalabradex((req.user as UserRow).id, learnLanguage, sort ?? 'seen')
     res.json(entries)
+  })
+)
+
+router.get(
+  '/:lemma/definition',
+  asyncHandler(async (req, res) => {
+    const parsed = definitionQuerySchema.safeParse(req.query)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const definition = await defineLexeme({
+      user: req.user as UserRow,
+      learnLanguage: parsed.data.learnLanguage as LanguageCode,
+      guessLanguage: parsed.data.guessLanguage as LanguageCode,
+      lemma: req.params.lemma,
+    })
+    if (definition === null) return res.status(404).json({ error: 'lexeme not found' })
+    res.json({ definition })
   })
 )
 

@@ -7,9 +7,10 @@ import type { LanguageCode } from '../../../shared/languages'
 interface RootListProps {
   entries: LexemeStatsDto[]
   learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
 }
 
-export default function RootList({ entries, learnLanguage }: RootListProps) {
+export default function RootList({ entries, learnLanguage, guessLanguage }: RootListProps) {
   const [expanded, setExpanded] = useState<string | null>(null)
 
   return (
@@ -22,6 +23,7 @@ export default function RootList({ entries, learnLanguage }: RootListProps) {
               <RootCard
                 entry={entry}
                 learnLanguage={learnLanguage}
+                guessLanguage={guessLanguage}
                 open={open}
                 onToggle={() => setExpanded((cur) => (cur === entry.lemma ? null : entry.lemma))}
               />

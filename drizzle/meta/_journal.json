@@ -148,6 +148,13 @@
       "when": 1781000000002,
       "tag": "0020_brave_chimera",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1781000000003,
+      "tag": "0021_slow_warhawk",
+      "breakpoints": true
     }
   ]
 }

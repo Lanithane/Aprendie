@@ -4,6 +4,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import VariantList from './VariantList'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import { usePalabradexEntry } from '../../hooks/usePalabradexEntry'
+import { useLexemeDefinition } from '../../hooks/useLexemeDefinition'
 import type { LexemeStatsDto } from '../../api/palabradexApi'
 import type { LanguageCode } from '../../../shared/languages'
 
@@ -31,13 +32,26 @@ const AccuracyDot = styled('span', {
 interface RootCardProps {
   entry: LexemeStatsDto
   learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
   open: boolean
   onToggle: () => void
 }
 
-export default function RootCard({ entry, learnLanguage, open, onToggle }: RootCardProps) {
+export default function RootCard({
+  entry,
+  learnLanguage,
+  guessLanguage,
+  open,
+  onToggle,
+}: RootCardProps) {
   // Lazy: only fetch variants once this row is expanded (lemma undefined keeps the hook idle).
   const { detail, loading } = usePalabradexEntry(learnLanguage, open ? entry.lemma : undefined)
+  // Likewise lazy — the translated meaning loads independently of the variants.
+  const {
+    definition,
+    loading: definitionLoading,
+    error: definitionError,
+  } = useLexemeDefinition(learnLanguage, guessLanguage, open ? entry.lemma : undefined)
   const tone = accuracyColor(entry.correctCount, entry.seenCount)
   const accuracyPct =
     entry.seenCount === 0 ? 0 : Math.round((entry.correctCount / entry.seenCount) * 100)
@@ -86,6 +100,19 @@ export default function RootCard({ entry, learnLanguage, open, onToggle }: RootC
       </ListItemButton>
       <Collapse in={open} unmountOnExit>
         <Box sx={{ px: 2, pb: 2, pt: 0.5 }}>
+          {definitionLoading ? (
+            <Typography variant='body2' color='text.secondary' sx={{ mb: 1.5 }}>
+              Loading definition…
+            </Typography>
+          ) : definition ? (
+            <Typography lang={guessLanguage} variant='body2' sx={{ mb: 1.5 }}>
+              {definition}
+            </Typography>
+          ) : definitionError ? (
+            <Typography variant='body2' color='text.secondary' sx={{ mb: 1.5 }}>
+              Definition unavailable.
+            </Typography>
+          ) : null}
           <Stack direction='row' spacing={2} sx={{ mb: 1.5 }}>
             <Typography variant='caption' color='success.main'>
               {entry.correctCount} correct

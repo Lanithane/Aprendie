@@ -253,6 +253,25 @@ export const lexemeVariantStats = pgTable(
   ]
 )
 
+// Shared (cross-user) cache of AI-generated word definitions: the meaning of a learn-language
+// root rendered in a known (guess) language. Keyed by (learnLanguage, guessLanguage, lemma) —
+// a definition is identical for every learner with that pair, so it is generated once and
+// reused, the same philosophy as the shared sentence corpus. Reference data: no user FK.
+export const lexemeDefinitions = pgTable(
+  'lexeme_definitions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    learnLanguage: text('learn_language').notNull(),
+    guessLanguage: text('guess_language').notNull(),
+    lemma: text('lemma').notNull(),
+    definition: text('definition').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('uq_lexeme_definitions').on(table.learnLanguage, table.guessLanguage, table.lemma),
+  ]
+)
+
 // Per-user daily spend counter backing the operator-key cap. One row per (user, UTC day);
 // `count` is the number of graded sentences (corrections) that day. `day` is a
 // 'YYYY-MM-DD' UTC string so the boundary is timezone-stable and the row is a cheap
@@ -373,6 +392,8 @@ export type LexemeStatsRow = typeof lexemeStats.$inferSelect
 export type NewLexemeStatsRow = typeof lexemeStats.$inferInsert
 export type LexemeVariantStatsRow = typeof lexemeVariantStats.$inferSelect
 export type NewLexemeVariantStatsRow = typeof lexemeVariantStats.$inferInsert
+export type LexemeDefinitionRow = typeof lexemeDefinitions.$inferSelect
+export type NewLexemeDefinitionRow = typeof lexemeDefinitions.$inferInsert
 export type UsageDailyRow = typeof usageDaily.$inferSelect
 export type UsageEventRow = typeof usageEvents.$inferSelect
 export type NewUsageEventRow = typeof usageEvents.$inferInsert

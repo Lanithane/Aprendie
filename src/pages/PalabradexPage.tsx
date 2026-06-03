@@ -119,7 +119,11 @@ export default function PalabradexPage() {
             <Typography color='text.secondary'>No words for this language yet.</Typography>
           ) : (
             <Stack spacing={2}>
-              <RootList entries={entries} learnLanguage={effectiveLang} />
+              <RootList
+                entries={entries}
+                learnLanguage={effectiveLang}
+                guessLanguage={pair.guessLanguage}
+              />
               <Typography variant='caption' color='text.secondary'>
                 {entries.length} root word{entries.length === 1 ? '' : 's'}
               </Typography>

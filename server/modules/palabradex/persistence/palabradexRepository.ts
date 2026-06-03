@@ -1,8 +1,10 @@
 import { and, asc, desc, eq, sql } from 'drizzle-orm'
 import { db } from '../../../infrastructure/db/client'
 import {
+  lexemeDefinitions,
   lexemeStats,
   lexemeVariantStats,
+  type LexemeDefinitionRow,
   type LexemeStatsRow,
   type LexemeVariantStatsRow,
 } from '../../../infrastructure/db/schema'
@@ -145,6 +147,47 @@ export async function distinctLanguages(userId: string): Promise<string[]> {
     .where(eq(lexemeStats.userId, userId))
     .orderBy(asc(lexemeStats.learnLanguage))
   return rows.map((r) => r.learnLanguage)
+}
+
+// Shared definition cache lookup, keyed by the (learn, guess, lemma) triple. Returns null on a
+// miss so the caller knows to generate one.
+export async function getDefinition(
+  learnLanguage: string,
+  guessLanguage: string,
+  lemma: string
+): Promise<LexemeDefinitionRow | null> {
+  const rows = await db
+    .select()
+    .from(lexemeDefinitions)
+    .where(
+      and(
+        eq(lexemeDefinitions.learnLanguage, learnLanguage),
+        eq(lexemeDefinitions.guessLanguage, guessLanguage),
+        eq(lexemeDefinitions.lemma, lemma)
+      )
+    )
+    .limit(1)
+  return rows[0] ?? null
+}
+
+// Persist a freshly generated definition. onConflictDoNothing makes it race-safe: if two users
+// define the same word at once, the first write wins and the second is a harmless no-op.
+export async function saveDefinition(
+  learnLanguage: string,
+  guessLanguage: string,
+  lemma: string,
+  definition: string
+): Promise<void> {
+  await db
+    .insert(lexemeDefinitions)
+    .values({ learnLanguage, guessLanguage, lemma, definition })
+    .onConflictDoNothing({
+      target: [
+        lexemeDefinitions.learnLanguage,
+        lexemeDefinitions.guessLanguage,
+        lexemeDefinitions.lemma,
+      ],
+    })
 }
 
 // Wipe both grains for everyone — used by the one-off backfill so it can rebuild the Palabradex

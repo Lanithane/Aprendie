@@ -42,3 +42,16 @@ export function fetchRootDetail(
 export function fetchPalabradexLanguages(): Promise<LanguageCode[]> {
   return api<LanguageCode[]>('/api/palabradex/languages')
 }
+
+// A root's meaning, translated into the known (guess) language. Generated once and shared
+// across users server-side, so repeat lookups are cheap.
+export function fetchLexemeDefinition(
+  learnLanguage: LanguageCode,
+  guessLanguage: LanguageCode,
+  lemma: string
+): Promise<{ definition: string }> {
+  const search = new URLSearchParams({ learnLanguage, guessLanguage })
+  return api<{ definition: string }>(
+    `/api/palabradex/${encodeURIComponent(lemma)}/definition?${search.toString()}`
+  )
+}
