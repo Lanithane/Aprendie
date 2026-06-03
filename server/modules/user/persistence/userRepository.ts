@@ -55,6 +55,11 @@ export async function countAdmins(): Promise<number> {
   return rows[0]?.value ?? 0
 }
 
+export async function countAll(): Promise<number> {
+  const rows = await db.select({ value: count() }).from(users)
+  return rows[0]?.value ?? 0
+}
+
 // Hard delete. `sentence_cache` and `attempts` rows cascade via their FK
 // onDelete: 'cascade'; the user's `session` rows are orphaned and expire on
 // their own (not FK-linked).

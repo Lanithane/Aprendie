@@ -17,9 +17,8 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import LimitsPanel from '../components/Admin/LimitsPanel'
 import FeedbackPanel from '../components/Admin/FeedbackPanel'
 import AnalyticsPanel from '../components/Admin/AnalyticsPanel'
-import ContributeCard from '../components/Contribute/ContributeCard'
+import SiteMetricsPanel from '../components/Metrics/SiteMetricsPanel'
 import { useAdminContext } from '../components/Admin/AdminLayout'
-import { useAuth } from '../auth/AuthContext'
 import { useNow } from '../hooks/useNow'
 import { formatUsd } from '../components/Contribute/contribute'
 
@@ -32,7 +31,6 @@ function capUsageColor(used: number, cap: number): NonNullable<ChipProps['color'
 // Admin landing: a tappable list of accounts. Each opens a detail route to edit the user.
 export default function AdminPage() {
   const { users, loading, error, reload } = useAdminContext()
-  const { user } = useAuth()
   const now = useNow()
 
   return (
@@ -47,7 +45,7 @@ export default function AdminPage() {
         <LimitsPanel users={users} />
       </Box>
       <Stack spacing={3} sx={{ mb: 3 }}>
-        <ContributeCard userId={user?.id} />
+        <SiteMetricsPanel />
         <AnalyticsPanel />
         <FeedbackPanel />
       </Stack>

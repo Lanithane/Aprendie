@@ -1,6 +1,12 @@
-import { estimateSustainability } from '../../../infrastructure/claude/sustainability'
+import {
+  estimateSustainability,
+  type SustainabilityEstimate,
+} from '../../../infrastructure/claude/sustainability'
 import * as usageEventRepository from '../persistence/usageEventRepository'
+import type { CostPoint, CostSeriesOptions } from '../persistence/usageEventRepository'
 import type { ShowbackView, UsageOperation } from '../domain/Showback'
+
+export type { CostPoint, CostSeriesOptions }
 
 const EMPTY_BY_OPERATION: Record<UsageOperation, number> = {
   correction: 0,
@@ -38,4 +44,25 @@ export async function getUserShowback(userId: string): Promise<ShowbackView> {
 // Total dollar cost per user, for the admin user list (folds into Epic 4's AdminUserView).
 export async function getShowbackForAllUsers(): Promise<Map<string, number>> {
   return usageEventRepository.totalCostForAllUsers()
+}
+
+// Dollar cost per time bucket, for the metrics line graphs. Sitewide when `userId` is omitted.
+export function getCostSeries(opts: CostSeriesOptions): Promise<CostPoint[]> {
+  return usageEventRepository.costPerBucket(opts)
+}
+
+export interface SiteShowback {
+  totalCostUsd: number
+  totalTokens: number
+  estimate: SustainabilityEstimate
+}
+
+// Lifetime sitewide spend + the labeled environmental estimate derived from total tokens.
+export async function getSiteShowback(): Promise<SiteShowback> {
+  const totals = await usageEventRepository.siteTotals()
+  return {
+    totalCostUsd: totals.totalCostUsd,
+    totalTokens: totals.totalTokens,
+    estimate: estimateSustainability(totals.totalTokens),
+  }
 }
