@@ -3,33 +3,26 @@ import {
   Typography,
   Box,
   Stack,
-  Collapse,
   Button,
   Alert,
   List,
-  ListItemButton,
-  ListItemText,
-  Divider,
   Paper,
   Tabs,
   Tab,
   ToggleButtonGroup,
   ToggleButton,
 } from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { format } from 'date-fns'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useHistory } from '../hooks/useHistory'
 import { useHistoryLanguages } from '../hooks/useHistoryLanguages'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
-import GradeChip from '../components/shared/GradeChip'
-import AttemptDetail from '../components/History/AttemptDetail'
+import AttemptRow from '../components/History/AttemptRow'
+import UserMetrics from '../components/Metrics/UserMetrics'
 import { LANGUAGES } from '../../shared/languages'
 import { LEVELS } from '../../shared/levels'
 import type { LanguagePair } from '../../shared/languages'
 import type { LevelCode } from '../../shared/levels'
-import type { AttemptDto } from '../api/historyApi'
 
 function pairKey(p: LanguagePair) {
   return `${p.learnLanguage}|${p.locale}`
@@ -78,9 +71,13 @@ export default function HistoryPage() {
 
   return (
     <Box>
-      <Typography variant='h3' sx={{ mb: 0.5 }}>
+      <Typography variant='h3' sx={{ mb: 2 }}>
         History
       </Typography>
+
+      <Box sx={{ mb: 3 }}>
+        <UserMetrics source={{ kind: 'me' }} title='Your metrics' />
+      </Box>
 
       {pairsLoading && <LoadingSpinner />}
 
@@ -142,11 +139,12 @@ export default function HistoryPage() {
                 <Paper variant='outlined' sx={{ borderRadius: 2, overflow: 'hidden' }}>
                   <List disablePadding>
                     {items.map((it, idx) => (
-                      <HistoryRow
+                      <AttemptRow
                         key={it.id}
                         entry={it}
                         open={expanded === it.id}
                         onToggle={() => setExpanded((cur) => (cur === it.id ? null : it.id))}
+                        inList
                         showDivider={idx < items.length - 1 || expanded === it.id}
                       />
                     ))}
@@ -225,57 +223,5 @@ function HistoryFilters({ selectedLevel, sort, onLevelChange, onSortChange }: Hi
         </ToggleButtonGroup>
       </Box>
     </Box>
-  )
-}
-
-interface HistoryRowProps {
-  entry: AttemptDto
-  open: boolean
-  onToggle: () => void
-  showDivider: boolean
-}
-
-function HistoryRow({ entry, open, onToggle, showDivider }: HistoryRowProps) {
-  return (
-    <>
-      <ListItemButton
-        onClick={onToggle}
-        aria-expanded={open}
-        aria-label='Toggle attempt details'
-        sx={{ gap: 1.5, py: 1.25, px: 2, borderRadius: 0 }}
-      >
-        <GradeChip grade={entry.grade} />
-        <ListItemText
-          primary={entry.promptText}
-          slotProps={{
-            primary: {
-              lang: entry.learnLanguage,
-              noWrap: true,
-              sx: { flex: 1, minWidth: 0, wordSpacing: '-0.05em' },
-            },
-          }}
-        />
-        <Typography
-          variant='caption'
-          sx={{ flexShrink: 0, color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
-        >
-          {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
-        </Typography>
-        <ExpandMoreIcon
-          sx={{
-            flexShrink: 0,
-            color: 'action.active',
-            transform: open ? 'rotate(180deg)' : 'none',
-            transition: '0.2s',
-          }}
-        />
-      </ListItemButton>
-      <Collapse in={open}>
-        <Box sx={{ px: 2, pb: 2, pt: 0.5 }}>
-          <AttemptDetail entry={entry} />
-        </Box>
-      </Collapse>
-      {showDivider && <Divider />}
-    </>
   )
 }

@@ -20,6 +20,7 @@ import { format } from 'date-fns'
 import SectionCard from '../components/shared/SectionCard'
 import DailyLimitSection from '../components/Admin/DailyLimitSection'
 import UserHistoryPanel from '../components/Admin/UserHistoryPanel'
+import UserMetrics from '../components/Metrics/UserMetrics'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAdminContext } from '../components/Admin/AdminLayout'
 import { useAuth } from '../auth/AuthContext'
@@ -150,6 +151,8 @@ export default function AdminUserDetailPage() {
             user.totalCostUsd
           )} operator-key spend (informational)`}
         />
+
+        <UserMetrics source={{ kind: 'user', id: user.id }} />
 
         <SectionCard title='History' description='Recent practice attempts (read-only).'>
           <UserHistoryPanel userId={user.id} />

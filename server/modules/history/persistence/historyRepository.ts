@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, sql, type SQL } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, sql, type SQL } from 'drizzle-orm'
 import { db } from '../../../infrastructure/db/client'
 import { attempts, type AttemptRow, type NewAttemptRow } from '../../../infrastructure/db/schema'
 
@@ -82,4 +82,103 @@ export async function distinctPairsForUser(
     })
     .from(attempts)
     .where(eq(attempts.userId, userId))
+}
+
+// --- Metrics aggregates (backs the metrics module) -----------------------------------------
+
+export type Bucket = 'day' | 'hour'
+
+export interface SeriesPoint {
+  bucket: string
+  value: number
+}
+
+export interface SeriesOptions {
+  userId?: string
+  since?: Date
+  bucket: Bucket
+}
+
+// A UTC-truncated, pre-formatted time bucket. Formatting to a string in SQL (rather than
+// returning a Date) sidesteps node-postgres' local-time parsing of `timestamp` values, so the
+// bucket key is unambiguous on the wire and the client can parse it back as UTC.
+function bucketExpr(b: Bucket): SQL<string> {
+  const fmt = b === 'hour' ? 'YYYY-MM-DD"T"HH24:00' : 'YYYY-MM-DD'
+  return sql<string>`to_char(date_trunc(${b}, ${attempts.createdAt} AT TIME ZONE 'UTC'), ${fmt})`
+}
+
+// Attempt counts per time bucket, oldest first. Sitewide when `userId` is omitted.
+export async function attemptsPerBucket(opts: SeriesOptions): Promise<SeriesPoint[]> {
+  const conds: SQL[] = []
+  if (opts.userId) conds.push(eq(attempts.userId, opts.userId))
+  if (opts.since) conds.push(gte(attempts.createdAt, opts.since))
+  const b = bucketExpr(opts.bucket)
+  return (
+    db
+      .select({ bucket: b, value: sql<number>`count(*)::int` })
+      .from(attempts)
+      .where(conds.length ? and(...conds) : undefined)
+      // Group/order by the bucket's output position: repeating the parametrized expression here
+      // would make Postgres treat the two as distinct bind params and reject the ungrouped column.
+      .groupBy(sql`1`)
+      .orderBy(sql`1`)
+  )
+}
+
+// Distinct active users (anyone with an attempt) per time bucket, oldest first.
+export async function activeUsersPerBucket(
+  opts: Omit<SeriesOptions, 'userId'>
+): Promise<SeriesPoint[]> {
+  const conds: SQL[] = []
+  if (opts.since) conds.push(gte(attempts.createdAt, opts.since))
+  const b = bucketExpr(opts.bucket)
+  return (
+    db
+      .select({ bucket: b, value: sql<number>`count(distinct ${attempts.userId})::int` })
+      .from(attempts)
+      .where(conds.length ? and(...conds) : undefined)
+      // Group/order by the bucket's output position: repeating the parametrized expression here
+      // would make Postgres treat the two as distinct bind params and reject the ungrouped column.
+      .groupBy(sql`1`)
+      .orderBy(sql`1`)
+  )
+}
+
+export interface AttemptStats {
+  total: number
+  distinctUsers: number
+  correct: number
+}
+
+// Lifetime sitewide attempt totals (count, distinct users, correct) for the metrics headline.
+export async function siteAttemptStats(): Promise<AttemptStats> {
+  const rows = await db
+    .select({
+      total: sql<number>`count(*)::int`,
+      distinctUsers: sql<number>`count(distinct ${attempts.userId})::int`,
+      correct: sql<number>`coalesce(sum(case when ${attempts.isCorrect} then 1 else 0 end), 0)::int`,
+    })
+    .from(attempts)
+  return rows[0] ?? { total: 0, distinctUsers: 0, correct: 0 }
+}
+
+export interface UserAttemptStats {
+  total: number
+  correct: number
+  today: number
+}
+
+// Lifetime + today attempt totals for one user. `today` is bounded by the UTC calendar day,
+// matching the daily-cap boundary used elsewhere (see usage/persistence/usageRepository.utcDay).
+export async function userAttemptStats(userId: string): Promise<UserAttemptStats> {
+  const sinceMidnight = new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`)
+  const rows = await db
+    .select({
+      total: sql<number>`count(*)::int`,
+      correct: sql<number>`coalesce(sum(case when ${attempts.isCorrect} then 1 else 0 end), 0)::int`,
+      today: sql<number>`coalesce(sum(case when ${attempts.createdAt} >= ${sinceMidnight} then 1 else 0 end), 0)::int`,
+    })
+    .from(attempts)
+    .where(eq(attempts.userId, userId))
+  return rows[0] ?? { total: 0, correct: 0, today: 0 }
 }
