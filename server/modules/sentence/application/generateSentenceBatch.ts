@@ -12,7 +12,7 @@ import {
 import { LEVELS, isLevelCode, levelByCode, type LevelCode } from '../../../../shared/levels'
 import type { GeneratedSentence } from '../domain/Sentence'
 
-const BATCH_SIZE = 10
+export const BATCH_SIZE = 10
 
 // Rotating content domains. Difficulty is governed entirely by the level rubric below; these
 // steer only WHAT a batch is about, so the same domain yields a starter "I eat bread" and a
@@ -158,11 +158,14 @@ function normalize(raw: RawSentence, requestedLevel?: LevelCode): GeneratedSente
   }
 }
 
-export async function generateSentenceBatch(
-  anthropic: Anthropic,
+// Build the Messages-API request body for one sentence-generation call. Factored out so BOTH the
+// synchronous cold-start path (generateSentenceBatch) and the half-price background path
+// (batchClient, Epic 22) submit byte-identical requests — same cached system block, same shape — so
+// the prompt cache and the corpus dedup behave the same regardless of which path generated a row.
+export function buildSentenceMessageParams(
   params: GenerateParams,
   count: number = BATCH_SIZE
-): Promise<GeneratedBatch> {
+): Anthropic.MessageCreateParamsNonStreaming {
   const { learnLanguage, guessLanguage, locale, level } = params
   const levelLine = level
     ? `All ${count} sentences at difficulty level "${level}" (${levelByCode(level)?.name ?? level}).`
@@ -182,23 +185,43 @@ ${themeLine}
 
 Generate ${count} sentences now.`
 
-  const resp = await anthropic.messages.create({
+  return {
     model: SENTENCE_MODEL,
     max_tokens: 8000,
     system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: userText }],
-  })
+  }
+}
 
-  const text = extractJsonText(resp, 'sentence/generate')
+// Parse a sentence-generation response into usable GeneratedSentences. Shared by the synchronous
+// path and the batch collector (which hands in a Message retrieved from batch results). `context`
+// flows into error/parse messages; `level` is the requested level used to fill any missing per-
+// sentence level. Throws when nothing usable comes back so callers can skip/log the result.
+export function parseSentenceResponse(
+  resp: Anthropic.Message,
+  context: string,
+  level?: LevelCode
+): GeneratedSentence[] {
+  const text = extractJsonText(resp, context)
   const parsed = JSON.parse(text) as { sentences?: RawSentence[] }
   if (!Array.isArray(parsed.sentences) || parsed.sentences.length === 0) {
-    throw new Error('[sentence/generate] missing or empty sentences[] in response')
+    throw new Error(`[${context}] missing or empty sentences[] in response`)
   }
   const sentences = parsed.sentences
     .map((s) => normalize(s, level))
     .filter((s) => s.promptText.length > 0 && s.answerText.length > 0)
   if (sentences.length === 0) {
-    throw new Error('[sentence/generate] no usable sentences in response')
+    throw new Error(`[${context}] no usable sentences in response`)
   }
+  return sentences
+}
+
+export async function generateSentenceBatch(
+  anthropic: Anthropic,
+  params: GenerateParams,
+  count: number = BATCH_SIZE
+): Promise<GeneratedBatch> {
+  const resp = await anthropic.messages.create(buildSentenceMessageParams(params, count))
+  const sentences = parseSentenceResponse(resp, 'sentence/generate', params.level)
   return { sentences, usage: toTokenUsage(resp.usage) }
 }

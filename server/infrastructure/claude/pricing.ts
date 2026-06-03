@@ -65,9 +65,14 @@ function ratesFor(model: string): ModelRates {
   return RATES[CORRECTION_MODEL]
 }
 
+// Anthropic's Message Batches API bills every token class at half the standard list price, so a
+// single flat multiplier on the computed cost is exact (Epic 22 background fills run on batch).
+const BATCH_DISCOUNT = 0.5
+
 // Dollar cost of a single call. Cache reads are far cheaper than fresh input, and cache
-// writes a touch dearer, so each token class is priced on its own line.
-export function costUsd(model: string, usage: TokenUsage): number {
+// writes a touch dearer, so each token class is priced on its own line. Pass `batch: true` for
+// usage generated via the Message Batches API to apply its 50% discount.
+export function costUsd(model: string, usage: TokenUsage, batch = false): number {
   const r = ratesFor(model)
   const dollars =
     (usage.inputTokens * r.inputPerMTok +
@@ -75,5 +80,5 @@ export function costUsd(model: string, usage: TokenUsage): number {
       usage.cacheCreationInputTokens * r.cacheWritePerMTok +
       usage.cacheReadInputTokens * r.cacheReadPerMTok) /
     1_000_000
-  return dollars
+  return batch ? dollars * BATCH_DISCOUNT : dollars
 }

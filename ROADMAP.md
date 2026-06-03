@@ -42,7 +42,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 19   | Grammar reference inside the Palabradex (POS inventory + example sentence, per learn language) | ⬜ Not started                      |
 | 20   | Shared sentence corpus + per-user exposure ledger (kill per-user generation dup)  | ✅ Done                             |
 | 21   | Tunable review / selection policy ("sliding scale" resurfacing)                   | ⬜ Not started (deferred, needs 20) |
-| 22   | Batch-API background sentence fills (50% off) + durable collector                 | ⬜ Not started (deferred, needs 20) |
+| 22   | Batch-API background sentence fills (50% off) + durable collector                 | ✅ Done |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -988,23 +988,31 @@ same-category sentences for review (e.g. more review when a learner keeps making
       [seenWords.test.ts](server/modules/palabradex/domain/seenWords.test.ts).
 - [ ] _Future:_ expose weights via admin/env once defaults are validated.
 
-### ⬜ Epic 22 — Batch-API background fills (50% off) + collector — needs Epic 20
+### ✅ Epic 22 — Batch-API background fills (50% off) + collector — needs Epic 20 (2026-06-02)
 
-Move bulk (background/prewarm) generation onto Anthropic's Message Batches API at half price;
-cold starts stay synchronous so first load is never slow.
+Background/prewarm generation now runs on Anthropic's Message Batches API at half price; cold
+starts stay synchronous (inline `refillPool`, full rate) so first load is never slow. Migration
+`0022_petite_loki` (`sentence_batch_jobs` table + `sentences.batch_id`).
 
-- [ ] **`server/infrastructure/claude/batchClient.ts`** — submit a Message Batch
-      (`client.messages.batches.create`), each request reusing the cached system block; one
-      request per slice needing a fill, `custom_id` encoding the slice.
-- [ ] **`sentence_batch_jobs` table** (batchId, slices json, status, createdAt) — durable
-      in-flight tracking that **replaces the in-memory `refillsInFlight` Set** and fixes the
-      multi-instance dedupe leak.
-- [ ] **Collector** — interval poller in [main.ts](server/main.ts) (guarded by `FOR UPDATE SKIP
-      LOCKED`): retrieve ended batches → parse via
-      [responseParser](server/infrastructure/claude/responseParser.ts) → upsert-dedupe into the
-      corpus → `recordUsage` at the batch rate.
-- [ ] **Pricing** — `costUsd` in [pricing.ts](server/infrastructure/claude/pricing.ts) gains a
-      `batch` flag applying the 0.5 multiplier so showback reflects the half-price spend.
+- [x] **`server/infrastructure/claude/batchClient.ts`** — domain-agnostic wrappers over
+      `messages.batches.create/retrieve/results` (`createMessageBatch` / `isBatchEnded` /
+      `fetchBatchResults`). The cached system block is reused via
+      `buildSentenceMessageParams` (extracted from `generateSentenceBatch.ts` alongside
+      `parseSentenceResponse`) so batch requests are byte-identical to the inline path — kept in
+      the sentence module, not infra, to respect the no-infra→module rule.
+- [x] **`sentence_batch_jobs` table** — durable in-flight tracking (one row per submitted batch,
+      slice as discrete columns for indexed dedupe, `userId` for showback attribution, status
+      `in_progress → collecting → completed | failed`). **Replaces the in-memory `refillsInFlight`
+      Set**; `triggerBackgroundRefill` now submits a batch + inserts a job, guarded by
+      `batchJobRepository.hasInFlightJob` so a slice already in flight isn't resubmitted across
+      instances.
+- [x] **Collector** — interval poller (`batchCollector.ts`, started in [main.ts](server/main.ts)
+      when an operator key is set; `claimCollectibleJobs` uses `FOR UPDATE SKIP LOCKED` + stale-
+      `collecting` reclaim): retrieve ended batches → `parseSentenceResponse` → upsert-dedupe into
+      the corpus (tagged `batch_id` + amortized tokens) → `recordUsage` at the batch rate.
+- [x] **Pricing** — `costUsd(model, usage, batch?)` in
+      [pricing.ts](server/infrastructure/claude/pricing.ts) applies a 0.5 multiplier; `recordUsage`
+      gained a `batch?` passthrough so showback reflects the half-price spend (unit-tested).
 
 ---
 

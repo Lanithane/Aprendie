@@ -118,6 +118,10 @@ export const sentences = pgTable(
     genInputTokens: integer('gen_input_tokens').notNull().default(0),
     genOutputTokens: integer('gen_output_tokens').notNull().default(0),
     genCachedInputTokens: integer('gen_cached_input_tokens').notNull().default(0),
+    // Epic 22 — the Message Batch (`sentence_batch_jobs.batch_id`) that generated this row, when it
+    // came from a half-price background fill. Null for synchronous cold-start rows. Soft reference
+    // (no FK): the job is a transient tracking record that may be pruned while the corpus lives on.
+    batchId: text('batch_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -157,6 +161,49 @@ export const sentenceExposures = pgTable(
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [uniqueIndex('uq_sentence_exposures').on(table.userId, table.sentenceId)]
+)
+
+// Epic 22 — durable tracking for in-flight Anthropic Message Batch fills (half-price background
+// generation). One row per submitted batch; since a background refill warms a single `(pair,
+// locale, level)` slice, each row carries that slice as discrete columns (cleaner indexed dedupe
+// than scanning a json array). Replaces the old in-memory `refillsInFlight` Set — so a slice
+// already in flight isn't resubmitted even across instances — and the collector polls it to drain
+// ended batches into the corpus. `userId` records who triggered the fill, for showback attribution.
+// Loose-typed text `status` (like `role`/`level`) to avoid pg-enum friction:
+//   in_progress -> collecting (claimed by a poller) -> completed | failed.
+export const sentenceBatchJobs = pgTable(
+  'sentence_batch_jobs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    batchId: text('batch_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    learnLanguage: text('learn_language').notNull(),
+    guessLanguage: text('guess_language').notNull(),
+    locale: text('locale').notNull(),
+    level: text('level'),
+    // How many sentences this batch was asked to generate (amortization denominator at collection).
+    count: integer('count').notNull(),
+    status: text('status')
+      .$type<'in_progress' | 'collecting' | 'completed' | 'failed'>()
+      .notNull()
+      .default('in_progress'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    // The dedupe lookup: "is a fill already in flight for this exact slice?"
+    index('idx_sentence_batch_jobs_slice').on(
+      table.status,
+      table.learnLanguage,
+      table.guessLanguage,
+      table.locale,
+      table.level
+    ),
+    // The collector's claim scan walks open jobs oldest-first.
+    index('idx_sentence_batch_jobs_status').on(table.status, table.createdAt),
+  ]
 )
 
 // Per-user attempt history. Fully denormalized (a snapshot per attempt) so it
@@ -386,6 +433,8 @@ export type SentenceRow = typeof sentences.$inferSelect
 export type NewSentenceRow = typeof sentences.$inferInsert
 export type SentenceExposureRow = typeof sentenceExposures.$inferSelect
 export type NewSentenceExposureRow = typeof sentenceExposures.$inferInsert
+export type SentenceBatchJobRow = typeof sentenceBatchJobs.$inferSelect
+export type NewSentenceBatchJobRow = typeof sentenceBatchJobs.$inferInsert
 export type AttemptRow = typeof attempts.$inferSelect
 export type NewAttemptRow = typeof attempts.$inferInsert
 export type LexemeStatsRow = typeof lexemeStats.$inferSelect
