@@ -27,6 +27,14 @@ const itemSx = (rail: boolean) => ({
   '& .MuiListItemIcon-root': { minWidth: rail ? 0 : 48, justifyContent: 'center' },
 })
 
+// Expanded-only: pull the icon flush-left and indent so the stat rows line up under the "Usage"
+// header text rather than sitting in a wide icon gutter. Omitted in the rail so the stat icons
+// inherit itemSx's centered geometry and sit on the same vertical axis as every other rail icon.
+const expandedStatSx = {
+  pl: 1.5,
+  '& .MuiListItemIcon-root': { minWidth: 32, justifyContent: 'flex-start' },
+}
+
 // Non-interactive readout geometry, reused by both usage stats so they line up in the rail.
 // Tighter than itemSx (these are passive stats, not tap targets) so the pair reads as a compact
 // group under the subheader.
@@ -34,16 +42,10 @@ const statSx = (rail: boolean) => ({
   ...itemSx(rail),
   my: 0,
   py: 0.25,
-  pl: 1.5,
   minHeight: 32,
   cursor: 'default',
   '&:hover': { backgroundColor: 'transparent' },
-  // Pull the icon flush-left so the stat rows line up under the "Usage" header text rather than
-  // sitting indented inside a wide icon gutter.
-  '& .MuiListItemIcon-root': {
-    minWidth: rail ? 0 : 32,
-    justifyContent: rail ? 'center' : 'flex-start',
-  },
+  ...(rail ? {} : expandedStatSx),
 })
 
 interface ContributeSectionProps {
@@ -84,7 +86,15 @@ export default function ContributeSection({ showback, showLabels }: ContributeSe
         }
       >
         <Box
-          sx={{ mx: 1, mb: 0.5, borderRadius: '16px', bgcolor: 'surfaceContainerHigh', py: 0.5 }}
+          sx={{
+            mx: 1,
+            mb: 1,
+            borderRadius: '16px',
+            bgcolor: 'surfaceContainerHigh',
+            border: '1px solid',
+            borderColor: 'outlineVariant',
+            py: 0.5,
+          }}
         >
           {showLabels && (
             <ListSubheader
