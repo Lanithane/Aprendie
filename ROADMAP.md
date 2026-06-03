@@ -40,7 +40,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 17   | Single Starter level (drop Foundation) + Starter word-meaning hints           | ✅ Done                             |
 | 18   | Same-language practice mode (paraphrase / tense-shift, by difficulty)          | ⬜ Not started                      |
 | 19   | Grammar building blocks reference (POS overview + drill-down, per learn language) | ⬜ Not started                      |
-| 20   | Shared sentence corpus + per-user exposure ledger (kill per-user generation dup)  | ⬜ Not started (deferred)           |
+| 20   | Shared sentence corpus + per-user exposure ledger (kill per-user generation dup)  | ✅ Done                             |
 | 21   | Tunable review / selection policy ("sliding scale" resurfacing)                   | ⬜ Not started (deferred, needs 20) |
 | 22   | Batch-API background sentence fills (50% off) + durable collector                 | ⬜ Not started (deferred, needs 20) |
 
@@ -919,38 +919,43 @@ data model, and step-by-step plan live in
   ÷ batch size at insert), so cost-per-sentence / cost-per-served-sentence falls out for free on
   top of the existing per-batch `usage_events`.
 
-### ⬜ Epic 20 — Shared sentence corpus + exposure ledger
+### ✅ Epic 20 — Shared sentence corpus + exposure ledger
 
 One shared, deduplicated corpus per `(learn, guess, locale, level)` instead of N per-user pools,
 plus a per-user exposure ledger so nobody repeats. Ships with a simple "prefer unseen, else
 least-recently-seen" picker behind a `selectNext()` seam (Epic 21 makes it tunable). Fixes all
 three leaks as a side effect.
 
-- [ ] **New `sentences` corpus table** (replaces per-user `sentence_cache`) in
-      [schema.ts](server/infrastructure/db/schema.ts) — drop `userId`/`consumedAt`; add `theme`
-      (category, for Epic 21 same-category review), `contentHash` with a unique constraint on
+- [x] **New `sentences` corpus table** (supersedes per-user `sentence_cache`) in
+      [schema.ts](server/infrastructure/db/schema.ts) — no `userId`/`consumedAt`; adds `theme`
+      (category, for Epic 21 same-category review), `contentHash` with a unique index on
       `(learn, guess, locale, level, contentHash)` for dedup (the cross-user cache key), and
       **amortized generation token columns** `genInputTokens`/`genOutputTokens`/
       `genCachedInputTokens` (batch usage ÷ batch size at insert, for per-sentence cost
-      attribution); index `(learn, guess, locale, level)`. Migration via `npm run db:generate`
-      (snapshot + journal per [CLAUDE.md](CLAUDE.md)).
-- [ ] **New `sentence_exposures` ledger** — `userId` FK cascade, `sentenceId` FK cascade,
+      attribution); index `(learn, guess, locale, level)`. Migration `0020_brave_chimera`.
+- [x] **New `sentence_exposures` ledger** — `userId` FK cascade, `sentenceId` FK cascade,
       `seenCount`, `firstSeenAt`, `lastSeenAt`, unique `(userId, sentenceId)`. Mistake/score
       signal read from existing `attempts` (soft `sentenceId`), no denormalization.
-- [ ] **Backfill** `scripts/backfill-sentence-corpus.ts` (`npm run db:backfill:corpus`,
-      idempotent, mirroring [scripts/backfill-palabradex.ts](scripts/backfill-palabradex.ts)) —
-      dedupe old rows into `sentences`, convert each old `userId`/`consumedAt` into an exposure;
-      then drop `sentence_cache`.
-- [ ] **Persistence rewrite** — replace `countUnconsumed`/`takeNextUnconsumed`/`poolFilters`
-      with corpus-scoped `listCorpus`/`countCorpus`, `listExposuresForUser`, and an additive
+- [x] **Backfill** [scripts/backfill-sentence-corpus.ts](scripts/backfill-sentence-corpus.ts)
+      (`npm run db:backfill:corpus`, idempotent) — dedupes old rows into `sentences`, converts
+      each consumed `userId`/`consumedAt` into an exposure. `sentence_cache` is retained (with the
+      backfill reading it); drop it in a follow-up migration once prod is backfilled.
+- [x] **Persistence rewrite** — replaced `countUnconsumed`/`takeNextUnconsumed`/`poolFilters`
+      /`findForUser` with corpus-scoped `listCorpus`, `listExposures`, `findById`, and an additive
       `recordExposure` upsert (Palabradex `onConflictDoUpdate` pattern).
-- [ ] **Serving rewrite** — [getNextSentence.ts](server/modules/sentence/application/getNextSentence.ts):
-      load corpus slice + user exposures → `selectNext()` (prefer-unseen default) →
-      `recordExposure` → return; keep `assertCanSpend`/`assertSpendEnabled` + `sentence_shown`.
-      Refill trigger becomes "unseen-for-this-user low" (background) / "corpus empty" (sync cold
-      start).
-- [ ] **Leak fixes** — `setUserLanguagePair`/`setUserLevel` warm only the concrete `(pair,
-      level)` slice and skip when level unknown; add `theme` to the generator JSON schema in
+- [x] **Serving rewrite** — [getNextSentence.ts](server/modules/sentence/application/getNextSentence.ts):
+      load corpus slice + user exposures → `selectNext()` (prefer-unseen, else least-recently-seen;
+      [selectSentence.ts](server/modules/sentence/domain/selectSentence.ts) +
+      [contentHash.ts](server/modules/sentence/domain/contentHash.ts), both unit-tested) →
+      `recordExposure` → return; keeps `assertCanSpend`/`assertSpendEnabled` + `sentence_shown`.
+      **Unseen corpus sentences are always served without an AI call**; generation only happens
+      (a) **inline once** when the slice is empty (cold start), or (b) **in the background** when
+      this user's unseen count drops below `REFILL_THRESHOLD` (3) — never on the critical path while
+      the corpus has anything to serve. The in-flight guard is re-keyed per-slice (not per-user).
+      Grading resolves via `findById` (shared corpus, no ownership check).
+- [x] **Leak fixes** — `setUserLanguagePair` warms only the concrete `(pair, level)` slice and
+      skips when level unknown (kills the abandoned mixed-level batch); `theme` added to the
+      generator JSON schema in
       [generateSentenceBatch.ts](server/modules/sentence/application/generateSentenceBatch.ts).
 
 ### ⬜ Epic 21 — Tunable review / selection policy ("sliding scale") — needs Epic 20

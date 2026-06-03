@@ -141,6 +141,13 @@
       "when": 1781000000001,
       "tag": "0019_unknown_mordo",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1781000000002,
+      "tag": "0020_brave_chimera",
+      "breakpoints": true
     }
   ]
 }

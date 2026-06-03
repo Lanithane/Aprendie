@@ -35,10 +35,9 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
   const capped = input.user.role !== 'admin'
   if (capped) await assertWithinDailyCap(input.user)
 
-  const sentence: SentenceRow | null = await sentenceRepository.findForUser(
-    input.user.id,
-    input.sentenceId
-  )
+  // The corpus is shared (Epic 20), so grading just resolves the sentence by id — there's no
+  // per-user ownership to assert, and the id came from a sentence we served this user.
+  const sentence: SentenceRow | null = await sentenceRepository.findById(input.sentenceId)
   if (!sentence) throw new SentenceNotFoundError()
 
   const learnLanguage = sentence.learnLanguage as LanguageCode
