@@ -1,4 +1,5 @@
 import * as palabradexRepository from '../persistence/palabradexRepository'
+import type { StrugglingLexemeRow } from '../persistence/palabradexRepository'
 import {
   toLexemeStatsView,
   toVariantStatsView,
@@ -6,6 +7,26 @@ import {
   type LexemeStatsView,
   type RootDetailView,
 } from '../domain/Lexeme'
+
+// Word-level review signal for the sentence picker (Epic 21): the user's most-missed lemmas in a
+// language, prefiltered to those with a real miss history and capped to a bounded set. Thresholds
+// live here so the sentence module just asks for "the words this user struggles with"; the
+// struggle-ratio cut happens in the pure `buildReviewSignal`. `MIN_LIFETIME_MISSES` matches its
+// `minLexemeMisses` default so the SQL prefilter and the domain cut agree.
+const MIN_LIFETIME_MISSES = 2
+const MAX_STRUGGLING_LEXEMES = 200
+
+export async function getStrugglingLexemes(
+  userId: string,
+  learnLanguage: string
+): Promise<StrugglingLexemeRow[]> {
+  return palabradexRepository.listStrugglingLexemes(
+    userId,
+    learnLanguage,
+    MIN_LIFETIME_MISSES,
+    MAX_STRUGGLING_LEXEMES
+  )
+}
 
 export async function listPalabradex(
   userId: string,
