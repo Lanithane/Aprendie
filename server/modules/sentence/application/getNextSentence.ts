@@ -9,9 +9,21 @@ import {
   triggerBackgroundRefill,
   type PoolInput,
 } from './sentencePool'
-import { selectNext, unseenCount, type CorpusCandidate } from '../domain/selectSentence'
+import {
+  selectNext,
+  unseenCount,
+  buildReviewSignal,
+  EMPTY_SIGNAL,
+  DEFAULT_WEIGHTS,
+  type CorpusCandidate,
+  type ReviewSignal,
+} from '../domain/selectSentence'
 import { toSentenceView, type SentenceView } from '../domain/Sentence'
 import { recordEventSafe } from '../../analytics/application/recordEvent'
+
+// How many of the user's most recent attempts feed the review signal — a short window so review
+// tracks what they're currently struggling with rather than ancient history.
+const RECENT_ATTEMPT_WINDOW = 25
 
 // Lightweight usage metric (Epic 16). Best-effort and off the critical path — serving the
 // sentence must never depend on the event landing.
@@ -43,6 +55,20 @@ function toCandidates(
   return rows.map((r) => ({ id: r.id, createdAt: r.createdAt, theme: r.theme }))
 }
 
+// The weighted picker only consults the review signal once unseen material is scarce enough to enter
+// "review mode" (the same threshold the policy uses). While fresh sentences are plentiful we skip the
+// extra attempts query on the hot path and hand the picker an empty signal.
+async function loadReviewSignal(
+  userId: string,
+  slice: CorpusSlice,
+  unseen: number
+): Promise<ReviewSignal> {
+  if (unseen >= DEFAULT_WEIGHTS.reviewWhenUnseenBelow) return EMPTY_SIGNAL
+  return buildReviewSignal(
+    await sentenceRepository.listRecentAttemptSignals(userId, slice, RECENT_ATTEMPT_WINDOW)
+  )
+}
+
 export async function getNextSentence(input: PoolInput): Promise<SentenceView> {
   // A non-approved account may not spend the operator key, and the global spend pause
   // blocks everyone but admins.
@@ -61,15 +87,15 @@ export async function getNextSentence(input: PoolInput): Promise<SentenceView> {
 
   const exposures = await sentenceRepository.listExposures(input.user.id, slice)
   const candidates = toCandidates(corpus)
+  const unseen = unseenCount(candidates, exposures)
 
   // Refill signal is now "unseen-for-this-user" rather than a raw pool count: when this learner is
   // running low on never-shown sentences, warm the shared corpus in the background. (Below that we
-  // still serve immediately — resurfacing a least-recently-seen sentence if nothing is unseen.)
-  if (unseenCount(candidates, exposures) < REFILL_THRESHOLD) {
-    triggerBackgroundRefill(input)
-  }
+  // still serve immediately — the weighted policy resurfaces seen sentences for review.)
+  if (unseen < REFILL_THRESHOLD) triggerBackgroundRefill(input)
 
-  const sentenceId = selectNext(candidates, exposures)
+  const signal = await loadReviewSignal(input.user.id, slice, unseen)
+  const sentenceId = selectNext(candidates, exposures, signal)
   const sentence = sentenceId ? corpus.find((c) => c.id === sentenceId) : null
   if (!sentence) {
     throw new Error('sentence corpus empty after refill')
@@ -102,9 +128,11 @@ export async function getBootstrapSentence(input: PoolInput): Promise<SentenceVi
 
   const exposures = await sentenceRepository.listExposures(input.user.id, slice)
   const candidates = toCandidates(corpus)
-  if (unseenCount(candidates, exposures) < REFILL_THRESHOLD) triggerBackgroundRefill(input)
+  const unseen = unseenCount(candidates, exposures)
+  if (unseen < REFILL_THRESHOLD) triggerBackgroundRefill(input)
 
-  const sentenceId = selectNext(candidates, exposures)
+  const signal = await loadReviewSignal(input.user.id, slice, unseen)
+  const sentenceId = selectNext(candidates, exposures, signal)
   const sentence = sentenceId ? corpus.find((c) => c.id === sentenceId) : null
   if (!sentence) return null
 

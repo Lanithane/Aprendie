@@ -1,11 +1,13 @@
-import { and, eq, sql, type SQL } from 'drizzle-orm'
+import { and, desc, eq, sql, type SQL } from 'drizzle-orm'
 import { db } from '../../../infrastructure/db/client'
 import {
   sentences,
   sentenceExposures,
+  attempts,
   type SentenceRow,
   type NewSentenceRow,
 } from '../../../infrastructure/db/schema'
+import type { AttemptSignal } from '../domain/selectSentence'
 import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
 
@@ -92,6 +94,36 @@ export async function recordExposure(userId: string, sentenceId: string): Promis
         lastSeenAt: now,
       },
     })
+}
+
+// The user's most recent graded attempts on the slice, reduced to the fields the Epic 21 review
+// policy needs. Left-joins the corpus so each attempt carries the theme of the sentence it was on
+// (null when that sentence was pruned or never corpus'd). `domain/buildReviewSignal` folds these
+// rows into the `ReviewSignal` consumed by `selectNext` — kept out of persistence so the policy
+// stays pure and testable.
+export async function listRecentAttemptSignals(
+  userId: string,
+  slice: CorpusSlice,
+  limit: number
+): Promise<AttemptSignal[]> {
+  const filters: SQL[] = [
+    eq(attempts.userId, userId),
+    eq(attempts.learnLanguage, slice.learnLanguage),
+    eq(attempts.guessLanguage, slice.guessLanguage),
+    eq(attempts.locale, slice.locale),
+  ]
+  if (slice.level !== undefined) filters.push(eq(attempts.level, slice.level))
+  return db
+    .select({
+      sentenceId: attempts.sentenceId,
+      theme: sentences.theme,
+      isCorrect: attempts.isCorrect,
+    })
+    .from(attempts)
+    .leftJoin(sentences, eq(attempts.sentenceId, sentences.id))
+    .where(and(...filters))
+    .orderBy(desc(attempts.createdAt))
+    .limit(limit)
 }
 
 // Look up a corpus sentence by id — used by grading, which only needs the sentence text (the corpus

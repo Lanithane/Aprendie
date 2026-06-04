@@ -41,7 +41,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 18   | Same-language practice mode (paraphrase / tense-shift, by difficulty)          | ⬜ Not started                      |
 | 19   | Grammar reference inside the Palabradex (POS inventory + example sentence, per learn language) | ⬜ Not started                      |
 | 20   | Shared sentence corpus + per-user exposure ledger (kill per-user generation dup)  | ✅ Done                             |
-| 21   | Tunable review / selection policy ("sliding scale" resurfacing)                   | ⬜ Not started (deferred, needs 20) |
+| 21   | Tunable review / selection policy ("sliding scale" resurfacing)                   | ✅ Done                             |
 | 22   | Batch-API background sentence fills (50% off) + durable collector                 | ✅ Done |
 
 ### Decisions locked (from clarifying Q&A)
