@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, sql } from 'drizzle-orm'
 import { db } from '../../../infrastructure/db/client'
 import {
   lexemeDefinitions,
@@ -101,6 +101,39 @@ export async function listLexemes(
     .from(lexemeStats)
     .where(and(eq(lexemeStats.userId, userId), eq(lexemeStats.learnLanguage, learnLanguage)))
     .orderBy(...orderBy)
+}
+
+// Lemmas the user keeps getting wrong — the word-level review signal for the sentence picker (Epic
+// 21). Prefiltered on a minimum lifetime miss count (the struggle-ratio cut happens in the pure
+// `buildReviewSignal`), ordered hardest-first and capped so the caller pulls a bounded set.
+export interface StrugglingLexemeRow {
+  lemma: string
+  correctCount: number
+  incorrectCount: number
+}
+
+export async function listStrugglingLexemes(
+  userId: string,
+  learnLanguage: string,
+  minIncorrect: number,
+  limit: number
+): Promise<StrugglingLexemeRow[]> {
+  return db
+    .select({
+      lemma: lexemeStats.lemma,
+      correctCount: lexemeStats.correctCount,
+      incorrectCount: lexemeStats.incorrectCount,
+    })
+    .from(lexemeStats)
+    .where(
+      and(
+        eq(lexemeStats.userId, userId),
+        eq(lexemeStats.learnLanguage, learnLanguage),
+        gte(lexemeStats.incorrectCount, minIncorrect)
+      )
+    )
+    .orderBy(desc(lexemeStats.incorrectCount))
+    .limit(limit)
 }
 
 export async function getLexeme(

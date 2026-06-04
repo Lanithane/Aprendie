@@ -13,13 +13,16 @@ import {
   selectNext,
   unseenCount,
   buildReviewSignal,
+  lemmasOf,
   EMPTY_SIGNAL,
   DEFAULT_WEIGHTS,
   type CorpusCandidate,
   type ReviewSignal,
 } from '../domain/selectSentence'
 import { toSentenceView, type SentenceView } from '../domain/Sentence'
+import { getStrugglingLexemes } from '../../palabradex/application/listPalabradex'
 import { recordEventSafe } from '../../analytics/application/recordEvent'
+import type { SentenceRow } from '../../../infrastructure/db/schema'
 
 // How many of the user's most recent attempts feed the review signal — a short window so review
 // tracks what they're currently struggling with rather than ancient history.
@@ -49,24 +52,31 @@ function sliceOf(input: PoolInput): CorpusSlice {
   }
 }
 
-function toCandidates(
-  rows: { id: string; createdAt: Date; theme: string | null }[]
-): CorpusCandidate[] {
-  return rows.map((r) => ({ id: r.id, createdAt: r.createdAt, theme: r.theme }))
+function toCandidates(rows: SentenceRow[]): CorpusCandidate[] {
+  return rows.map((r) => ({
+    id: r.id,
+    createdAt: r.createdAt,
+    theme: r.theme,
+    lemmas: lemmasOf(r.wordBreakdown),
+  }))
 }
 
 // The weighted picker only consults the review signal once unseen material is scarce enough to enter
 // "review mode" (the same threshold the policy uses). While fresh sentences are plentiful we skip the
-// extra attempts query on the hot path and hand the picker an empty signal.
+// extra queries on the hot path and hand the picker an empty signal. In review mode we pull two
+// signals in parallel: the recent-attempt slice (mistakes + struggling themes) and the user's
+// lifetime struggling words (cross-module, keyed by learn language, not the slice).
 async function loadReviewSignal(
   userId: string,
   slice: CorpusSlice,
   unseen: number
 ): Promise<ReviewSignal> {
   if (unseen >= DEFAULT_WEIGHTS.reviewWhenUnseenBelow) return EMPTY_SIGNAL
-  return buildReviewSignal(
-    await sentenceRepository.listRecentAttemptSignals(userId, slice, RECENT_ATTEMPT_WINDOW)
-  )
+  const [attempts, lexemes] = await Promise.all([
+    sentenceRepository.listRecentAttemptSignals(userId, slice, RECENT_ATTEMPT_WINDOW),
+    getStrugglingLexemes(userId, slice.learnLanguage),
+  ])
+  return buildReviewSignal({ attempts, lexemes })
 }
 
 export async function getNextSentence(input: PoolInput): Promise<SentenceView> {
