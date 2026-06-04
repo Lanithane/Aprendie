@@ -1,10 +1,13 @@
 // Pure, side-effect-free sentence picker over the shared corpus slice + this user's exposure
-// ledger. Epic 20 ships the simplest sensible policy — **prefer an unseen sentence, else resurface
-// the least-recently-seen one** — behind this `selectNext()` seam so Epic 21 can swap the body for
-// a tunable, weighted review policy without touching the serving code.
+// ledger. Epic 20 shipped the simplest policy — prefer unseen, else least-recently-seen. Epic 21
+// turns it into a tunable, weighted *review* policy (the "sliding scale"): while fresh material is
+// plentiful it still drains the corpus in order, but once unseen sentences run scarce it resurfaces
+// seen ones — weighting them by time-since-last-seen, recent mistakes, and struggling categories so
+// the learner re-encounters exactly the material they're weakest on. Every knob lives in
+// `SelectionWeights` so the scale is tuned without touching serving code.
 
 // The corpus fields the picker needs. `createdAt` orders unseen candidates so the corpus drains in
-// insertion order; `theme` is unused today but carried for Epic 21's same-category review.
+// insertion order; `theme` keys the same-category review signal.
 export interface CorpusCandidate {
   id: string
   createdAt: Date
@@ -18,27 +21,161 @@ export interface Exposure {
   lastSeenAt: Date
 }
 
+// The tunable "sliding scale". Defaults strongly prefer fresh material and only resurface a seen
+// sentence when the review signal is genuinely strong (a recent mistake, or a struggling category);
+// raise the review weights to drill harder, lower them to keep marching through new sentences.
+export interface SelectionWeights {
+  // Serve unseen outright while at least this many remain unseen for the user (drain mode). Below
+  // it the picker enters review mode and seen sentences can be resurfaced.
+  reviewWhenUnseenBelow: number
+  // The flat review score an unseen candidate carries in review mode — the bar a seen sentence must
+  // clear to be resurfaced ahead of fresh material. Keep it above `recency` (so a merely-old
+  // sentence never preempts unseen) and around `mistake`/`category` (so genuine review can).
+  unseenBase: number
+  // Seen-sentence review weights:
+  recency: number // time since last seen, normalized 0..1 across the seen set (oldest → 1)
+  mistake: number // the user recently got this exact sentence wrong
+  category: number // the sentence's theme is one the user is currently struggling with (× 0..1)
+}
+
+export const DEFAULT_WEIGHTS: SelectionWeights = {
+  reviewWhenUnseenBelow: 3,
+  unseenBase: 2,
+  recency: 1,
+  mistake: 2.5,
+  category: 1.5,
+}
+
+// The per-request review signal, derived from the user's recent attempts (see `buildReviewSignal`).
+// Kept as plain sets/maps so the picker stays pure and trivially testable.
+export interface ReviewSignal {
+  // Corpus sentences the user recently got wrong — the strongest resurface candidates.
+  mistakeSentenceIds: ReadonlySet<string>
+  // Themes the user is currently struggling with → struggle weight in 0..1 (share of recent
+  // attempts in that theme that were wrong). A seen sentence whose theme is here is nudged up for
+  // same-category review.
+  strugglingThemes: ReadonlyMap<string, number>
+}
+
+export const EMPTY_SIGNAL: ReviewSignal = {
+  mistakeSentenceIds: new Set(),
+  strugglingThemes: new Map(),
+}
+
 // Returns the id of the next sentence to serve, or `null` if the corpus slice is empty.
-export function selectNext(candidates: CorpusCandidate[], exposures: Exposure[]): string | null {
+export function selectNext(
+  candidates: CorpusCandidate[],
+  exposures: Exposure[],
+  signal: ReviewSignal = EMPTY_SIGNAL,
+  weights: SelectionWeights = DEFAULT_WEIGHTS
+): string | null {
   if (candidates.length === 0) return null
 
   const lastSeenById = new Map(exposures.map((e) => [e.sentenceId, e.lastSeenAt.getTime()]))
-
-  // Prefer unseen: oldest-inserted first, so the corpus is consumed in generation order.
   const unseen = candidates.filter((c) => !lastSeenById.has(c.id))
-  if (unseen.length > 0) {
-    return unseen.reduce((a, b) => (a.createdAt.getTime() <= b.createdAt.getTime() ? a : b)).id
-  }
 
-  // Everything seen — resurface the least-recently-seen sentence for review.
-  return candidates.reduce((a, b) =>
-    (lastSeenById.get(a.id) ?? 0) <= (lastSeenById.get(b.id) ?? 0) ? a : b
-  ).id
+  // Drain mode: plenty of fresh material → serve the oldest-inserted unseen sentence.
+  if (unseen.length >= weights.reviewWhenUnseenBelow) return oldestUnseen(unseen)
+
+  // Review mode: unseen are scarce. Score the seen sentences and resurface the best one only if it
+  // clears the flat unseen baseline; otherwise keep draining the remaining fresh material. With no
+  // unseen left, the best-scoring seen sentence is always served (LRU is the floor when there's no
+  // mistake/category signal).
+  const seen = candidates.filter((c) => lastSeenById.has(c.id))
+  const bestSeen = bestSeenCandidate(seen, lastSeenById, signal, weights)
+  if (unseen.length > 0) {
+    return bestSeen && bestSeen.score > weights.unseenBase ? bestSeen.id : oldestUnseen(unseen)
+  }
+  return bestSeen ? bestSeen.id : null
+}
+
+function oldestUnseen(unseen: CorpusCandidate[]): string {
+  return unseen.reduce((a, b) => (a.createdAt.getTime() <= b.createdAt.getTime() ? a : b)).id
+}
+
+interface ScoredSeen {
+  id: string
+  score: number
+  lastSeen: number
+}
+
+// Pick the highest-scoring seen sentence to resurface. Recency is normalized across the seen set so
+// it stays in 0..1 and the discrete mistake/category bonuses remain comparable to it. Ties break
+// toward the least-recently-seen sentence (so an unsignalled set degrades to plain LRU).
+function bestSeenCandidate(
+  seen: CorpusCandidate[],
+  lastSeenById: Map<string, number>,
+  signal: ReviewSignal,
+  weights: SelectionWeights
+): ScoredSeen | null {
+  if (seen.length === 0) return null
+  const times = seen.map((c) => lastSeenById.get(c.id) ?? 0)
+  const max = Math.max(...times)
+  const min = Math.min(...times)
+  const span = max - min || 1
+
+  let best: ScoredSeen | null = null
+  for (const c of seen) {
+    const last = lastSeenById.get(c.id) ?? 0
+    const recencyNorm = (max - last) / span // least-recently-seen → 1
+    const mistakeHit = signal.mistakeSentenceIds.has(c.id) ? 1 : 0
+    const struggle = c.theme ? (signal.strugglingThemes.get(c.theme) ?? 0) : 0
+    const score =
+      weights.recency * recencyNorm + weights.mistake * mistakeHit + weights.category * struggle
+    if (best === null || score > best.score || (score === best.score && last < best.lastSeen)) {
+      best = { id: c.id, score, lastSeen: last }
+    }
+  }
+  return best
 }
 
 // Count of corpus sentences this user has never been shown — the refill signal (drops below a
-// threshold → top up the corpus in the background).
+// threshold → top up the corpus in the background) and the gate for entering review mode.
 export function unseenCount(candidates: CorpusCandidate[], exposures: Exposure[]): number {
   const seen = new Set(exposures.map((e) => e.sentenceId))
   return candidates.reduce((n, c) => (seen.has(c.id) ? n : n + 1), 0)
+}
+
+// One recent graded attempt, reduced to just the fields the review signal needs. `theme` is the
+// category of the sentence that attempt was on (joined from the corpus; null if the sentence was
+// pruned or never corpus'd).
+export interface AttemptSignal {
+  sentenceId: string | null
+  theme: string | null
+  isCorrect: boolean
+}
+
+export interface SignalOptions {
+  // A theme only counts as "struggling" once at least this many of the user's recent attempts in it
+  // were wrong — avoids over-reacting to a single slip.
+  minThemeMisses?: number
+}
+
+// Pure: fold the user's recent attempts into a `ReviewSignal`. Wrong attempts contribute their
+// sentence id (resurface-the-exact-miss) and tally per-theme misses; a theme crossing the miss
+// threshold becomes a struggling category weighted by its wrong-share.
+export function buildReviewSignal(
+  attempts: AttemptSignal[],
+  options: SignalOptions = {}
+): ReviewSignal {
+  const minThemeMisses = options.minThemeMisses ?? 2
+  const mistakeSentenceIds = new Set<string>()
+  const themeTally = new Map<string, { wrong: number; total: number }>()
+
+  for (const a of attempts) {
+    if (a.sentenceId && !a.isCorrect) mistakeSentenceIds.add(a.sentenceId)
+    if (a.theme) {
+      const tally = themeTally.get(a.theme) ?? { wrong: 0, total: 0 }
+      tally.total += 1
+      if (!a.isCorrect) tally.wrong += 1
+      themeTally.set(a.theme, tally)
+    }
+  }
+
+  const strugglingThemes = new Map<string, number>()
+  for (const [theme, { wrong, total }] of themeTally) {
+    if (wrong >= minThemeMisses) strugglingThemes.set(theme, wrong / total)
+  }
+
+  return { mistakeSentenceIds, strugglingThemes }
 }
