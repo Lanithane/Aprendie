@@ -280,7 +280,17 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
       MuiOutlinedInput: {
         styleOverrides: {
           root: { borderRadius: 8 },
-          notchedOutline: { borderWidth: 2 },
+          notchedOutline: {
+            borderWidth: 2,
+            // The outline's <legend> sizes the label notch from a hidden measurement span but
+            // never pins font-family/letter-spacing — it inherits. Some browsers (notably iOS
+            // Safari) apply a UA font reset to <legend>, so with our bold, em-tracked body font
+            // the notch was measured in the wrong font and came out a hair too narrow, letting
+            // the shrunk floating label overlap the outline. Pin the legend to the same font and
+            // tracking as the label, and give the cutout a touch more right clearance.
+            '& legend': { fontFamily: 'inherit', letterSpacing: 'inherit' },
+            '& legend > span': { paddingRight: 8 },
+          },
         },
       },
       MuiMenu: {
