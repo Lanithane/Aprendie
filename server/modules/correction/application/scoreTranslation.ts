@@ -5,6 +5,7 @@ import { toTokenUsage, type TokenUsage } from '../../../infrastructure/claude/pr
 import { languageName, type LanguageCode, type LocaleCode } from '../../../../shared/languages'
 import { scoreToGrade } from '../../../../shared/grades'
 import type { CorrectionResult, Naturalness } from '../domain/Correction'
+import { applyScoreFloor } from '../domain/scoreFloor'
 
 // The graded result plus the token usage of the call, so the caller can record showback.
 export interface ScoredTranslation {
@@ -91,9 +92,15 @@ Score it now.`
       ? parsed.naturalness
       : 'natural'
 
+  const mistakes = parsed.mistakes ?? []
+
   // Cap accurate-but-stiff answers out of A+ territory.
-  const score =
+  const cappedScore =
     naturalness === 'stiff' && parsed.score >= A_PLUS_THRESHOLD ? A_BAND_CAP : parsed.score
+
+  // Deterministic backstop: a majority-correct answer can't fall into the F band,
+  // even if the model ignored that rule in its scoring.
+  const score = applyScoreFloor(cappedScore, parsed.correctedAnswer, mistakes)
 
   return {
     result: {
@@ -102,7 +109,7 @@ Score it now.`
       grade: scoreToGrade(score),
       naturalness,
       correctedAnswer: parsed.correctedAnswer,
-      mistakes: parsed.mistakes ?? [],
+      mistakes,
       notes: parsed.notes ?? undefined,
     },
     usage: toTokenUsage(resp.usage),
