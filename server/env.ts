@@ -24,8 +24,9 @@ const envSchema = z.object({
   // Optional: when unset, no account is auto-promoted.
   ADMIN_EMAIL: z.string().email().optional(),
   // The single operator-supplied Anthropic key all approved users spend against.
-  // When set, it is used for every request; when unset (e.g. early local dev), the
-  // resolver falls back to the user's own encrypted key so local work keeps functioning.
+  // Required for any spend path (sentence generation, grading, translation): the
+  // operator-key client throws when it's unset. Optional here only so the server can
+  // still boot for non-spend work (auth, history) during early local dev.
   OPERATOR_ANTHROPIC_KEY: z.string().optional(),
   // Session cookie domain. Set to a registrable domain with a leading dot
   // (e.g. `.aprendie.com`) to share the login across the apex and `www` (and any
