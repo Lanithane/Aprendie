@@ -32,6 +32,7 @@
     "db:backfill:palabradex": "tsx --env-file=.env scripts/backfill-palabradex.ts",
     "db:backfill:corpus": "tsx --env-file=.env scripts/backfill-sentence-corpus.ts",
     "gen:tokens": "esbuild scripts/gen-md3-tokens.ts --bundle --platform=node --format=esm --outfile=scripts/.gen-tokens.mjs && node scripts/.gen-tokens.mjs && rm scripts/.gen-tokens.mjs && prettier --write src/theme/tokens.ts",
+    "gen:og": "tsx scripts/gen-og-image.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -66,6 +67,7 @@
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.39.4",
     "@material/material-color-utilities": "^0.4.0",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/compression": "^1.8.1",
     "@types/connect-pg-simple": "^7.0.3",
     "@types/cors": "^2.8.19",

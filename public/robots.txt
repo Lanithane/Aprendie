@@ -1,0 +1,14 @@
+# Aprendie — https://aprendie.com
+# The app itself is sign-in gated; only the public landing is worth crawling.
+# Authed SPA routes serve the same shell HTML and just redirect, so keep them
+# out of the index to avoid duplicate-content crawling.
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /translator
+Disallow: /history
+Disallow: /palabradex
+Disallow: /settings
+Disallow: /admin
+
+Sitemap: https://aprendie.com/sitemap.xml

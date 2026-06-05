@@ -27,3 +27,6 @@ npm-debug.log*
 
 # drizzle
 drizzle/meta/_journal.json.lock
+
+# build-time asset cache (gen:og downloads the brand TTF here; PNGs in public/ are committed)
+scripts/.assets/

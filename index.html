@@ -3,21 +3,78 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffffff" />
-    <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="/favicon-light.svg"
-      media="(prefers-color-scheme: light)"
+    <!-- Static fallback chrome colour (default `abra` theme surface); ThemeModeProvider
+         updates this at runtime to the selected theme's background. -->
+    <meta name="theme-color" content="#fdfae7" />
+
+    <!-- Primary SEO -->
+    <title>Aprendie — Learn languages by reading and translating</title>
+    <meta
+      name="description"
+      content="Aprendie shows you real sentences in the language you're learning, you type the translation, and Claude scores it and walks you through every mistake — including the source words you misread. Reading and listening practice tuned to your CEFR level."
     />
+    <meta
+      name="keywords"
+      content="language learning, learn Spanish, learn French, learn German, learn Italian, learn Portuguese, translation practice, reading practice, listening practice, CEFR, comprehensible input, Aprendie"
+    />
+    <meta name="author" content="Aprendie" />
+    <link rel="canonical" href="https://aprendie.com/" />
+
+    <!-- Icons + PWA -->
+    <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" />
     <link
       rel="icon"
       type="image/svg+xml"
       href="/favicon-dark.svg"
       media="(prefers-color-scheme: dark)"
     />
-    <title>Aprendie</title>
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Aprendie" />
+    <meta property="og:title" content="Aprendie — Learn languages by reading and translating" />
+    <meta
+      property="og:description"
+      content="Read a real sentence in the language you're learning, type the translation, and get scored with a per-word breakdown of every mistake. Reading and listening practice at your level."
+    />
+    <meta property="og:url" content="https://aprendie.com/" />
+    <meta property="og:image" content="https://aprendie.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Aprendie — learn languages by reading and translating" />
+    <meta property="og:locale" content="en" />
+
+    <!-- Twitter / X card (no handle; summary_large_image still renders the preview) -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Aprendie — Learn languages by reading and translating" />
+    <meta
+      name="twitter:description"
+      content="Read a real sentence in the language you're learning, type the translation, and get scored with a per-word breakdown of every mistake."
+    />
+    <meta name="twitter:image" content="https://aprendie.com/og-image.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Aprendie — learn languages by reading and translating"
+    />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": ["WebApplication", "LearningResource"],
+        "name": "Aprendie",
+        "url": "https://aprendie.com/",
+        "description": "Aprendie shows you real sentences in the language you're learning, you type the translation, and Claude scores it and walks you through every mistake — including the source words you misread.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "inLanguage": "en",
+        "learningResourceType": "Language practice",
+        "teaches": ["Spanish", "French", "German", "Italian", "Portuguese"],
+        "image": "https://aprendie.com/og-image.png"
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
