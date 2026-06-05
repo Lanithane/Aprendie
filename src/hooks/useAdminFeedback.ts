@@ -18,6 +18,7 @@ export function useAdminFeedback(): UseAdminFeedbackResult {
     let active = true
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
+    setError(null)
     fetchFeedback()
       .then((items) => active && setFeedback(items))
       .catch(

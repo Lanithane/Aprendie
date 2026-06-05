@@ -18,6 +18,7 @@ export function useAdminAnalytics(days?: number): UseAdminAnalyticsResult {
     let active = true
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
+    setError(null)
     fetchEventSummary(days)
       .then((s) => active && setSummary(s))
       .catch(

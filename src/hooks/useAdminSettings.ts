@@ -25,6 +25,7 @@ export function useAdminSettings(): UseAdminSettingsResult {
     let active = true
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
+    setError(null)
     fetchSettings()
       .then((s) => active && setSettings(s))
       .catch(
