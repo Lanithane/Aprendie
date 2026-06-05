@@ -23,6 +23,34 @@ function matchesPool(s: SentenceDto, pair: LanguagePair, level: LevelPref): bool
   )
 }
 
+// The unguessed sentence is parked in localStorage so a refresh restores the exact prompt the
+// learner is mid-answer on, rather than burning a fresh generation. It's cleared the moment they
+// advance (see `clear`), so only one in-flight sentence is ever persisted.
+const STORAGE_KEY = 'aprendie:currentSentence'
+
+function readStored(pair: LanguagePair, level: LevelPref): SentenceDto | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as SentenceDto
+    // Only restore if it's a well-formed sentence for the pool we're about to show — a stored
+    // sentence from a different pair/level is stale and should fall through to a fresh fetch.
+    if (parsed && typeof parsed.id === 'string' && matchesPool(parsed, pair, level)) return parsed
+  } catch {
+    // ignore malformed/unavailable storage
+  }
+  return null
+}
+
+function writeStored(sentence: SentenceDto | null): void {
+  try {
+    if (sentence) localStorage.setItem(STORAGE_KEY, JSON.stringify(sentence))
+    else localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // ignore unavailable storage
+  }
+}
+
 interface UseCurrentSentenceResult {
   sentence: SentenceDto | null
   loading: boolean
@@ -38,7 +66,8 @@ export function useCurrentSentence({
   initialSentence,
   onConsumeInitial,
 }: UseCurrentSentenceArgs): UseCurrentSentenceResult {
-  const [sentence, setSentence] = useState<SentenceDto | null>(null)
+  // Lazy-init from the parked sentence so a refresh shows the same prompt with no fetch flash.
+  const [sentence, setSentence] = useState<SentenceDto | null>(() => readStored(pair, level))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -127,6 +156,12 @@ export function useCurrentSentence({
   useEffect(() => {
     if (enabled && sentence) void prefetchNext()
   }, [enabled, sentence, prefetchNext])
+
+  // Mirror the active sentence into localStorage so a refresh restores it; clearing it (advancing
+  // to the next, or a pool switch that nulls it) wipes the parked copy.
+  useEffect(() => {
+    writeStored(sentence)
+  }, [sentence])
 
   // Drop everything (current + prefetched) when the pair/level changes so the new
   // selection is fetched fresh — the prefetched sentence is for the old pool.
