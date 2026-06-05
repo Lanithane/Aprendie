@@ -48,7 +48,10 @@ export default function TranslatorWidget({ pair }: TranslatorWidgetProps) {
       <SectionCard title='Translate' description={`${knownName} → ${targetName} (${localeLabel})`}>
         <Stack spacing={2}>
           <TextField
-            label={`Text in ${knownName}`}
+            // No floating label: the outline-notch label overlaps the border on iOS Safari, so we
+            // follow PracticeCard's pattern (placeholder + aria-label). The known language is
+            // already conveyed by the card description and the placeholder.
+            aria-label={`Text in ${knownName}`}
             placeholder={`Type something in ${knownName}…`}
             value={text}
             onChange={(event) => handleChange(event.target.value)}
