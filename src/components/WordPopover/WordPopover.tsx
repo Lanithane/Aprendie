@@ -1,6 +1,12 @@
 import { Popover, Box, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { ROOT_LABEL, type LanguageCode, type WordToken } from '../../../shared/languages'
+import {
+  GENDER_GLYPH,
+  GENDER_LABEL,
+  ROOT_LABEL,
+  type LanguageCode,
+  type WordToken,
+} from '../../../shared/languages'
 import type { LevelCode } from '../../../shared/levels'
 
 interface WordPopoverProps {
@@ -26,6 +32,25 @@ const SegmentChip = styled('span')`
   line-height: 1.35;
   background: ${({ theme }) => theme.palette.secondaryContainer};
   color: ${({ theme }) => theme.palette.onSecondaryContainer};
+`
+
+// Gender badge pinned to the top-right corner of the card. The tertiaryContainer/on-pair is a
+// contrast-correct MD3 role in every theme + mode, so the ♀/♂/⚲ glyph stays legible without a
+// hardcoded pink/blue; meaning rides the glyph + accessible name, never colour alone.
+const GenderBadge = styled('span')`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1;
+  background: ${({ theme }) => theme.palette.tertiaryContainer};
+  color: ${({ theme }) => theme.palette.onTertiaryContainer};
 `
 
 // Claude returns stem changes packed tight ("e→ie") and sometimes with an ASCII arrow ("e->ie").
@@ -59,7 +84,16 @@ export default function WordPopover({
       transformOrigin={{ vertical: 'top', horizontal: 'center' }}
     >
       {token && (
-        <Box sx={{ p: 1.5, maxWidth: 280 }}>
+        <Box sx={{ p: 1.5, pr: token.gender ? 4.5 : 1.5, maxWidth: 280, position: 'relative' }}>
+          {token.gender && (
+            <GenderBadge
+              role='img'
+              aria-label={GENDER_LABEL[guessLanguage][token.gender]}
+              title={GENDER_LABEL[guessLanguage][token.gender]}
+            >
+              {GENDER_GLYPH[token.gender]}
+            </GenderBadge>
+          )}
           {showGloss && (
             <Typography
               variant='subtitle1'

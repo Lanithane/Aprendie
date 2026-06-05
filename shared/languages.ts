@@ -99,6 +99,11 @@ export interface WordModifier {
   note: string // grammatical function in the guess language, e.g. "2nd person singular, present"
 }
 
+// Grammatical gender of a word in the LEARN language. Only set for words that carry one
+// (chiefly nouns); absent for genderless words and languages (e.g. English). Neuter exists in
+// the supported set only for German.
+export type WordGender = 'masculine' | 'feminine' | 'neuter'
+
 // One meaningful token of a learn-language sentence. The vocabulary stays immersive — the
 // dictionary form (lemma) is in the LEARN language and the word's meaning is never translated.
 // Grammatical metadata (part of speech, modifier notes) is in the GUESS language so the
@@ -114,6 +119,7 @@ export interface WordToken {
   partOfSpeech: string // a common part-of-speech label in the guess language, e.g. "noun"
   modifiers: WordModifier[] // empty => surface is the base form
   gloss?: string // one-word meaning in the guess language
+  gender?: WordGender // grammatical gender in the learn language, when the word carries one
 }
 
 // UI label shown in place of the lemma when a surface word is already its own dictionary
@@ -126,6 +132,25 @@ export const ROOT_LABEL: Record<LanguageCode, string> = {
   de: 'Grundform',
   it: 'radice',
   pt: 'raiz',
+}
+
+// Accessible names for grammatical gender, keyed by the guess language (like ROOT_LABEL and the
+// part of speech). The popover shows a ♀/♂/⚲ glyph; this is its screen-reader / tooltip label.
+export const GENDER_LABEL: Record<LanguageCode, Record<WordGender, string>> = {
+  en: { masculine: 'masculine', feminine: 'feminine', neuter: 'neuter' },
+  es: { masculine: 'masculino', feminine: 'femenino', neuter: 'neutro' },
+  fr: { masculine: 'masculin', feminine: 'féminin', neuter: 'neutre' },
+  de: { masculine: 'maskulin', feminine: 'feminin', neuter: 'neutral' },
+  it: { masculine: 'maschile', feminine: 'femminile', neuter: 'neutro' },
+  pt: { masculine: 'masculino', feminine: 'feminino', neuter: 'neutro' },
+}
+
+// The glyph shown for each grammatical gender. Venus/Mars for feminine/masculine and the
+// neuter astronomical sign for neuter (German only in the supported set).
+export const GENDER_GLYPH: Record<WordGender, string> = {
+  masculine: '♂',
+  feminine: '♀',
+  neuter: '⚲',
 }
 
 export function isSupportedLanguage(code: string): code is LanguageCode {

@@ -6,6 +6,7 @@ import {
   languageName,
   type LanguageCode,
   type LocaleCode,
+  type WordGender,
   type WordModifier,
   type WordToken,
 } from '../../../../shared/languages'
@@ -90,6 +91,7 @@ Output requirements:
 // language pair AND every level.
 const SYSTEM_PROMPT = `${SHARED_PROMPT_INTRO}
 - For each wordBreakdown entry, include a "gloss" field: a single word (or very short phrase) in the GUESS language that gives the core meaning of that word. This is the one place the guess language may express meaning — keep it to one word where possible.
+- For words that carry grammatical gender in the LEARN language (chiefly nouns, but also a gendered article, adjective, or pronoun where the gender is unambiguous), include a "gender" field set to exactly "masculine", "feminine", or "neuter". OMIT the field entirely for words with no grammatical gender and for genderless languages such as English.
 - "lemma" and modifier "segment" still stay in the LEARN language.
 - Return ONLY valid JSON, no markdown, no commentary.
 
@@ -101,7 +103,7 @@ JSON shape:
       "answerText": string,
       "level": string,
       "theme": string,
-      "wordBreakdown": [ { "surface": string, "lemma": string, "partOfSpeech": string, "gloss": string, "modifiers": [ { "segment": string, "note": string } ] } ]
+      "wordBreakdown": [ { "surface": string, "lemma": string, "partOfSpeech": string, "gloss": string, "gender"?: "masculine" | "feminine" | "neuter", "modifiers": [ { "segment": string, "note": string } ] } ]
     }
   ]
 }`
@@ -127,6 +129,8 @@ interface RawSentence {
   wordBreakdown?: WordToken[]
 }
 
+const GENDERS: readonly WordGender[] = ['masculine', 'feminine', 'neuter']
+
 // Coerce a model-supplied token into the WordToken shape, guarding the `modifiers` array
 // (the model may omit it for base-form words or hand back malformed entries).
 function normalizeToken(raw: Partial<WordToken>): WordToken {
@@ -141,6 +145,7 @@ function normalizeToken(raw: Partial<WordToken>): WordToken {
     modifiers,
   }
   if (raw.gloss) token.gloss = raw.gloss
+  if (raw.gender && GENDERS.includes(raw.gender)) token.gender = raw.gender
   return token
 }
 
