@@ -99,6 +99,7 @@ export default function HomePage() {
         <CorrectionDisplay
           learnLanguage={correction.learnLanguage}
           guessLanguage={correction.guessLanguage}
+          locale={correction.locale}
           promptText={correction.promptText}
           wordBreakdown={correction.wordBreakdown}
           userAnswer={correction.userAnswer}

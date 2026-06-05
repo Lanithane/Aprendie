@@ -11,14 +11,7 @@ import {
   Menu,
   MenuItem,
   Divider,
-  IconButton,
-  Slider,
-  Tooltip,
-  Popover,
-  Typography,
 } from '@mui/material'
-import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded'
-import StopRoundedIcon from '@mui/icons-material/StopRounded'
 import { styled } from '@mui/material/styles'
 import {
   languageName,
@@ -29,9 +22,10 @@ import {
 import { LEVELS, levelLabel, type LevelCode } from '../../../shared/levels'
 import type { LevelPref } from '../../hooks/useLevelPreference'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
+import ListenControls from '../shared/ListenControls'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
 import { useSpeech } from '../../hooks/useSpeech'
-import { useSpeechRate, MIN_RATE, MAX_RATE } from '../../hooks/useSpeechRate'
+import { useSpeechRate } from '../../hooks/useSpeechRate'
 import { useAutoSpeak } from '../../hooks/useAutoSpeak'
 import { useAutoSpeakPreference } from '../../hooks/useAutoSpeakPreference'
 
@@ -44,30 +38,6 @@ const SentenceCenter = styled('div')`
   ${({ theme }) => theme.breakpoints.down('sm')} {
     font-size: 1.65rem;
     padding: ${({ theme }) => theme.spacing(3, 1)};
-  }
-`
-
-// The "1.0×" affordance that opens the rate popover — quiet until the user reaches for it.
-const RateButton = styled('button')`
-  appearance: none;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  padding: ${({ theme }) => theme.spacing(0.5, 1)};
-  border-radius: 999px;
-  color: ${({ theme }) => theme.palette.text.secondary};
-  &:hover {
-    background: ${({ theme }) => theme.palette.action.hover};
-    color: ${({ theme }) => theme.palette.primary.main};
-  }
-  &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.palette.primary.main};
-    outline-offset: 1px;
   }
 `
 
@@ -103,8 +73,6 @@ export default function PracticeCard({
   const inputRef = useAutoFocus<HTMLInputElement>(promptText)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const menuOpen = Boolean(anchorEl)
-  const [rateAnchor, setRateAnchor] = useState<HTMLElement | null>(null)
-  const rateOpen = Boolean(rateAnchor)
   const { speak, cancel, speaking, supported: speechSupported, voices } = useSpeech()
   const { rate, setRate } = useSpeechRate()
   const { autoSpeak, delayMs } = useAutoSpeakPreference()
@@ -154,31 +122,15 @@ export default function PracticeCard({
             aria-expanded={menuOpen}
           />
           {speechSupported && (
-            <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
-              <Tooltip title='Playback speed'>
-                <RateButton
-                  type='button'
-                  onClick={(e) => setRateAnchor(e.currentTarget)}
-                  aria-haspopup='dialog'
-                  aria-expanded={rateOpen}
-                  aria-label={`Playback speed: ${rate.toFixed(1)}×`}
-                >
-                  {rate.toFixed(1)}×
-                </RateButton>
-              </Tooltip>
-              <Tooltip title={speaking ? 'Stop' : 'Listen'}>
-                <IconButton
-                  size='small'
-                  color='primary'
-                  onClick={() => (speaking ? cancel() : speak(promptText, locale, rate))}
-                  aria-label={
-                    speaking ? 'Stop reading the sentence aloud' : 'Read the sentence aloud'
-                  }
-                >
-                  {speaking ? <StopRoundedIcon /> : <VolumeUpRoundedIcon />}
-                </IconButton>
-              </Tooltip>
-            </Stack>
+            <ListenControls
+              text={promptText}
+              locale={locale}
+              speak={speak}
+              cancel={cancel}
+              speaking={speaking}
+              rate={rate}
+              setRate={setRate}
+            />
           )}
         </Stack>
         <Menu anchorEl={anchorEl} open={menuOpen} onClose={closeMenu}>
@@ -202,39 +154,6 @@ export default function PracticeCard({
             sentenceLevel={sentenceLevel}
           />
         </SentenceCenter>
-
-        <Popover
-          open={rateOpen}
-          anchorEl={rateAnchor}
-          onClose={() => setRateAnchor(null)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-          slotProps={{ paper: { sx: { px: 2.25, pt: 1.875, pb: 1.875, width: 260 } } }}
-        >
-          <Typography variant='caption' color='text.secondary'>
-            Playback speed
-          </Typography>
-          <Slider
-            size='small'
-            value={rate}
-            min={MIN_RATE}
-            max={MAX_RATE}
-            step={0.1}
-            marks={[
-              { value: MIN_RATE, label: 'Slow' },
-              { value: 1, label: '1×' },
-              { value: MAX_RATE, label: 'Fast' },
-            ]}
-            valueLabelDisplay='auto'
-            valueLabelFormat={(v) => `${v.toFixed(1)}×`}
-            onChange={(_, v) => setRate(v)}
-            aria-label='Speech rate'
-            sx={{
-              '& .MuiSlider-markLabel[data-index="0"]': { transform: 'translateX(0%)' },
-              '& .MuiSlider-markLabel[data-index="2"]': { transform: 'translateX(-100%)' },
-            }}
-          />
-        </Popover>
 
         <TextField
           inputRef={inputRef}

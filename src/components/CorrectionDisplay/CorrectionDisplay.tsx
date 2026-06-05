@@ -4,11 +4,19 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import { diffWordsWithSpace } from 'diff'
-import { languageName, type LanguageCode, type WordToken } from '../../../shared/languages'
+import {
+  languageName,
+  type LanguageCode,
+  type LocaleCode,
+  type WordToken,
+} from '../../../shared/languages'
 import { scoreToGrade } from '../../../shared/grades'
 import type { CorrectionMistakeDto } from '../../api/correctionApi'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
+import { useSpeech } from '../../hooks/useSpeech'
+import { useSpeechRate } from '../../hooks/useSpeechRate'
 import GradeChip, { PERFECT_GOLD } from '../shared/GradeChip'
+import ListenControls from '../shared/ListenControls'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
 
 const normalizePunct = (s: string) => s.replace(/[''ʼ]/g, "'").replace(/[""]/g, '"')
@@ -16,6 +24,7 @@ const normalizePunct = (s: string) => s.replace(/[''ʼ]/g, "'").replace(/[""]/g,
 interface CorrectionDisplayProps {
   learnLanguage: LanguageCode
   guessLanguage: LanguageCode
+  locale: LocaleCode
   promptText: string
   wordBreakdown: WordToken[]
   userAnswer: string
@@ -91,6 +100,7 @@ const MistakeRow = styled(Stack)`
 export default function CorrectionDisplay({
   learnLanguage,
   guessLanguage,
+  locale,
   promptText,
   wordBreakdown,
   userAnswer,
@@ -105,6 +115,8 @@ export default function CorrectionDisplay({
   // Land focus on "Next" when the result appears, so submitting with Enter flows
   // straight into advancing to the next sentence with Enter.
   const nextRef = useAutoFocus<HTMLButtonElement>()
+  const { speak, cancel, speaking, supported: speechSupported } = useSpeech()
+  const { rate, setRate } = useSpeechRate()
   const parts = diffWordsWithSpace(normalizePunct(userAnswer), normalizePunct(correctedAnswer))
   // A duplicate/perfect translation: the corrected answer is identical to what the user wrote, so
   // the two diff boxes would just repeat the same sentence.
@@ -138,9 +150,22 @@ export default function CorrectionDisplay({
           <GradeChip grade={displayGrade} size='medium' />
         </Stack>
 
-        <Typography variant='overline' color='text.secondary'>
-          {languageName(learnLanguage)}
-        </Typography>
+        <Stack direction='row' sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant='overline' color='text.secondary'>
+            {languageName(learnLanguage)}
+          </Typography>
+          {speechSupported && (
+            <ListenControls
+              text={promptText}
+              locale={locale}
+              speak={speak}
+              cancel={cancel}
+              speaking={speaking}
+              rate={rate}
+              setRate={setRate}
+            />
+          )}
+        </Stack>
         {/* The challenge is over, so the sentence becomes a study aid: every word is clickable and
             its gloss shows at every level (alwaysShowGloss), not just Starter as during practice. */}
         <PromptHeadline>
