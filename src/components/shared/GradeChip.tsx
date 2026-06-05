@@ -2,9 +2,12 @@ import { Box } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 
+// The A+ goldenrod, exported so the "perfect" celebration sparkles elsewhere can match the avatar.
+export const PERFECT_GOLD = '#C9980A'
+
 // All grade colors are fixed — theme-invariant semantic indicators like traffic-light ramps.
 const GRADE_COLORS: Record<string, { main: string; dark: string }> = {
-  'A+': { main: '#C9980A', dark: '#7A5400' }, // goldenrod
+  'A+': { main: PERFECT_GOLD, dark: '#7A5400' }, // goldenrod
   A: { main: '#388E3C', dark: '#1B5E20' }, // green
   B: { main: '#1976D2', dark: '#0D47A1' }, // blue
   C: { main: '#F9A825', dark: '#F9A825' }, // yellow
