@@ -13,6 +13,9 @@ const bodySchema = z.object({
   guessLanguage: z.string(),
   locale: z.string(),
   text: z.string().trim().min(1).max(1000),
+  // Optional: flip the translation direction to learning → known. State isn't persisted; the
+  // client just tells us which way to go on each submit.
+  swapped: z.boolean().optional(),
 })
 
 router.post(
@@ -23,7 +26,7 @@ router.post(
     if (!parsed.success) {
       return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
     }
-    const { learnLanguage, guessLanguage, locale, text } = parsed.data
+    const { learnLanguage, guessLanguage, locale, text, swapped } = parsed.data
     if (!isSupportedLanguage(learnLanguage) || !isSupportedLanguage(guessLanguage)) {
       return res.status(400).json({ error: 'unsupported language' })
     }
@@ -39,6 +42,7 @@ router.post(
       guessLanguage,
       locale,
       text,
+      swapped,
     })
     res.json(result)
   })

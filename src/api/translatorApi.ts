@@ -6,6 +6,8 @@ export interface TranslationRequest {
   guessLanguage: LanguageCode
   locale: LocaleCode
   text: string
+  // When true, translate learning → known instead of the default known → learning.
+  swapped?: boolean
 }
 
 export interface TextTranslation {
