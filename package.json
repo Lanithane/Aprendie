@@ -95,5 +95,11 @@
     "typescript-eslint": "^8.46.2",
     "vite": "^7.1.12",
     "vitest": "^4.1.7"
+  },
+  "//overrides": "Security: drizzle-kit (devDep) -> @esbuild-kit/esm-loader -> @esbuild-kit/core-utils pins the vulnerable esbuild ~0.18.20 (GHSA-67mh-4wv8-2f99, dev-server SSRF). The esbuild-kit packages are deprecated (merged into tsx) and drizzle-kit@0.31.10 is the latest, so there is no upstream fix; npm audit fix only offers a breaking downgrade to drizzle-kit@0.18.1. We instead pin the nested esbuild to the project's safe ^0.25 line, which drizzle-kit already depends on directly. Re-evaluate if drizzle-kit drops the @esbuild-kit dep.",
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "$esbuild"
+    }
   }
 }
