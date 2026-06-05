@@ -12,6 +12,7 @@ Cause: `manualChunks` in [vite.config.ts](vite.config.ts) used a broad `id.inclu
 **Why:** the bug is invisible in dev (no chunking) and only manifests in the chunked prod build, so it slipped past testing.
 
 **How to apply:**
+
 - The `react` chunk must be the React RUNTIME ONLY: match `/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/`. Never use bare `id.includes('react')`.
 - A build-time guard `assertAcyclicChunks()` plugin in vite.config now hard-fails `npm run build` on any two-chunk cycle (turns rollup's soft warning into an error), so regressions break the deploy instead of shipping a white screen.
 - General lesson: prod-only / build-output bugs need a build-time assertion, not just dev testing.

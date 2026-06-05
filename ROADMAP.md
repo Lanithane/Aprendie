@@ -17,32 +17,32 @@ Epic numbers are stable identifiers, not build order — see the status table.
 
 Epics are listed by number (a stable identifier); see the intro for the current build order.
 
-| Epic | Scope                                                                         | Status                              |
-| ---- | ----------------------------------------------------------------------------- | ----------------------------------- |
-| 0    | Tab title → "Aprendie"                                                        | ✅ Done (merged)                    |
-| 1    | Language generalization + CEFR levels + word-breakdown data + location→locale | ✅ Done (merged + deployed)         |
-| 2    | Word-root-on-click UI                                                         | ✅ Done                             |
-| A    | Accessibility pass (focus flow, skip link, labels)                            | ✅ Done                             |
-| 3    | Text-to-speech + rate slider                                                  | ✅ Done                             |
-| 4    | RBAC + admin console (roles, users CRUD, key support)                         | ✅ Done (migration on prod)         |
-| 5    | History → Postgres, per user account                                          | ✅ Done (local migrated)            |
-| 6    | Usage-cost showback + contribute CTAs                                         | ✅ Done (CTA URLs are config) |
-| 7    | API-key security hardening                                                    | ✅ Done (AAD+HKDF+vitest)           |
-| 8    | Word "Palabradex" (seen roots + variants)                                        | ✅ Done (lexeme_stats + backfill)   |
-| 9    | Full MD3 overhaul + centered "Google homepage" layout                         | ✅ Done (merged to main + deployed) |
-| 10   | Built-in translator (known → learning+locale, + usage note)                   | ✅ Done (local; QA pending)         |
-| 11   | First-run onboarding + always-warm preload (kill cold-start latency)          | ✅ Done (local; QA pending)         |
-| 12   | Operator key + access gate + daily cap                                        | ✅ Done (shipped to main)           |
-| 13   | Branding & identity (logo, favicon, PWA icons)                                | ✅ Done                             |
-| 14   | Forgiving scoring & letter grades (A+…F)                                      | ✅ Done (shipped to main)           |
-| 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                    | ✅ Done                             |
-| 16   | Feedback & analytics (self-hosted, in admin)                                  | ✅ Done                             |
-| 17   | Single Starter level (drop Foundation) + Starter word-meaning hints           | ✅ Done                             |
-| 18   | Same-language practice mode (paraphrase / tense-shift, by difficulty)          | ⬜ Not started                      |
+| Epic | Scope                                                                                          | Status                              |
+| ---- | ---------------------------------------------------------------------------------------------- | ----------------------------------- |
+| 0    | Tab title → "Aprendie"                                                                         | ✅ Done (merged)                    |
+| 1    | Language generalization + CEFR levels + word-breakdown data + location→locale                  | ✅ Done (merged + deployed)         |
+| 2    | Word-root-on-click UI                                                                          | ✅ Done                             |
+| A    | Accessibility pass (focus flow, skip link, labels)                                             | ✅ Done                             |
+| 3    | Text-to-speech + rate slider                                                                   | ✅ Done                             |
+| 4    | RBAC + admin console (roles, users CRUD, key support)                                          | ✅ Done (migration on prod)         |
+| 5    | History → Postgres, per user account                                                           | ✅ Done (local migrated)            |
+| 6    | Usage-cost showback + contribute CTAs                                                          | ✅ Done (CTA URLs are config)       |
+| 7    | API-key security hardening                                                                     | ✅ Done (AAD+HKDF+vitest)           |
+| 8    | Word "Palabradex" (seen roots + variants)                                                      | ✅ Done (lexeme_stats + backfill)   |
+| 9    | Full MD3 overhaul + centered "Google homepage" layout                                          | ✅ Done (merged to main + deployed) |
+| 10   | Built-in translator (known → learning+locale, + usage note)                                    | ✅ Done (local; QA pending)         |
+| 11   | First-run onboarding + always-warm preload (kill cold-start latency)                           | ✅ Done (local; QA pending)         |
+| 12   | Operator key + access gate + daily cap                                                         | ✅ Done (shipped to main)           |
+| 13   | Branding & identity (logo, favicon, PWA icons)                                                 | ✅ Done                             |
+| 14   | Forgiving scoring & letter grades (A+…F)                                                       | ✅ Done (shipped to main)           |
+| 15   | Auto-speak on load + smart voice defaults (extends Epic 3)                                     | ✅ Done                             |
+| 16   | Feedback & analytics (self-hosted, in admin)                                                   | ✅ Done                             |
+| 17   | Single Starter level (drop Foundation) + Starter word-meaning hints                            | ✅ Done                             |
+| 18   | Same-language practice mode (paraphrase / tense-shift, by difficulty)                          | ⬜ Not started                      |
 | 19   | Grammar reference inside the Palabradex (POS inventory + example sentence, per learn language) | ⬜ Not started                      |
-| 20   | Shared sentence corpus + per-user exposure ledger (kill per-user generation dup)  | ✅ Done                             |
-| 21   | Tunable review / selection policy ("sliding scale" resurfacing)                   | ✅ Done                             |
-| 22   | Batch-API background sentence fills (50% off) + durable collector                 | ✅ Done |
+| 20   | Shared sentence corpus + per-user exposure ledger (kill per-user generation dup)               | ✅ Done                             |
+| 21   | Tunable review / selection policy ("sliding scale" resurfacing)                                | ✅ Done                             |
+| 22   | Batch-API background sentence fills (50% off) + durable collector                              | ✅ Done                             |
 
 ### Decisions locked (from clarifying Q&A)
 
@@ -384,7 +384,7 @@ attempt when it appears in that attempt's mistakes, else "correct"; every appear
       `GET /:lemma?learnLanguage`), requireAuth. Unit-tested
       ([seenWords.test.ts](server/modules/palabradex/domain/seenWords.test.ts)).
 - [x] **Backfill** ([scripts/backfill-palabradex.ts](scripts/backfill-palabradex.ts), `npm run
-      db:backfill:palabradex`) — clears both tables then replays every `attempt` in
+    db:backfill:palabradex`) — clears both tables then replays every `attempt` in
       `(userId, createdAt asc)` order through `recordSeenWords`; re-runnable (idempotent). Seeded
       **local + prod**.
 - [x] **Frontend** — [src/api/palabradexApi.ts](src/api/palabradexApi.ts);
@@ -779,7 +779,7 @@ any level. Two changes, expanding off the work above:
       headline now renders clickable [SentenceTokens.tsx](src/components/SentenceTokens/SentenceTokens.tsx).
 - [x] **Reveal the gloss at all levels there** — new `alwaysShowGloss` prop on `SentenceTokens` /
       [WordPopover.tsx](src/components/WordPopover/WordPopover.tsx) (`showGloss = (alwaysShowGloss ||
-    sentenceLevel === 'starter') && …`). The results screen passes it; `PracticeCard` does not, so
+  sentenceLevel === 'starter') && …`). The results screen passes it; `PracticeCard` does not, so
       practice keeps the Starter-only gate.
 
 ---
@@ -832,8 +832,8 @@ The learner picks the rewrite _task_ via a **button-group toggle** on the practi
 
 A **second mode of the existing Palabradex** ([PalabradexPage.tsx](src/pages/PalabradexPage.tsx),
 `/palabradex`, Epic 8) — **not** a new page or sidebar icon. Where the Palabradex today answers
-"which words have *I* met" (per-user seen roots + variants + accuracy), this adds "**what are the
-building blocks of *this language***": the grammatical building blocks — **verbs, nouns, adjectives,
+"which words have _I_ met" (per-user seen roots + variants + accuracy), this adds "**what are the
+building blocks of _this language_**": the grammatical building blocks — **verbs, nouns, adjectives,
 articles, pronouns, prepositions, conjunctions**, etc. — of the learner's currently selected
 language. Content is keyed to the active `learnLanguage` (+ `locale`) from Settings, so a learner
 studying Spanish sees Spanish grammar and a learner studying French sees French. Complements
@@ -860,7 +860,7 @@ be conflated.
   section per POS: short explanation + example members + an example sentence), each expandable into
   detail: verb conjugation patterns, article gender/number, adjective agreement, pronoun sets, etc.
 - **Reference data is language-scoped, not user-scoped** — explicitly stateless/shared, sitting
-  *beside* the per-user lexeme stats (its own `grammar` context + cache), never mixed into them. The
+  _beside_ the per-user lexeme stats (its own `grammar` context + cache), never mixed into them. The
   UI just reads the active pair and requests (or pulls cached) grammar for that language.
 
 - [ ] **Palabradex mode switch (UI)** — add a mode toggle to
@@ -905,8 +905,8 @@ more sentences than learners consume. Two compounding causes:
    ([sentencePool.ts](server/modules/sentence/application/sentencePool.ts) `poolKey`,
    [sentenceRepository.ts](server/modules/sentence/persistence/sentenceRepository.ts)
    `poolFilters`), so N users practicing the same `(learn, guess, locale, level)` each generate
-   a separate batch of interchangeable content — cost scales with *users × sentences practiced*,
-   not *unique sentences needed*.
+   a separate batch of interchangeable content — cost scales with _users × sentences practiced_,
+   not _unique sentences needed_.
 2. **Three over-generation leaks:** an **abandoned mixed-level batch** (onboarding sets the pair
    before the level, so [setUserLanguagePair.ts](server/modules/user/application/setUserLanguagePair.ts)
    fires a mixed-level batch, then [setUserLevel.ts](server/modules/user/application/setUserLevel.ts)
@@ -916,7 +916,7 @@ more sentences than learners consume. Two compounding causes:
    ([sentencePool.ts](server/modules/sentence/application/sentencePool.ts) `refillsInFlight`)
    that doesn't dedupe across instances.
 
-The fix (caching *and* "datalake" in one move): a **shared, deduplicated, durable sentence
+The fix (caching _and_ "datalake" in one move): a **shared, deduplicated, durable sentence
 corpus** keyed by `(learn, guess, locale, level)` plus a **per-user exposure ledger** so nobody
 repeats — generation then amortizes toward zero as the corpus saturates. Split into three
 independently shippable epics; **Epic 20 is the dependency and the main cost win.** Full design,
@@ -926,7 +926,7 @@ data model, and step-by-step plan live in
 **Two boundaries locked at the schema level (cheap now, annoying to retrofit):**
 
 - **Cache scope = sentence generations only.** The corpus is keyed on `(learn, guess, locale,
-  level, contentHash)` — sentence + pair + locale + level — so one sentence is reused across many
+level, contentHash)` — sentence + pair + locale + level — so one sentence is reused across many
   learners (where the hit rate comes from). **Corrections are never corpus'd**: a correction
   prompt embeds the user's translation attempt, so each response is unique and not reusable. This
   is orthogonal to the existing Anthropic prompt cache (`cache_control` on the system blocks),

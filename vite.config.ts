@@ -23,7 +23,7 @@ function assertAcyclicChunks(): Plugin {
             this.error(
               `Circular chunk import between "${a}" and "${b}". This can crash ` +
                 `at runtime (e.g. React's "setting 'Activity'" error). Adjust ` +
-                `build.rollupOptions.output.manualChunks so the chunk graph is acyclic.`,
+                `build.rollupOptions.output.manualChunks so the chunk graph is acyclic.`
             )
           }
         }

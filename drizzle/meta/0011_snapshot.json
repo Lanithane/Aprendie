@@ -174,12 +174,8 @@
           "name": "attempts_user_id_users_id_fk",
           "tableFrom": "attempts",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -318,12 +314,8 @@
           "name": "sentence_cache_user_id_users_id_fk",
           "tableFrom": "sentence_cache",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -411,12 +403,8 @@
           "name": "usage_daily_user_id_users_id_fk",
           "tableFrom": "usage_daily",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -424,10 +412,7 @@
       "compositePrimaryKeys": {
         "usage_daily_user_id_day_pk": {
           "name": "usage_daily_user_id_day_pk",
-          "columns": [
-            "user_id",
-            "day"
-          ]
+          "columns": ["user_id", "day"]
         }
       },
       "uniqueConstraints": {},
@@ -536,16 +521,12 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         },
         "users_google_sub_unique": {
           "name": "users_google_sub_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "google_sub"
-          ]
+          "columns": ["google_sub"]
         }
       },
       "policies": {},
