@@ -8,7 +8,7 @@ A language reading and listening learning application. You're shown a sentence i
 - **Backend**: Express 4 + TypeScript (`tsx` in dev, `esbuild` bundle in prod)
 - **DB**: Postgres + Drizzle ORM (local via Docker, prod via Railway add-on)
 - **Auth**: Passport.js + Google OAuth + Postgres-backed sessions
-- **Claude**: `@anthropic-ai/sdk`, server-side only. Each user supplies their own API key, stored AES-256-GCM-encrypted server-side.
+- **Claude**: `@anthropic-ai/sdk`, server-side only. A single operator key (`OPERATOR_ANTHROPIC_KEY`) backs every approved user's requests; per-user spend is gated by access state and a daily cap.
 - **Hosting**: Railway (single Node process serves the built SPA and `/api/*`)
 
 ## Prerequisites
@@ -16,7 +16,7 @@ A language reading and listening learning application. You're shown a sentence i
 - Node 22+ (`.nvmrc` pins it)
 - Docker (for local Postgres) or a Postgres URL you can point at
 - A Google OAuth client (for the sign-in flow)
-- An Anthropic API key (each user signs in and pastes their own; you only need one for first-run testing)
+- An Anthropic API key (set as `OPERATOR_ANTHROPIC_KEY` — one key backs all users)
 
 ## Setup
 
@@ -28,8 +28,7 @@ npm install
 
 cp .env.example .env
 # Fill in SESSION_SECRET (openssl rand -base64 48),
-# ENCRYPTION_KEY (openssl rand -base64 32),
-# GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET.
+# OPERATOR_ANTHROPIC_KEY, GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET.
 
 docker compose up -d    # starts local Postgres on :5432
 npm run db:generate     # writes the first migration from server/db/schema.ts
@@ -63,7 +62,7 @@ drizzle/    # Generated migrations (committed)
 
 1. Create a Railway project, link this repo.
 2. Add the **Postgres** plugin — `DATABASE_URL` is wired in automatically.
-3. Set service variables: `SESSION_SECRET`, `ENCRYPTION_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BASE_URL` (the Railway URL), `NODE_ENV=production`.
+3. Set service variables: `SESSION_SECRET`, `OPERATOR_ANTHROPIC_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BASE_URL` (the Railway URL), `NODE_ENV=production`.
 4. In Google Cloud Console add `https://<railway-url>/api/auth/google/callback` as an authorized redirect URI.
 5. Deploy — `railway.json` already wires up build + start commands.
 

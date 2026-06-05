@@ -1,8 +1,5 @@
 import { defineConfig } from 'vitest/config'
 
-// A dummy 32-byte master key for tests (env.ts requires a valid ENCRYPTION_KEY).
-const KEY = Buffer.alloc(32, 1).toString('base64')
-
 export default defineConfig({
   test: {
     environment: 'node',
@@ -14,7 +11,6 @@ export default defineConfig({
       // validation passes under Vitest.
       BASE_URL: 'http://localhost:3000',
       SESSION_SECRET: 'test-session-secret-test-session-secret',
-      ENCRYPTION_KEY: KEY,
     },
   },
 })

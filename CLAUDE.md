@@ -14,7 +14,6 @@ server/
 ├── types/express.d.ts                # ambient types
 ├── infrastructure/                   # cross-cutting, no domain logic
 │   ├── db/{client,schema,migrate}.ts
-│   ├── crypto/encryption.ts          # generic AES-256-GCM
 │   ├── claude/{anthropicClient,responseParser}.ts
 │   ├── session/sessionMiddleware.ts
 │   └── http/{requireAuth,errorHandler}.ts
@@ -25,7 +24,7 @@ server/
     └── controllers/                  # Express routers; validate input, call application, shape responses
 ```
 
-Current contexts: `auth`, `user`, `apiKey`, `sentence`, `correction`, `language` (stateless — `application/` + `controllers/` only, no persistence/domain).
+Current contexts: `auth`, `user`, `sentence`, `correction`, `language` (stateless — `application/` + `controllers/` only, no persistence/domain).
 
 **Layer rules — do not break:**
 
