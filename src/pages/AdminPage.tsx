@@ -1,37 +1,27 @@
-import { Link as RouterLink } from 'react-router-dom'
-import {
-  Box,
-  Typography,
-  Alert,
-  Button,
-  Stack,
-  Card,
-  CardActionArea,
-  CardContent,
-  Chip,
-  Avatar,
-} from '@mui/material'
-import type { ChipProps } from '@mui/material'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import { useMemo } from 'react'
+import { Box, Typography, Alert, Button, Stack } from '@mui/material'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import LimitsPanel from '../components/Admin/LimitsPanel'
 import FeedbackPanel from '../components/Admin/FeedbackPanel'
 import AnalyticsPanel from '../components/Admin/AnalyticsPanel'
 import SiteMetricsPanel from '../components/Metrics/SiteMetricsPanel'
+import UserListCard from '../components/Admin/UserListCard'
 import { useAdminContext } from '../components/Admin/AdminLayout'
 import { useNow } from '../hooks/useNow'
-import { formatUsd } from '../components/Contribute/contribute'
 
-function capUsageColor(used: number, cap: number): NonNullable<ChipProps['color']> {
-  if (cap <= 0 || used >= cap) return 'error'
-  if (used / cap >= 0.8) return 'warning'
-  return 'success'
-}
-
-// Admin landing: a tappable list of accounts. Each opens a detail route to edit the user.
+// Admin landing: tappable account lists. Users awaiting approval are surfaced in their
+// own section above the main roster; opening either card routes to the detail editor.
 export default function AdminPage() {
   const { users, loading, error, reload } = useAdminContext()
   const now = useNow()
+
+  const { approved, unapproved } = useMemo(
+    () => ({
+      approved: users.filter((u) => u.access === 'approved'),
+      unapproved: users.filter((u) => u.access !== 'approved'),
+    }),
+    [users]
+  )
 
   return (
     <Box>
@@ -60,78 +50,30 @@ export default function AdminPage() {
         </Stack>
       )}
       <Typography variant='h6' sx={{ mb: 1 }}>
+        Awaiting approval
+      </Typography>
+      {loading ? (
+        <LoadingSpinner />
+      ) : unapproved.length === 0 ? (
+        <Typography color='text.secondary' sx={{ mb: 3 }}>
+          All users approved.
+        </Typography>
+      ) : (
+        <Stack spacing={1} sx={{ mb: 3 }}>
+          {unapproved.map((user) => (
+            <UserListCard key={user.id} user={user} now={now} />
+          ))}
+        </Stack>
+      )}
+      <Typography variant='h6' sx={{ mb: 1 }}>
         Users
       </Typography>
       {loading ? (
         <LoadingSpinner />
       ) : (
         <Stack spacing={1}>
-          {users.map((user) => (
-            <Card key={user.id} variant='outlined'>
-              <CardActionArea component={RouterLink} to={`users/${user.id}`}>
-                <CardContent>
-                  <Stack direction='row' spacing={2} sx={{ alignItems: 'center' }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: 'secondaryContainer',
-                        color: 'onSecondaryContainer',
-                        fontSize: '1.25rem',
-                        width: 56,
-                        height: 56,
-                      }}
-                    >
-                      {(user.name || user.email).charAt(0).toUpperCase()}
-                    </Avatar>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography noWrap>{user.name}</Typography>
-                      <Typography variant='caption' noWrap sx={{ display: 'block' }}>
-                        {user.email}
-                      </Typography>
-                      <Stack direction='row' spacing={0.5} sx={{ mt: 0.75, flexWrap: 'wrap' }}>
-                        {user.capExemptUntil && new Date(user.capExemptUntil).getTime() > now ? (
-                          <Chip
-                            size='small'
-                            variant='outlined'
-                            color='info'
-                            label='today: uncapped'
-                          />
-                        ) : (
-                          <Chip
-                            size='small'
-                            variant='outlined'
-                            color={capUsageColor(user.usedToday, user.effectiveCap)}
-                            label={`today: ${user.usedToday}/${user.effectiveCap}`}
-                          />
-                        )}
-                        <Chip
-                          size='small'
-                          variant='outlined'
-                          label={`lifetime: ${user.usedLifetime} · ${formatUsd(user.totalCostUsd)}`}
-                        />
-                        <Chip
-                          size='small'
-                          label={user.role}
-                          color={user.role === 'admin' ? 'primary' : 'default'}
-                        />
-                        <Chip
-                          size='small'
-                          variant={user.access === 'approved' ? 'filled' : 'outlined'}
-                          label={user.access}
-                          color={
-                            user.access === 'approved'
-                              ? 'success'
-                              : user.access === 'blocked'
-                                ? 'error'
-                                : 'warning'
-                          }
-                        />
-                      </Stack>
-                    </Box>
-                    <ChevronRightIcon sx={{ color: 'action.active', flexShrink: 0 }} />
-                  </Stack>
-                </CardContent>
-              </CardActionArea>
-            </Card>
+          {approved.map((user) => (
+            <UserListCard key={user.id} user={user} now={now} />
           ))}
         </Stack>
       )}
