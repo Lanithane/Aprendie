@@ -1,21 +1,11 @@
 import type { UserRow } from '../../../infrastructure/db/schema'
 import { notifySuperadmin } from '../../../infrastructure/notifications/emailNotifier'
-import { env } from '../../../env'
-
-// "Where did this come from" for the operator: which deployment the signup landed on.
-// Prefers the canonical prod host, falling back to BASE_URL's host, paired with NODE_ENV
-// so a real prod signup is never mistaken for a local test. Prod is always HTTPS (Railway
-// terminates TLS); local dev is HTTP.
-function environmentReferrer(): { label: string; adminUrl: string } {
-  const proto = env.NODE_ENV === 'production' ? 'https' : 'http'
-  const host = env.CANONICAL_HOST ?? new URL(env.BASE_URL).host
-  return { label: `${env.NODE_ENV} · ${host}`, adminUrl: `${proto}://${host}/admin` }
-}
+import { deploymentContext } from '../../../infrastructure/notifications/notificationEnv'
 
 // Ops alert: a brand-new account is pending and needs operator approval. Safe to call
 // without awaiting — notifySuperadmin swallows its own errors and never throws.
 export async function notifyPendingSignup(user: UserRow): Promise<void> {
-  const { label, adminUrl } = environmentReferrer()
+  const { label, adminUrl } = deploymentContext()
   const subject = `Aprendie: new signup awaiting approval — ${user.name}`
   const text = [
     'A new user signed up and is waiting for your approval.',

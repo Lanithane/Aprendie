@@ -86,7 +86,7 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
   // Record every graded sentence (including admins) so the admin "Graded today" tile
   // reflects all activity. The cap is only *enforced* for non-admins (asserted above);
   // counting an admin's sentences here never blocks them, since they skip that check.
-  await recordGradedSentence(input.user.id)
+  await recordGradedSentence(input.user)
 
   return {
     sentenceId: sentence.id,
