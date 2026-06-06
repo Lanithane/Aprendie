@@ -26,6 +26,12 @@ import SentenceTokens from '../SentenceTokens/SentenceTokens'
 const normalizePunct = (s: string) =>
   s.replace(/[\u2018\u2019\u02bc]/g, "'").replace(/[\u201c\u201d]/g, '"')
 
+// For the "Perfect!" exact-match check only: also drop trailing sentence-final punctuation. A
+// missing (or extra) closing period is the one difference the grader already forgives \u2014 it scores
+// such an answer A+ \u2014 so it shouldn't demote the headline to "Nice!" or split the answer into diff
+// boxes whose sole highlight is a lone period. The displayed corrected answer keeps its period.
+const normalizeForExactMatch = (s: string) => normalizePunct(s.trim()).replace(/[.!?\u2026]+$/u, '')
+
 interface CorrectionDisplayProps {
   learnLanguage: LanguageCode
   guessLanguage: LanguageCode
@@ -125,7 +131,8 @@ export default function CorrectionDisplay({
   const parts = diffWordsWithSpace(normalizePunct(userAnswer), normalizePunct(correctedAnswer))
   // A duplicate/perfect translation: the corrected answer is identical to what the user wrote, so
   // the two diff boxes would just repeat the same sentence.
-  const isExactMatch = normalizePunct(userAnswer.trim()) === normalizePunct(correctedAnswer.trim())
+  const isExactMatch =
+    normalizeForExactMatch(userAnswer) === normalizeForExactMatch(correctedAnswer)
   const visibleMistakes = mistakes.filter(
     (m) => normalizePunct(m.userPhrase) !== normalizePunct(m.correctPhrase)
   )
