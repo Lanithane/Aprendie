@@ -26,16 +26,17 @@ export interface Exposure {
 }
 
 // The tunable "sliding scale". Defaults strongly prefer fresh material and only resurface a seen
-// sentence when the review signal is genuinely strong (a recent mistake, a struggling category, or a
-// word the user keeps missing); raise the review weights to drill harder, lower them to keep
-// marching through new sentences.
+// sentence when the review signal is genuinely strong (a recent mistake plus recency, a struggling
+// category, or a word the user keeps missing); raise the review weights to drill harder, lower them
+// to keep marching through new sentences.
 export interface SelectionWeights {
   // Serve unseen outright while at least this many remain unseen for the user (drain mode). Below
   // it the picker enters review mode and seen sentences can be resurfaced.
   reviewWhenUnseenBelow: number
   // The flat review score an unseen candidate carries in review mode — the bar a seen sentence must
-  // clear to be resurfaced ahead of fresh material. Keep it above `recency` (so a merely-old
-  // sentence never preempts unseen) and around `mistake`/`category`/`lexeme` (so genuine review can).
+  // clear to be resurfaced ahead of fresh material. Keep it above any single weak signal (so a
+  // merely-old or freshly-missed sentence never preempts unseen) and below combined signals (so
+  // genuine review can).
   unseenBase: number
   // Seen-sentence review weights:
   recency: number // time since last seen, normalized 0..1 across the seen set (oldest → 1)
@@ -48,7 +49,7 @@ export const DEFAULT_WEIGHTS: SelectionWeights = {
   reviewWhenUnseenBelow: 3,
   unseenBase: 2,
   recency: 1,
-  mistake: 2.5,
+  mistake: 1.5,
   category: 1.5,
   lexeme: 1.5,
 }

@@ -85,11 +85,21 @@ describe('selectNext', () => {
     )
   })
 
-  it('resurfaces a strong review candidate ahead of scarce unseen material', () => {
-    // One unseen sentence and one seen sentence the user just got wrong; the mistake outranks the
-    // flat unseen baseline, so review preempts the fresh sentence.
+  it('keeps draining scarce unseen material over a freshly-missed sentence alone', () => {
+    // One unseen sentence and one seen sentence the user just got wrong. A miss still matters, but
+    // by itself it no longer clears the unseen baseline, so the fresh sentence wins.
     const candidates = [cand('fresh', 5000), cand('missed', 1000)]
     const exposures = [seen('missed', 3000)]
+    expect(selectNext(candidates, exposures, signal({ mistakeSentenceIds: ['missed'] }))).toBe(
+      'fresh'
+    )
+  })
+
+  it('resurfaces a missed sentence ahead of scarce unseen material when review signals combine', () => {
+    // A missed sentence that is also least-recently-seen carries enough signal to preempt the last
+    // few unseen prompts.
+    const candidates = [cand('fresh', 5000), cand('missed', 1000), cand('recent', 2000)]
+    const exposures = [seen('missed', 1000), seen('recent', 3000)]
     expect(selectNext(candidates, exposures, signal({ mistakeSentenceIds: ['missed'] }))).toBe(
       'missed'
     )
@@ -210,10 +220,13 @@ describe('lemmasOf', () => {
 })
 
 describe('DEFAULT_WEIGHTS', () => {
-  it('keeps the unseen baseline above a pure-recency resurface but below a mistake', () => {
-    // Invariant the sliding scale relies on: a merely-old seen sentence (recency ≤ 1) never preempts
-    // fresh material, but a recent miss (mistake weight) does.
+  it('keeps the unseen baseline above individual weak signals but below combined review signals', () => {
+    // Invariant the sliding scale relies on: a merely-old or freshly-missed seen sentence does not
+    // preempt fresh material, but an old missed sentence can.
     expect(DEFAULT_WEIGHTS.recency).toBeLessThan(DEFAULT_WEIGHTS.unseenBase)
-    expect(DEFAULT_WEIGHTS.mistake).toBeGreaterThan(DEFAULT_WEIGHTS.unseenBase)
+    expect(DEFAULT_WEIGHTS.mistake).toBeLessThan(DEFAULT_WEIGHTS.unseenBase)
+    expect(DEFAULT_WEIGHTS.mistake + DEFAULT_WEIGHTS.recency).toBeGreaterThan(
+      DEFAULT_WEIGHTS.unseenBase
+    )
   })
 })
