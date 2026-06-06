@@ -12,15 +12,17 @@ import type { UserRow } from '../../../infrastructure/db/schema'
 import { UserNotFoundError, LastAdminError } from '../domain/errors'
 
 export async function listUsers(): Promise<AdminUserView[]> {
-  const [rows, settings, usedByUser, costByUser] = await Promise.all([
+  const [rows, settings, usedByUser, lifetimeByUser, costByUser] = await Promise.all([
     userRepository.listAll(),
     getSettings(),
     usageRepository.countTodayForAll(),
+    usageRepository.countLifetimeForAll(),
     getShowbackForAllUsers(),
   ])
   return rows.map((row) =>
     toAdminUserView(row, {
       usedToday: usedByUser.get(row.id) ?? 0,
+      usedLifetime: lifetimeByUser.get(row.id) ?? 0,
       globalCap: settings.dailyGradedCap,
       totalCostUsd: costByUser.get(row.id) ?? 0,
     })
@@ -30,13 +32,15 @@ export async function listUsers(): Promise<AdminUserView[]> {
 // Re-projects a single user after a mutation, refreshing their usage + the global cap so
 // the returned view stays consistent with the list.
 async function viewFor(row: UserRow): Promise<AdminUserView> {
-  const [settings, usedToday, showback] = await Promise.all([
+  const [settings, usedToday, usedLifetime, showback] = await Promise.all([
     getSettings(),
     usageRepository.countToday(row.id),
+    usageRepository.countLifetime(row.id),
     getUserShowback(row.id),
   ])
   return toAdminUserView(row, {
     usedToday,
+    usedLifetime,
     globalCap: settings.dailyGradedCap,
     totalCostUsd: showback.totalCostUsd,
   })

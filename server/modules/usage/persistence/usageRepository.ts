@@ -26,6 +26,26 @@ export async function countTodayForAll(): Promise<Map<string, number>> {
   return new Map(rows.map((r) => [r.userId, r.count]))
 }
 
+// Lifetime graded-sentence count for every user that has any, keyed by user id. Sums the
+// per-day buckets across all time. Users with no activity ever are absent (callers default
+// them to 0). Backs the admin usage view's lifetime chip without an N+1.
+export async function countLifetimeForAll(): Promise<Map<string, number>> {
+  const rows = await db
+    .select({ userId: usageDaily.userId, total: sql<number>`sum(${usageDaily.count})::int` })
+    .from(usageDaily)
+    .groupBy(usageDaily.userId)
+  return new Map(rows.map((r) => [r.userId, r.total]))
+}
+
+// Lifetime graded-sentence count for a single user (sum of all per-day buckets).
+export async function countLifetime(userId: string): Promise<number> {
+  const rows = await db
+    .select({ total: sql<number>`coalesce(sum(${usageDaily.count}), 0)::int` })
+    .from(usageDaily)
+    .where(eq(usageDaily.userId, userId))
+  return rows[0]?.total ?? 0
+}
+
 // Atomically increment (or seed) today's counter and return the new total.
 export async function incrementToday(userId: string): Promise<number> {
   const rows = await db

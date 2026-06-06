@@ -41,6 +41,8 @@ export interface AdminUserView {
   // Graded sentences used today (UTC) and the cap that applies to this account
   // (per-user override if set, otherwise the global cap).
   usedToday: number
+  // Graded sentences ever (sum of all daily buckets) — informational lifetime usage.
+  usedLifetime: number
   effectiveCap: number
   dailyCapOverride: number | null
   // ISO timestamp of a temporary uncap, or null. The client treats a future value as "uncapped".
@@ -70,6 +72,7 @@ export function toUserView(row: UserRow): UserView {
 // Usage/cap context resolved by the application layer (today's count + the global cap).
 export interface AdminUserUsage {
   usedToday: number
+  usedLifetime: number
   globalCap: number
   totalCostUsd: number
 }
@@ -83,6 +86,7 @@ export function toAdminUserView(row: UserRow, usage: AdminUserUsage): AdminUserV
     access: row.access,
     createdAt: row.createdAt.toISOString(),
     usedToday: usage.usedToday,
+    usedLifetime: usage.usedLifetime,
     effectiveCap: row.dailyCapOverride ?? usage.globalCap,
     dailyCapOverride: row.dailyCapOverride ?? null,
     capExemptUntil: row.capExemptUntil ? row.capExemptUntil.toISOString() : null,

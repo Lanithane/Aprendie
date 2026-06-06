@@ -35,11 +35,17 @@ describe('user view projections', () => {
   })
 
   it('toAdminUserView maps the core fields and resolves the effective cap', () => {
-    const view = toAdminUserView(fakeRow(), { usedToday: 3, globalCap: 100, totalCostUsd: 1.25 })
+    const view = toAdminUserView(fakeRow(), {
+      usedToday: 3,
+      usedLifetime: 42,
+      globalCap: 100,
+      totalCostUsd: 1.25,
+    })
     expect(view.id).toBe('user-1')
     expect(view.email).toBe('a@b.com')
     expect(view.createdAt).toBe('2026-01-01T00:00:00.000Z')
     expect(view.usedToday).toBe(3)
+    expect(view.usedLifetime).toBe(42)
     expect(view.effectiveCap).toBe(100)
     expect(view.dailyCapOverride).toBeNull()
     expect(view.capExemptUntil).toBeNull()
@@ -51,6 +57,7 @@ describe('user view projections', () => {
       { ...fakeRow(), dailyCapOverride: 250 },
       {
         usedToday: 0,
+        usedLifetime: 0,
         globalCap: 100,
         totalCostUsd: 0,
       }

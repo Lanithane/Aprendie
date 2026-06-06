@@ -89,15 +89,25 @@ export default function AdminPage() {
                       </Typography>
                       <Stack direction='row' spacing={0.5} sx={{ mt: 0.75, flexWrap: 'wrap' }}>
                         {user.capExemptUntil && new Date(user.capExemptUntil).getTime() > now ? (
-                          <Chip size='small' variant='outlined' color='info' label='uncapped' />
+                          <Chip
+                            size='small'
+                            variant='outlined'
+                            color='info'
+                            label='today: uncapped'
+                          />
                         ) : (
                           <Chip
                             size='small'
                             variant='outlined'
                             color={capUsageColor(user.usedToday, user.effectiveCap)}
-                            label={`${user.usedToday}/${user.effectiveCap}`}
+                            label={`today: ${user.usedToday}/${user.effectiveCap}`}
                           />
                         )}
+                        <Chip
+                          size='small'
+                          variant='outlined'
+                          label={`lifetime: ${user.usedLifetime} · ${formatUsd(user.totalCostUsd)}`}
+                        />
                         <Chip
                           size='small'
                           label={user.role}
@@ -114,11 +124,6 @@ export default function AdminPage() {
                                 ? 'error'
                                 : 'warning'
                           }
-                        />
-                        <Chip
-                          size='small'
-                          variant='outlined'
-                          label={formatUsd(user.totalCostUsd)}
                         />
                       </Stack>
                     </Box>

@@ -12,6 +12,8 @@ export interface AdminUser {
   // Daily-limit posture: graded sentences used today, the cap that applies (override or
   // global), the per-user override if any, and a temporary-uncap expiry (ISO) or null.
   usedToday: number
+  // Lifetime graded-sentence count (sum of all daily buckets).
+  usedLifetime: number
   effectiveCap: number
   dailyCapOverride: number | null
   capExemptUntil: string | null
