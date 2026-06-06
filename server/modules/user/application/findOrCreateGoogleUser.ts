@@ -4,6 +4,7 @@ import { env } from '../../../env'
 import type { UserRow } from '../../../infrastructure/db/schema'
 import { getSettings } from '../../settings/application/appSettings'
 import { SignupsPausedError } from '../../settings/domain/errors'
+import { notifyPendingSignup } from './notifyPendingSignup'
 
 interface GoogleProfileInput {
   googleSub: string
@@ -31,7 +32,7 @@ export async function findOrCreateGoogleUser(profile: GoogleProfileInput): Promi
     throw new SignupsPausedError()
   }
   const access = desiredRole === 'admin' || settings.autoApproveSignups ? 'approved' : 'pending'
-  return userRepository.create({
+  const created = await userRepository.create({
     email: profile.email,
     name: profile.name,
     googleSub: profile.googleSub,
@@ -39,4 +40,8 @@ export async function findOrCreateGoogleUser(profile: GoogleProfileInput): Promi
     access,
     level: 'starter',
   })
+  // Fire-and-forget: only a pending account needs the operator's attention to approve.
+  // Not awaited so the login redirect isn't blocked on the email send.
+  if (created.access === 'pending') void notifyPendingSignup(created)
+  return created
 }

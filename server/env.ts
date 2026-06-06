@@ -37,6 +37,15 @@ const envSchema = z.object({
   // app is only ever reached under its real domain. www and the apex are both
   // legit and pass through untouched; only the railway origin is rewritten.
   CANONICAL_HOST: z.string().optional(),
+  // --- Superadmin email notifications (Resend) ---
+  // RESEND_API_KEY enables transactional email; SUPERADMIN_EMAIL is the single operator
+  // recipient for ops alerts (new-signup approvals, etc.). Both optional so the server
+  // still boots without them — notifications no-op (with a warn) when unset.
+  // RESEND_FROM is the verified sender; the default `onboarding@resend.dev` needs zero
+  // domain setup but only delivers to the Resend account owner's own address.
+  RESEND_API_KEY: z.string().optional(),
+  SUPERADMIN_EMAIL: z.string().email().optional(),
+  RESEND_FROM: z.string().default('Aprendie <onboarding@resend.dev>'),
 })
 
 const parsed = envSchema.safeParse(process.env)
