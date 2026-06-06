@@ -19,7 +19,12 @@ import GradeChip, { PERFECT_GOLD } from '../shared/GradeChip'
 import ListenControls from '../shared/ListenControls'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
 
-const normalizePunct = (s: string) => s.replace(/[''ʼ]/g, "'").replace(/[""]/g, '"')
+// Normalize curly quotes to ASCII so a typographic apostrophe (e.g. Claude's "I\u2019m") does not
+// diff against the user's straight-quote "I'm". Written as \u escapes, not literal smart-quote
+// glyphs: a literal glyph here is easy for an editor/format pass to silently flatten to ASCII,
+// which would turn this back into a no-op.
+const normalizePunct = (s: string) =>
+  s.replace(/[\u2018\u2019\u02bc]/g, "'").replace(/[\u201c\u201d]/g, '"')
 
 interface CorrectionDisplayProps {
   learnLanguage: LanguageCode
