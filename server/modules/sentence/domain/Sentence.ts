@@ -10,6 +10,9 @@ export interface SentenceView {
   promptText: string
   answerText: string
   level: LevelCode | null
+  // The everyday-domain the sentence was built on (a `CATEGORY_DOMAINS` string), surfaced so the
+  // practice card can show the topic chip and the client can honor a pinned topic.
+  theme: string | null
   wordBreakdown: WordToken[]
 }
 
@@ -32,6 +35,7 @@ export function toSentenceView(row: SentenceRow): SentenceView {
     promptText: row.promptText,
     answerText: row.answerText,
     level: (row.level as LevelCode | null) ?? null,
+    theme: row.theme ?? null,
     wordBreakdown: row.wordBreakdown ?? [],
   }
 }

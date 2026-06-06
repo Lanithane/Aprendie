@@ -11,46 +11,24 @@ import {
   type WordToken,
 } from '../../../../shared/languages'
 import { LEVELS, isLevelCode, levelByCode, type LevelCode } from '../../../../shared/levels'
+import { CATEGORY_DOMAINS } from '../../../../shared/categories'
 import type { GeneratedSentence } from '../domain/Sentence'
 
 export const BATCH_SIZE = 10
 
-// Rotating content domains. Difficulty is governed entirely by the level rubric below; these
-// steer only WHAT a batch is about, so the same domain yields a starter "I eat bread" and a
-// C2 restaurant-review sentence alike. We shuffle and pass a different spread on every call so
-// successive pools stop converging on the same high-frequency phrases (the starter pool was the
-// worst offender — endless "hola"/"gracias"). Deliberately kept OUT of the cached system block:
-// variety must change per call, the system prompt must stay byte-identical to keep its cache hit.
-const THEME_DOMAINS = [
-  'greetings and introductions',
-  'family and relationships',
-  'food, cooking and eating out',
-  'numbers, time and dates',
-  'weather and the seasons',
-  'home, rooms and furniture',
-  'work, study and school',
-  'travel, directions and transport',
-  'shopping and money',
-  'health, the body and the doctor',
-  'clothes and appearance',
-  'animals and nature',
-  'hobbies and free time',
-  'feelings, opinions and personality',
-  'technology, phones and the internet',
-  'city life and the neighbourhood',
-  'sports and exercise',
-  'art, music, film and books',
-  'daily routine and chores',
-  'plans, dreams and the future',
-  'holidays, festivals and celebrations',
-  'the natural world and the environment',
-]
+// Rotating content domains (the shared category registry). Difficulty is governed entirely by the
+// level rubric below; these steer only WHAT a batch is about, so the same domain yields a starter
+// "I eat bread" and a C2 restaurant-review sentence alike. We shuffle and pass a different spread on
+// every call so successive pools stop converging on the same high-frequency phrases (the starter
+// pool was the worst offender — endless "hola"/"gracias"). Deliberately kept OUT of the cached
+// system block: variety must change per call, the system prompt must stay byte-identical to keep its
+// cache hit. When a learner pins a topic we instead pass that single domain (see buildSentence...).
 
 // Shuffle and take a spread sized to the batch: roughly one domain per sentence, but capped so a
 // full 10-sentence batch still touches ~7 distinct areas without forcing rigid one-per-sentence.
 function pickThemes(count: number): string[] {
-  const wanted = Math.min(THEME_DOMAINS.length, Math.max(2, Math.min(count, 7)))
-  const pool = [...THEME_DOMAINS]
+  const wanted = Math.min(CATEGORY_DOMAINS.length, Math.max(2, Math.min(count, 7)))
+  const pool = [...CATEGORY_DOMAINS]
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[pool[i], pool[j]] = [pool[j], pool[i]]
@@ -113,6 +91,9 @@ interface GenerateParams {
   guessLanguage: LanguageCode
   locale: LocaleCode
   level?: LevelCode
+  // A pinned everyday-domain (a `CATEGORY_DOMAINS` string). When set, the whole batch is forced onto
+  // this one domain instead of a shuffled spread, so a learner drilling a topic gets more of it.
+  category?: string
 }
 
 // The generated sentences plus the token usage of the call, so the caller can record showback.
@@ -171,16 +152,18 @@ export function buildSentenceMessageParams(
   params: GenerateParams,
   count: number = BATCH_SIZE
 ): Anthropic.MessageCreateParamsNonStreaming {
-  const { learnLanguage, guessLanguage, locale, level } = params
+  const { learnLanguage, guessLanguage, locale, level, category } = params
   const levelLine = level
     ? `All ${count} sentences at difficulty level "${level}" (${levelByCode(level)?.name ?? level}).`
     : 'Mix difficulty levels across the batch, from starter up to advanced.'
 
-  const themes = pickThemes(count)
-  const themeLine =
-    count === 1
-      ? `Base this sentence on one of these everyday domains: ${themes.join(', ')}.`
-      : `Spread the ${count} sentences across these everyday domains — aim for a different one each and don't cluster on a single topic: ${themes.join('; ')}.`
+  // A pinned topic forces the whole batch onto that single domain (the learner is drilling it);
+  // otherwise spread a freshly shuffled selection so successive pools stay varied.
+  const themeLine = category
+    ? `Base ${count === 1 ? 'this sentence' : `all ${count} sentences`} on this everyday domain: ${category}.`
+    : count === 1
+      ? `Base this sentence on one of these everyday domains: ${pickThemes(count).join(', ')}.`
+      : `Spread the ${count} sentences across these everyday domains — aim for a different one each and don't cluster on a single topic: ${pickThemes(count).join('; ')}.`
 
   const userText = `Learn language (write the sentences in this): ${languageName(learnLanguage)} (${learnLanguage})
 Guess language (translate into this): ${languageName(guessLanguage)} (${guessLanguage})

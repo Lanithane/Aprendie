@@ -10,6 +10,9 @@ export interface SentenceDto {
   promptText: string
   answerText: string
   level: LevelCode | null
+  // The everyday-domain the sentence was built on (a category `domain` string), used by the practice
+  // card's topic chip and to honor a pinned topic. Null for legacy rows generated before themes.
+  theme: string | null
   wordBreakdown: WordToken[]
 }
 
@@ -18,6 +21,8 @@ export interface FetchSentenceParams {
   guessLanguage: LanguageCode
   locale: LocaleCode
   level?: LevelCode | null
+  // A pinned-topic id (see shared/categories); when set the server filters/generates to that topic.
+  category?: string | null
 }
 
 // Fire-and-forget background pool warm. No awaiting — the server starts generating immediately
@@ -44,5 +49,6 @@ export function fetchSentence(params: FetchSentenceParams): Promise<SentenceDto>
     locale: params.locale,
   })
   if (params.level) search.set('level', params.level)
+  if (params.category) search.set('category', params.category)
   return api<SentenceDto>(`/api/sentence?${search.toString()}`)
 }

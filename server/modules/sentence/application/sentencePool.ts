@@ -31,6 +31,12 @@ export const REFILL_THRESHOLD = 3
 // then filled by a background refill so the next Next press is already warm.
 export const COLD_START_SIZE = 1
 
+// Cold-starting a freshly PINNED topic is different: there's no rest-of-corpus to fall back on while
+// the background batch fills, and the collector only polls on a 60s cadence (batch latency varies on
+// top). So we generate a small batch inline to give immediate runway on the pinned topic, trading a
+// slightly longer one-time wait for not stranding the learner on a single sentence.
+export const CATEGORY_COLD_START_SIZE = 5
+
 // Identifies one serving/warming request: the shared corpus `(learn, guess, locale, level)` slice
 // plus the user it serves (needed for spend attribution and the access gates). `user` no longer
 // keys the corpus — it's shared — so the in-flight guard below dedupes per SLICE across all users.
@@ -40,6 +46,10 @@ export interface PoolInput {
   guessLanguage: LanguageCode
   locale: LocaleCode
   level?: LevelCode
+  // A pinned everyday-domain (a `CATEGORY_DOMAINS` string) the learner is drilling. Orthogonal to the
+  // corpus slice — it only steers generation toward that topic; `sliceOf` deliberately drops it so the
+  // corpus stays shared and topic-pinned rows remain reusable by everyone.
+  category?: string
 }
 
 function sliceOf(input: PoolInput): CorpusSlice {
@@ -95,6 +105,7 @@ export async function refillPool(input: PoolInput, count?: number): Promise<void
       guessLanguage: input.guessLanguage,
       locale: input.locale,
       level: input.level,
+      category: input.category,
     },
     count
   )
@@ -148,6 +159,7 @@ async function submitBackgroundFill(input: PoolInput): Promise<void> {
       guessLanguage: input.guessLanguage,
       locale: input.locale,
       level: input.level,
+      category: input.category,
     },
     BATCH_SIZE
   )

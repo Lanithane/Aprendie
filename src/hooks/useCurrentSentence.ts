@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchSentence, type SentenceDto } from '../api/sentenceApi'
+import { categoryByDomain } from '../../shared/categories'
 import type { LanguagePair } from '../../shared/languages'
 import type { LevelPref } from './useLevelPreference'
+import type { CategoryPref } from './useCategoryPreference'
 
 interface UseCurrentSentenceArgs {
   enabled: boolean
   pair: LanguagePair
   level: LevelPref
+  // The pinned practice topic (null = shuffle all). Gates the parked/seed sentence and is sent on
+  // every fetch so the server filters/generates to it.
+  category: CategoryPref
   // First sentence supplied by the /api/me bootstrap (perf #5); used in place of the
   // opening fetch when it matches the active pool. `onConsumeInitial` clears it from its
   // source so it isn't re-seeded on a later remount.
@@ -14,12 +19,21 @@ interface UseCurrentSentenceArgs {
   onConsumeInitial?: () => void
 }
 
-function matchesPool(s: SentenceDto, pair: LanguagePair, level: LevelPref): boolean {
+function matchesPool(
+  s: SentenceDto,
+  pair: LanguagePair,
+  level: LevelPref,
+  category: CategoryPref
+): boolean {
   return (
     s.learnLanguage === pair.learnLanguage &&
     s.guessLanguage === pair.guessLanguage &&
     s.locale === pair.locale &&
-    (s.level ?? null) === (level ?? null)
+    (s.level ?? null) === (level ?? null) &&
+    // With a topic pinned, a parked/seed sentence only matches if it's actually that topic — so a
+    // stale or off-topic seed (e.g. the category-agnostic /api/me bootstrap) falls through to a fresh
+    // fetch that honors the pin.
+    (category === null || categoryByDomain(s.theme ?? '')?.id === category)
   )
 }
 
@@ -28,14 +42,20 @@ function matchesPool(s: SentenceDto, pair: LanguagePair, level: LevelPref): bool
 // advance (see `clear`), so only one in-flight sentence is ever persisted.
 const STORAGE_KEY = 'aprendie:currentSentence'
 
-function readStored(pair: LanguagePair, level: LevelPref): SentenceDto | null {
+function readStored(
+  pair: LanguagePair,
+  level: LevelPref,
+  category: CategoryPref
+): SentenceDto | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as SentenceDto
     // Only restore if it's a well-formed sentence for the pool we're about to show — a stored
-    // sentence from a different pair/level is stale and should fall through to a fresh fetch.
-    if (parsed && typeof parsed.id === 'string' && matchesPool(parsed, pair, level)) return parsed
+    // sentence from a different pair/level/topic is stale and should fall through to a fresh fetch.
+    if (parsed && typeof parsed.id === 'string' && matchesPool(parsed, pair, level, category)) {
+      return parsed
+    }
   } catch {
     // ignore malformed/unavailable storage
   }
@@ -63,11 +83,14 @@ export function useCurrentSentence({
   enabled,
   pair,
   level,
+  category,
   initialSentence,
   onConsumeInitial,
 }: UseCurrentSentenceArgs): UseCurrentSentenceResult {
   // Lazy-init from the parked sentence so a refresh shows the same prompt with no fetch flash.
-  const [sentence, setSentence] = useState<SentenceDto | null>(() => readStored(pair, level))
+  const [sentence, setSentence] = useState<SentenceDto | null>(() =>
+    readStored(pair, level, category)
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -91,8 +114,8 @@ export function useCurrentSentence({
   const genRef = useRef(0)
 
   const fetchOne = useCallback(
-    () => fetchSentence({ learnLanguage, guessLanguage, locale, level }),
-    [learnLanguage, guessLanguage, locale, level]
+    () => fetchSentence({ learnLanguage, guessLanguage, locale, level, category }),
+    [learnLanguage, guessLanguage, locale, level, category]
   )
 
   // Blocking load (drives the spinner), used when there's nothing to show yet.
@@ -141,7 +164,11 @@ export function useCurrentSentence({
     if (!enabled || sentence) return
     // Consume the bootstrap seed once, if it's arrived and matches the active pool —
     // skipping the opening fetch. Otherwise fall through to a normal blocking load.
-    if (!seedConsumedRef.current && initialSentence && matchesPool(initialSentence, pair, level)) {
+    if (
+      !seedConsumedRef.current &&
+      initialSentence &&
+      matchesPool(initialSentence, pair, level, category)
+    ) {
       seedConsumedRef.current = true
       onConsumeInitial?.()
       setSentence(initialSentence)
@@ -165,7 +192,7 @@ export function useCurrentSentence({
 
   // Drop everything (current + prefetched) when the pair/level changes so the new
   // selection is fetched fresh — the prefetched sentence is for the old pool.
-  const depsKey = `${learnLanguage}|${guessLanguage}|${locale}|${level ?? ''}`
+  const depsKey = `${learnLanguage}|${guessLanguage}|${locale}|${level ?? ''}|${category ?? ''}`
   const prevKey = useRef(depsKey)
   useEffect(() => {
     if (prevKey.current !== depsKey) {

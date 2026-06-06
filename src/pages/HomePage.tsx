@@ -8,6 +8,7 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useLevelPreference } from '../hooks/useLevelPreference'
+import { useCategoryPreference } from '../hooks/useCategoryPreference'
 import { useOnboarding } from '../hooks/useOnboarding'
 import { useCurrentSentence } from '../hooks/useCurrentSentence'
 import { useCorrectionSubmission } from '../hooks/useCorrectionSubmission'
@@ -38,6 +39,7 @@ export default function HomePage() {
   const { user, isApproved, bootstrapSentence, consumeBootstrap } = useAuth()
   const { pair } = useLanguagePair()
   const { pref: level, setPref: setLevel } = useLevelPreference()
+  const { pref: category, setPref: setCategory } = useCategoryPreference()
   const { needsOnboarding, error: onboardingError, complete } = useOnboarding()
   const {
     sentence,
@@ -51,6 +53,7 @@ export default function HomePage() {
     enabled: isApproved && !needsOnboarding,
     pair,
     level,
+    category,
     initialSentence: bootstrapSentence,
     onConsumeInitial: consumeBootstrap,
   })
@@ -131,6 +134,9 @@ export default function HomePage() {
         level={level}
         sentenceLevel={sentence.level}
         onLevelChange={setLevel}
+        category={category}
+        sentenceTheme={sentence.theme}
+        onCategoryChange={setCategory}
         onSubmit={(userAnswer) => {
           void submit(sentence.id, userAnswer)
         }}

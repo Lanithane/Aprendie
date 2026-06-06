@@ -4,6 +4,7 @@ import * as sentenceRepository from '../persistence/sentenceRepository'
 import type { CorpusSlice } from '../persistence/sentenceRepository'
 import {
   COLD_START_SIZE,
+  CATEGORY_COLD_START_SIZE,
   REFILL_THRESHOLD,
   refillPool,
   triggerBackgroundRefill,
@@ -61,6 +62,17 @@ function toCandidates(rows: SentenceRow[]): CorpusCandidate[] {
   }))
 }
 
+// The corpus rows the picker should choose from: the whole slice, or — when the learner has pinned a
+// topic — just the rows whose stored `theme` is that domain. Filtered before mapping so we don't
+// compute lemmas for rows we'll discard.
+function candidatesForCategory(
+  rows: SentenceRow[],
+  category: string | undefined
+): CorpusCandidate[] {
+  const scoped = category ? rows.filter((r) => r.theme === category) : rows
+  return toCandidates(scoped)
+}
+
 // The weighted picker only consults the review signal once unseen material is scarce enough to enter
 // "review mode" (the same threshold the policy uses). While fresh sentences are plentiful we skip the
 // extra queries on the hot path and hand the picker an empty signal. In review mode we pull two
@@ -87,16 +99,21 @@ export async function getNextSentence(input: PoolInput): Promise<SentenceView> {
   const slice = sliceOf(input)
 
   let corpus = await sentenceRepository.listCorpus(slice)
-  if (corpus.length === 0) {
-    // Cold start: this slice has no shared corpus yet. Generate a single sentence inline so the
-    // user waits as little as possible, then top the corpus up off the critical path.
-    await refillPool(input, COLD_START_SIZE)
+  let candidates = candidatesForCategory(corpus, input.category)
+  if (candidates.length === 0) {
+    // Cold start: nothing servable yet — either the slice has no shared corpus, or the learner pinned
+    // a topic the corpus hasn't covered. Generate inline (steered to the pin, a small batch when
+    // pinned so a fresh topic has runway), then top the corpus up off the critical path.
+    await refillPool(input, input.category ? CATEGORY_COLD_START_SIZE : COLD_START_SIZE)
     triggerBackgroundRefill(input)
     corpus = await sentenceRepository.listCorpus(slice)
+    candidates = candidatesForCategory(corpus, input.category)
+    // The model can echo back an off-list theme; if the pin still matched nothing, fall back to the
+    // whole slice so the learner still gets a sentence (just not perfectly on-topic this once).
+    if (candidates.length === 0) candidates = toCandidates(corpus)
   }
 
   const exposures = await sentenceRepository.listExposures(input.user.id, slice)
-  const candidates = toCandidates(corpus)
   const unseen = unseenCount(candidates, exposures)
 
   // Refill signal is now "unseen-for-this-user" rather than a raw pool count: when this learner is

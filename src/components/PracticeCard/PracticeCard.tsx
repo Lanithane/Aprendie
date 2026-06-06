@@ -10,9 +10,14 @@ import {
   Chip,
   Menu,
   MenuItem,
+  MenuList,
   Divider,
+  Drawer,
+  Typography,
+  useMediaQuery,
 } from '@mui/material'
-import { styled } from '@mui/material/styles'
+import { styled, useTheme } from '@mui/material/styles'
+import ShuffleIcon from '@mui/icons-material/Shuffle'
 import {
   languageName,
   type LanguageCode,
@@ -20,7 +25,9 @@ import {
   type WordToken,
 } from '../../../shared/languages'
 import { LEVELS, levelLabel, type LevelCode } from '../../../shared/levels'
+import { CATEGORIES, categoryById, categoryByDomain } from '../../../shared/categories'
 import type { LevelPref } from '../../hooks/useLevelPreference'
+import type { CategoryPref } from '../../hooks/useCategoryPreference'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
 import ListenControls from '../shared/ListenControls'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
@@ -50,6 +57,11 @@ interface PracticeCardProps {
   level: LevelPref
   sentenceLevel?: LevelCode | null
   onLevelChange: (level: LevelPref) => void
+  // The pinned practice topic (null = shuffle all) and the current sentence's own topic (its stored
+  // domain), so the chip shows the pin when set, else whatever this sentence is about.
+  category: CategoryPref
+  sentenceTheme?: string | null
+  onCategoryChange: (category: CategoryPref) => void
   onSubmit: (answer: string) => void
   submitting?: boolean
   disabled?: boolean
@@ -64,6 +76,9 @@ export default function PracticeCard({
   level,
   sentenceLevel,
   onLevelChange,
+  category,
+  sentenceTheme,
+  onCategoryChange,
   onSubmit,
   submitting,
   disabled,
@@ -71,8 +86,14 @@ export default function PracticeCard({
   const [guess, setGuess] = useState('')
   // Refocus the answer field each time a new sentence loads, so the flow stays keyboard-driven.
   const inputRef = useAutoFocus<HTMLInputElement>(promptText)
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
-  const menuOpen = Boolean(anchorEl)
+  const [levelAnchorEl, setLevelAnchorEl] = useState<HTMLElement | null>(null)
+  const levelMenuOpen = Boolean(levelAnchorEl)
+  const [categoryAnchorEl, setCategoryAnchorEl] = useState<HTMLElement | null>(null)
+  const categoryMenuOpen = Boolean(categoryAnchorEl)
+  const theme = useTheme()
+  // Below the app's mobile breakpoint (where the bottom nav takes over) the long topic list is a
+  // bottom sheet instead of a popover; on larger screens it stays a popover anchored under the chip.
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const { speak, cancel, speaking, supported: speechSupported, voices } = useSpeech()
   const { rate, setRate } = useSpeechRate()
   const { autoSpeak, delayMs } = useAutoSpeakPreference()
@@ -95,15 +116,42 @@ export default function PracticeCard({
     onSubmit(trimmed)
   }
 
-  const openMenu = (e: MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget)
-  const closeMenu = () => setAnchorEl(null)
-  const pick = (next: LevelPref) => {
+  const openLevelMenu = (e: MouseEvent<HTMLElement>) => setLevelAnchorEl(e.currentTarget)
+  const closeLevelMenu = () => setLevelAnchorEl(null)
+  const pickLevel = (next: LevelPref) => {
     onLevelChange(next)
-    closeMenu()
+    closeLevelMenu()
+  }
+
+  const openCategoryMenu = (e: MouseEvent<HTMLElement>) => setCategoryAnchorEl(e.currentTarget)
+  const closeCategoryMenu = () => setCategoryAnchorEl(null)
+  const pickCategory = (next: CategoryPref) => {
+    onCategoryChange(next)
+    closeCategoryMenu()
   }
 
   const guessName = languageName(guessLanguage)
-  const chipLabel = level ? levelLabel(level) : 'Level: any'
+  const levelChipLabel = level ? levelLabel(level) : 'Level: any'
+  // The chip shows the pinned topic when set, otherwise the current sentence's own topic; falling
+  // back to "Shuffle" only before any sentence has a known category.
+  const pinnedCategory = category ? categoryById(category) : undefined
+  const sentenceCategory = sentenceTheme ? categoryByDomain(sentenceTheme) : undefined
+  const categoryChipLabel = pinnedCategory?.label ?? sentenceCategory?.label ?? 'Shuffle'
+
+  // The same option rows render inside the desktop popover and the mobile bottom sheet.
+  const categoryOptions = (
+    <>
+      <MenuItem selected={category === null} onClick={() => pickCategory(null)}>
+        Shuffle all topics
+      </MenuItem>
+      <Divider />
+      {CATEGORIES.map((c) => (
+        <MenuItem key={c.id} selected={category === c.id} onClick={() => pickCategory(c.id)}>
+          {c.label}
+        </MenuItem>
+      ))}
+    </>
+  )
 
   return (
     <Card>
@@ -113,14 +161,31 @@ export default function PracticeCard({
           spacing={1}
           sx={{ mb: 1, alignItems: 'center', justifyContent: 'space-between' }}
         >
-          <Chip
-            size='small'
-            label={chipLabel}
-            onClick={openMenu}
-            clickable
-            aria-haspopup='menu'
-            aria-expanded={menuOpen}
-          />
+          <Stack
+            direction='row'
+            spacing={1}
+            useFlexGap
+            sx={{ flexWrap: 'wrap', alignItems: 'center' }}
+          >
+            <Chip
+              size='small'
+              icon={<ShuffleIcon />}
+              label={categoryChipLabel}
+              color={pinnedCategory ? 'primary' : 'default'}
+              onClick={openCategoryMenu}
+              clickable
+              aria-haspopup='menu'
+              aria-expanded={categoryMenuOpen}
+            />
+            <Chip
+              size='small'
+              label={levelChipLabel}
+              onClick={openLevelMenu}
+              clickable
+              aria-haspopup='menu'
+              aria-expanded={levelMenuOpen}
+            />
+          </Stack>
           {speechSupported && (
             <ListenControls
               text={promptText}
@@ -133,13 +198,67 @@ export default function PracticeCard({
             />
           )}
         </Stack>
-        <Menu anchorEl={anchorEl} open={menuOpen} onClose={closeMenu}>
-          <MenuItem selected={level === null} onClick={() => pick(null)}>
+        {isMobile ? (
+          <Drawer
+            anchor='bottom'
+            open={categoryMenuOpen}
+            onClose={closeCategoryMenu}
+            slotProps={{
+              paper: {
+                sx: (t) => ({
+                  maxHeight: '70vh',
+                  borderTopLeftRadius: t.spacing(2),
+                  borderTopRightRadius: t.spacing(2),
+                }),
+              },
+            }}
+          >
+            {/* Grab handle + title for the bottom sheet; the list below scrolls within the sheet. */}
+            <Box
+              sx={{
+                width: 32,
+                height: 4,
+                borderRadius: 1,
+                bgcolor: 'outlineVariant',
+                mx: 'auto',
+                mt: 1.5,
+              }}
+            />
+            <Typography
+              variant='overline'
+              sx={{
+                display: 'block',
+                textAlign: 'center',
+                py: 1,
+                fontSize: 'medium',
+                fontWeight: 'bolder',
+              }}
+            >
+              Practice topic
+            </Typography>
+            <MenuList sx={{ overflowY: 'auto', pb: 1 }}>{categoryOptions}</MenuList>
+          </Drawer>
+        ) : (
+          <Menu
+            anchorEl={categoryAnchorEl}
+            open={categoryMenuOpen}
+            onClose={closeCategoryMenu}
+            // Always drop below the chip rather than flipping over it, and cap the height so the long
+            // list scrolls within the popover instead of running off-screen.
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+            slotProps={{ paper: { sx: { maxHeight: 360 } } }}
+          >
+            {categoryOptions}
+          </Menu>
+        )}
+        <Menu anchorEl={levelAnchorEl} open={levelMenuOpen} onClose={closeLevelMenu}>
+          <MenuItem selected={level === null} onClick={() => pickLevel(null)}>
             Any level
           </MenuItem>
           <Divider />
           {LEVELS.map((l) => (
-            <MenuItem key={l.code} selected={level === l.code} onClick={() => pick(l.code)}>
+            <MenuItem key={l.code} selected={level === l.code} onClick={() => pickLevel(l.code)}>
               {l.cefr ? `${l.name} (${l.cefr})` : l.name}
             </MenuItem>
           ))}

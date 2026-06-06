@@ -12,6 +12,7 @@ import {
   type LocaleCode,
 } from '../../../../shared/languages'
 import { isLevelCode, type LevelCode } from '../../../../shared/levels'
+import { categoryById } from '../../../../shared/categories'
 
 const router = Router()
 
@@ -50,6 +51,8 @@ const selectorSchema = z.object({
   guessLanguage: z.string(),
   locale: z.string(),
   level: z.string().optional(),
+  // A pinned-topic id (see shared/categories). Optional and only honored by `GET /`.
+  category: z.string().optional(),
 })
 
 router.get(
@@ -63,7 +66,10 @@ router.get(
     const pool = parsePoolParams(parsed.data)
     if ('error' in pool) return res.status(400).json({ error: pool.error })
 
-    const view = await getNextSentence({ user: req.user as UserRow, ...pool })
+    // Resolve the pinned-topic id to its domain string; an unknown/stale id is leniently ignored
+    // (treated as no pin) rather than failing the request.
+    const category = parsed.data.category ? categoryById(parsed.data.category)?.domain : undefined
+    const view = await getNextSentence({ user: req.user as UserRow, ...pool, category })
     res.json(view)
   })
 )
