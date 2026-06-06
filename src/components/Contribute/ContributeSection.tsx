@@ -67,7 +67,7 @@ export default function ContributeSection({ showback, showLabels }: ContributeSe
   // Reassure that the cost is informational, not a bill. Collapsed, the tooltip also surfaces the
   // amounts (otherwise hidden) since the rail icons can't.
   const reassurance = "Don't worry, Aprendie is free! We appreciate any donations, though."
-  const usageTooltip = rail ? `Usage so far: ${usd}, ~${water} water. ${reassurance}` : reassurance
+  const usageTooltip = rail ? `Usage so far: ${usd}, ~${water} water.\n${reassurance}` : reassurance
 
   return (
     <List>
@@ -87,7 +87,8 @@ export default function ContributeSection({ showback, showLabels }: ContributeSe
       >
         <Box
           sx={{
-            mx: 1,
+            ml: 1,
+            mr: 0.75,
             mb: 1,
             borderRadius: '16px',
             bgcolor: 'surfaceContainerHigh',
