@@ -5,6 +5,7 @@ import { Box, useMediaQuery, BottomNavigation, BottomNavigationAction, Paper } f
 import { useAuth } from '../../auth/AuthContext'
 import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed'
 import { useScrollToTop } from '../../hooks/useScrollToTop'
+import { useKeyboardOpen } from '../../hooks/useKeyboardOpen'
 import Sidebar from '../Sidebar/Sidebar'
 import DailyCapBanner from '../DailyCapBanner/DailyCapBanner'
 import { ADMIN_NAV_ITEM, buildNavItems, isActiveRoute } from './navigation'
@@ -76,6 +77,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const isXs = useMediaQuery(theme.breakpoints.only('xs'))
+  // While the soft keyboard is up the fixed bottom nav is hidden behind it anyway, and on iOS its
+  // `position: fixed` anchoring fights the keyboard and jitters the page scroll as you type — so we
+  // drop it from the layout entirely until the keyboard closes. It's out of flow, so this reflows
+  // nothing.
+  const keyboardOpen = useKeyboardOpen()
   const { isAdmin } = useAuth()
   const loc = useLocation()
   // Reset to the top of the page on every navigation — React Router otherwise
@@ -113,7 +119,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           {children}
         </Content>
       </Main>
-      {isMobile && (
+      {isMobile && !keyboardOpen && (
         <MobileNavSurface elevation={8}>
           <BottomNavigation showLabels value={activePath} aria-label='Primary navigation'>
             {mobileNavItems.map(({ to, label, Icon }) => (

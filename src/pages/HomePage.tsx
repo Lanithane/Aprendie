@@ -28,7 +28,11 @@ import { useDelayedFlag } from '../hooks/useDelayedFlag'
 // the transition from prompt → grade doesn't jump.
 const PracticeStage = styled('div')`
   width: 100%;
-  margin-top: 24vh;
+  /* Phones sit the card high so the answer field clears the soft keyboard without the browser having
+     to scroll the document to reveal it — that forced scroll (compounded by iOS recomputing vh as its
+     URL bar collapses) is what made typing jump around. md+ drops it to the upper quarter; either way
+     the top anchor holds, so prompt → streaming grade doesn't slide. */
+  margin-top: 8vh;
   padding-bottom: ${({ theme }) => theme.spacing(2)};
   ${({ theme }) => theme.breakpoints.up('md')} {
     margin-top: 18vh;
