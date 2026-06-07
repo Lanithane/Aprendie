@@ -181,9 +181,9 @@ async function submit(requests: BatchRequest[]): Promise<SeedState> {
   console.log(`Submitting ${chunks.length} batch(es) — ${requests.length} request(s) total…`)
   const batchIds: string[] = []
   for (const chunk of chunks) {
-    const batch = await createMessageBatch(anthropic, chunk)
-    batchIds.push(batch.id)
-    console.log(`  ✓ submitted batch ${batch.id} (${chunk.length} requests)`)
+    const batchId = await createMessageBatch(anthropic, chunk)
+    batchIds.push(batchId)
+    console.log(`  ✓ submitted batch ${batchId} (${chunk.length} requests)`)
   }
   const state: SeedState = { batchIds, collected: batchIds.map(() => false) }
   saveState(state)
@@ -209,14 +209,11 @@ async function collect(state: SeedState, requests: BatchRequest[]): Promise<void
     process.stdout.write(`Polling batch ${batchId}…`)
 
     // Poll until ended (simple wait loop; for very long waits use --collect-only later).
-    let ended = false
+    let ended = await isBatchEnded(anthropic, batchId)
     while (!ended) {
-      const batch = await anthropic.beta.messages.batches.retrieve(batchId)
-      ended = isBatchEnded(batch)
-      if (!ended) {
-        process.stdout.write('.')
-        await new Promise((r) => setTimeout(r, 30_000))
-      }
+      process.stdout.write('.')
+      await new Promise((r) => setTimeout(r, 30_000))
+      ended = await isBatchEnded(anthropic, batchId)
     }
     console.log(' done.')
 
