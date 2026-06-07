@@ -57,6 +57,16 @@ export const users = pgTable('users', {
   // replaces the global cap for this account. Both null by default → global cap applies.
   capExemptUntil: timestamp('cap_exempt_until', { withTimezone: true }),
   dailyCapOverride: integer('daily_cap_override'),
+  // Streak (consecutive local days with a graded activity), persisted per account so it follows the
+  // learner device-to-device. `streakEnabled` is the opt-out toggle — nullable, null/true =
+  // participating, false = opted out (frozen, no streak writes). `timezone` is the IANA zone
+  // captured from the browser, used to bucket grade instants into the learner's local day (null →
+  // UTC). `streakLastDay` is that local 'YYYY-MM-DD'; current/longest are the running counts.
+  streakEnabled: boolean('streak_enabled'),
+  timezone: text('timezone'),
+  streakCurrent: integer('streak_current').notNull().default(0),
+  streakLongest: integer('streak_longest').notNull().default(0),
+  streakLastDay: text('streak_last_day'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })

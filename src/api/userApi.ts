@@ -21,6 +21,13 @@ export interface CurrentUserDto {
   locale: string | null
   autoSpeak: boolean | null
   autoSpeakDelayMs: number | null
+  // Streak prefs + state. `streakEnabled` null = on (opt-out default); `streakLastDay` is a local
+  // 'YYYY-MM-DD'. The client derives "alive today" from these against its own local day.
+  streakEnabled: boolean | null
+  timezone: string | null
+  streakCurrent: number
+  streakLongest: number
+  streakLastDay: string | null
 }
 
 // GET /api/me always carries `bootstrapSentence`; it's non-null only when the call opted
@@ -76,5 +83,21 @@ export function updateUserAutoSpeak(patch: AutoSpeakPatch): Promise<CurrentUserD
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patch),
+  })
+}
+
+export function updateUserStreakEnabled(enabled: boolean): Promise<CurrentUserDto> {
+  return api<CurrentUserDto>('/api/me/streak', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  })
+}
+
+export function updateUserTimezone(timezone: string): Promise<CurrentUserDto> {
+  return api<CurrentUserDto>('/api/me/timezone', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ timezone }),
   })
 }

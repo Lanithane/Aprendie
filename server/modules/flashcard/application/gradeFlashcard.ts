@@ -8,6 +8,7 @@ import { extractJsonText } from '../../../infrastructure/claude/responseParser'
 import { assertCanSpend } from '../../user/application/access'
 import { assertSpendEnabled } from '../../settings/application/appSettings'
 import { assertWithinDailyCap, recordGradedSentence } from '../../usage/application/dailyCap'
+import { recordStreakActivity } from '../../user/application/recordStreakActivity'
 import { recordUsage } from '../../showback/application/recordUsage'
 import { recordSeenWords } from '../../palabradex/application/recordSeenWords'
 import * as flashcardRepository from '../persistence/flashcardRepository'
@@ -122,7 +123,7 @@ Grade now.`
 
   // Fold the result into Palabradex (shared mastery model with sentence practice).
   const seenAt = new Date()
-  const [, dailyUsage] = await Promise.all([
+  const [, dailyUsage, streak] = await Promise.all([
     recordSeenWords({
       userId: input.user.id,
       learnLanguage: card.learnLanguage as LanguageCode,
@@ -140,6 +141,9 @@ Grade now.`
       seenAt,
     }),
     recordGradedSentence(input.user),
+    // Advance the consecutive-day streak (shared with sentence practice); snapshot rides back so the
+    // indicator pops on advance without a refetch.
+    recordStreakActivity(input.user),
   ])
 
   return {
@@ -153,5 +157,6 @@ Grade now.`
     example: card.example ?? '',
     exampleTranslation: card.exampleTranslation ?? '',
     dailyUsage,
+    streak,
   }
 }

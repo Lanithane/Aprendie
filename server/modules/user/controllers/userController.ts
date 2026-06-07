@@ -8,6 +8,8 @@ import { setUserLevel } from '../application/setUserLevel'
 import { setUserAppearance } from '../application/setUserAppearance'
 import { setUserAutoSpeak } from '../application/setUserAutoSpeak'
 import { setUserLanguagePair } from '../application/setUserLanguagePair'
+import { setUserStreakEnabled } from '../application/setUserStreakEnabled'
+import { setUserTimezone } from '../application/setUserTimezone'
 import { bootstrapSentenceForUser } from '../application/bootstrapSentenceForUser'
 import { LEVEL_CODES, type LevelCode } from '../../../../shared/levels'
 import { THEME_MODES } from '../../../../shared/appearance'
@@ -121,6 +123,50 @@ router.patch(
       return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
     }
     const view = await setUserAutoSpeak((req.user as UserRow).id, parsed.data)
+    res.json(view)
+  })
+)
+
+const streakBodySchema = z.object({ enabled: z.boolean() })
+
+router.patch(
+  '/streak',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const parsed = streakBodySchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const view = await setUserStreakEnabled((req.user as UserRow).id, parsed.data.enabled)
+    res.json(view)
+  })
+)
+
+// An IANA zone the runtime accepts (Intl throws on an unknown one) — guards the local-day math.
+const timezoneBodySchema = z.object({
+  timezone: z
+    .string()
+    .min(1)
+    .max(64)
+    .refine((tz) => {
+      try {
+        new Intl.DateTimeFormat('en-CA', { timeZone: tz })
+        return true
+      } catch {
+        return false
+      }
+    }, 'Invalid timezone'),
+})
+
+router.patch(
+  '/timezone',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const parsed = timezoneBodySchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const view = await setUserTimezone((req.user as UserRow).id, parsed.data.timezone)
     res.json(view)
   })
 )

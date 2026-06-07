@@ -28,6 +28,14 @@ export interface UserView {
   locale: string | null
   autoSpeak: boolean | null
   autoSpeakDelayMs: number | null
+  // Streak prefs + state, exposed so the client seeds the indicator and the opt-out toggle without a
+  // separate fetch. `streakEnabled` null = on (opt-out default); `streakLastDay` is a local
+  // 'YYYY-MM-DD'. The client computes "alive today" from these against its own local day.
+  streakEnabled: boolean | null
+  timezone: string | null
+  streakCurrent: number
+  streakLongest: number
+  streakLastDay: string | null
 }
 
 // Admin-facing projection of another user, including their daily-limit posture.
@@ -66,6 +74,11 @@ export function toUserView(row: UserRow): UserView {
     locale: row.locale ?? null,
     autoSpeak: row.autoSpeak ?? null,
     autoSpeakDelayMs: row.autoSpeakDelayMs ?? null,
+    streakEnabled: row.streakEnabled ?? null,
+    timezone: row.timezone ?? null,
+    streakCurrent: row.streakCurrent,
+    streakLongest: row.streakLongest,
+    streakLastDay: row.streakLastDay ?? null,
   }
 }
 

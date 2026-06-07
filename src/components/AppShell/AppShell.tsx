@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed'
 import Sidebar from '../Sidebar/Sidebar'
 import DailyCapBanner from '../DailyCapBanner/DailyCapBanner'
+import StreakIndicator from '../StreakIndicator/StreakIndicator'
 import { ADMIN_NAV_ITEM, buildNavItems, isActiveRoute } from './navigation'
 
 const SIDEBAR_WIDTH = 240
@@ -100,6 +101,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       )}
       <Main id='main-content' tabIndex={-1}>
         <Content>
+          {isPracticeRoute && <StreakIndicator />}
           {isPracticeRoute && <DailyCapBanner />}
           {children}
         </Content>

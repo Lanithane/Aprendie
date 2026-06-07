@@ -2,6 +2,7 @@ import { api, readApiError } from './client'
 import type { LanguageCode, LocaleCode, WordToken } from '../../shared/languages'
 import type { LevelCode } from '../../shared/levels'
 import type { DailyUsageDto } from './usageApi'
+import type { StreakSnapshot } from '../../shared/streak'
 
 export interface CorrectionMistakeDto {
   userPhrase: string
@@ -28,6 +29,7 @@ export interface CorrectionDto {
   notes?: string
   wordBreakdown: WordToken[]
   dailyUsage: DailyUsageDto
+  streak: StreakSnapshot | null
 }
 
 export function submitCorrection(sentenceId: string, userAnswer: string): Promise<CorrectionDto> {

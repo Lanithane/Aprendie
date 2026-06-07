@@ -8,6 +8,7 @@ import {
 import { ApiError } from '../api/client'
 import { trackEvent } from '../api/analyticsApi'
 import { useDailyUsage } from '../usage/DailyUsageContext'
+import { useStreak } from '../streak/StreakContext'
 
 interface UseCorrectionSubmissionResult {
   correction: CorrectionDto | null
@@ -24,6 +25,7 @@ export function useCorrectionSubmission(): UseCorrectionSubmissionResult {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { applySnapshot } = useDailyUsage()
+  const { applyStreak } = useStreak()
 
   const submit = useCallback(
     async (sentenceId: string, userAnswer: string) => {
@@ -37,6 +39,8 @@ export function useCorrectionSubmission(): UseCorrectionSubmissionResult {
         setCorrection(result)
         // This grade counted against the daily cap — refresh the near-cap banner from its snapshot.
         applySnapshot(result.dailyUsage)
+        // ...and advanced the streak (when enabled) — update the indicator from its snapshot.
+        if (result.streak) applyStreak(result.streak)
         trackEvent('grade_received', {
           sentenceId,
           score: result.score,
@@ -51,7 +55,7 @@ export function useCorrectionSubmission(): UseCorrectionSubmissionResult {
         setPreview(null)
       }
     },
-    [applySnapshot]
+    [applySnapshot, applyStreak]
   )
 
   const reset = useCallback(() => {

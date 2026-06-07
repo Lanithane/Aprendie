@@ -9,6 +9,7 @@ import type { TokenUsage } from '../../../infrastructure/claude/pricing'
 import { assertCanSpend } from '../../user/application/access'
 import { assertSpendEnabled } from '../../settings/application/appSettings'
 import { assertWithinDailyCap, recordGradedSentence } from '../../usage/application/dailyCap'
+import { recordStreakActivity } from '../../user/application/recordStreakActivity'
 import { recordUsage } from '../../showback/application/recordUsage'
 import * as sentenceRepository from '../../sentence/persistence/sentenceRepository'
 import { recordAttempt } from '../../history/application/recordAttempt'
@@ -95,7 +96,7 @@ async function persistGrade(
     usage,
   }).catch((err) => console.error('[showback] recordUsage(correction) failed:', err))
 
-  const [, dailyUsage] = await Promise.all([
+  const [, dailyUsage, streak] = await Promise.all([
     recordAttempt({
       userId: input.user.id,
       sentenceId: ctx.sentence.id,
@@ -119,6 +120,9 @@ async function persistGrade(
     // so counting an admin's sentence here never blocks them. Its snapshot rides back in the view
     // so the client's near-cap banner updates from the grade response.
     recordGradedSentence(input.user),
+    // Advance the consecutive-day streak (no-op past today's first activity); its snapshot rides
+    // back so the indicator pops on advance without a refetch.
+    recordStreakActivity(input.user),
   ])
 
   return {
@@ -132,6 +136,7 @@ async function persistGrade(
     userAnswer: input.userAnswer,
     wordBreakdown: ctx.sentence.wordBreakdown ?? [],
     dailyUsage,
+    streak,
     ...result,
   }
 }

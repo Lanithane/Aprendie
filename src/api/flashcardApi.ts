@@ -1,6 +1,7 @@
 import { api } from './client'
 import type { LanguageCode, LocaleCode } from '../../shared/languages'
 import type { DailyUsageDto } from './usageApi'
+import type { StreakSnapshot } from '../../shared/streak'
 
 export interface FlashcardDto {
   id: string
@@ -25,6 +26,7 @@ export interface FlashcardGradeDto {
   example: string
   exampleTranslation: string
   dailyUsage: DailyUsageDto
+  streak: StreakSnapshot | null
 }
 
 export interface DeckProgressDto {
