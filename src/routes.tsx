@@ -1,22 +1,24 @@
-import { lazy, Suspense, type ReactNode } from 'react'
+import { Suspense, type ReactNode } from 'react'
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import AppShell from './components/AppShell/AppShell'
 import LoadingSpinner from './components/shared/LoadingSpinner'
 import LoginPage from './pages/LoginPage'
+import { lazyWithReload } from './lazyWithReload'
 
 // Lazy-load the authed pages so the practice path's first paint doesn't ship
 // History, Settings, and the whole Admin section. LoginPage stays eager — it's
-// the unauthenticated entry point.
-const HomePage = lazy(() => import('./pages/HomePage'))
-const TranslatorPage = lazy(() => import('./pages/TranslatorPage'))
-const HistoryPage = lazy(() => import('./pages/HistoryPage'))
-const PalabradexPage = lazy(() => import('./pages/PalabradexPage'))
-const SettingsPage = lazy(() => import('./pages/SettingsPage'))
-const FlashCardsPage = lazy(() => import('./pages/FlashCardsPage'))
-const AdminPage = lazy(() => import('./pages/AdminPage'))
-const AdminUserDetailPage = lazy(() => import('./pages/AdminUserDetailPage'))
-const AdminLayout = lazy(() => import('./components/Admin/AdminLayout'))
+// the unauthenticated entry point. lazyWithReload reloads once on a stale-chunk
+// import failure so a post-deploy navigation doesn't white-screen.
+const HomePage = lazyWithReload(() => import('./pages/HomePage'))
+const TranslatorPage = lazyWithReload(() => import('./pages/TranslatorPage'))
+const HistoryPage = lazyWithReload(() => import('./pages/HistoryPage'))
+const PalabradexPage = lazyWithReload(() => import('./pages/PalabradexPage'))
+const SettingsPage = lazyWithReload(() => import('./pages/SettingsPage'))
+const FlashCardsPage = lazyWithReload(() => import('./pages/FlashCardsPage'))
+const AdminPage = lazyWithReload(() => import('./pages/AdminPage'))
+const AdminUserDetailPage = lazyWithReload(() => import('./pages/AdminUserDetailPage'))
+const AdminLayout = lazyWithReload(() => import('./components/Admin/AdminLayout'))
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
