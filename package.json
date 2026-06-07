@@ -31,6 +31,7 @@
     "db:studio": "drizzle-kit studio",
     "db:backfill:palabradex": "tsx --env-file=.env scripts/backfill-palabradex.ts",
     "db:backfill:corpus": "tsx --env-file=.env scripts/backfill-sentence-corpus.ts",
+    "db:seed:corpus": "tsx --env-file=.env scripts/seed-sentence-corpus.ts",
     "gen:tokens": "esbuild scripts/gen-md3-tokens.ts --bundle --platform=node --format=esm --outfile=scripts/.gen-tokens.mjs && node scripts/.gen-tokens.mjs && rm scripts/.gen-tokens.mjs && prettier --write src/theme/tokens.ts",
     "gen:og": "tsx scripts/gen-og-image.ts",
     "test": "vitest run",
