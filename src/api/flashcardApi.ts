@@ -41,6 +41,7 @@ export interface DeckDto {
   kind: 'function' | 'noun'
   spec: string
   size: number
+  examples: [string, string, string]
   progress: DeckProgressDto
 }
 

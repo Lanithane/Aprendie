@@ -20,6 +20,9 @@ export interface DeckDef {
   spec: string
   // Target card count — the generator is asked for at most this many cards.
   size: number
+  // Three representative words shown as a preview subtitle under the deck label in the picker.
+  // Display hint only — kept in the guess/display language (English).
+  examples: [string, string, string]
 }
 
 // Closed-class / fixed-vocabulary decks. Order here is the picker order for the first group.
@@ -30,6 +33,7 @@ export const FUNCTION_DECKS: DeckDef[] = [
     kind: 'function',
     spec: 'the most common conjunctions used in everyday speech: and, or, but, because, if, when, that, although, so, while, then, before, after, since, until',
     size: 15,
+    examples: ['and', 'but', 'because'],
   },
   {
     id: 'pronouns',
@@ -37,6 +41,7 @@ export const FUNCTION_DECKS: DeckDef[] = [
     kind: 'function',
     spec: 'the most common personal, possessive, and demonstrative pronouns: I, you, he, she, it, we, they, me, him, her, us, them, this, that, who, what, which, my, your, his, her, our, their',
     size: 22,
+    examples: ['I', 'you', 'they'],
   },
   {
     id: 'common-verbs',
@@ -44,6 +49,7 @@ export const FUNCTION_DECKS: DeckDef[] = [
     kind: 'function',
     spec: 'the most essential everyday verbs (dictionary/infinitive form): be, have, do, go, want, need, can, know, get, make, see, come, think, take, use, give, say, tell, like, work, call, try, ask, feel, become, leave, put, mean, let, keep',
     size: 30,
+    examples: ['be', 'have', 'go'],
   },
   {
     id: 'numbers',
@@ -51,6 +57,7 @@ export const FUNCTION_DECKS: DeckDef[] = [
     kind: 'function',
     spec: 'cardinal numbers from zero through twenty (0-20), then thirty, forty, fifty, sixty, seventy, eighty, ninety, one hundred, one thousand — produce one card per number with its written word form as the lemma',
     size: 31,
+    examples: ['one', 'two', 'three'],
   },
   {
     id: 'months',
@@ -58,6 +65,7 @@ export const FUNCTION_DECKS: DeckDef[] = [
     kind: 'function',
     spec: 'all twelve months of the year in order: January, February, March, April, May, June, July, August, September, October, November, December',
     size: 12,
+    examples: ['January', 'June', 'December'],
   },
   {
     id: 'days',
@@ -65,6 +73,7 @@ export const FUNCTION_DECKS: DeckDef[] = [
     kind: 'function',
     spec: 'all seven days of the week in order: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday',
     size: 7,
+    examples: ['Monday', 'Friday', 'Sunday'],
   },
 ]
 
@@ -81,6 +90,7 @@ export const NOUN_DECKS: DeckDef[] = CATEGORIES.map((category) => ({
   kind: 'noun' as const,
   spec: `the ${NOUN_DECK_SIZE} most common everyday nouns about ${category.domain}, in their dictionary singular form — concrete, high-frequency words a beginner learner needs to talk about this topic`,
   size: NOUN_DECK_SIZE,
+  examples: category.examples,
 }))
 
 // The full registry the picker, generator, and seed script all read: function decks first, then the

@@ -88,9 +88,14 @@ export default function DeckPicker({ decks, loading, error, onSelect }: DeckPick
           const hasStruggling = struggling > 0
           return (
             <Tile key={deck.id} onClick={() => onSelect(deck.id)}>
-              <Typography variant='h6' sx={{ fontWeight: 700 }}>
-                {deck.label}
-              </Typography>
+              <div>
+                <Typography variant='h6' sx={{ fontWeight: 700 }}>
+                  {deck.label}
+                </Typography>
+                <Typography variant='caption' color='text.secondary'>
+                  {deck.examples.join(', ')}
+                </Typography>
+              </div>
               <ProgressRow>
                 <ProgressMeta>
                   <Typography variant='caption' color='text.secondary'>

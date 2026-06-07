@@ -11,32 +11,145 @@ export interface CategoryDef {
   id: string
   domain: string
   label: string
+  // Three representative everyday words for the topic, shown as a preview subtitle in the UI (e.g.
+  // the flash-card deck picker). Display hint only — kept in the guess/display language (English).
+  examples: [string, string, string]
 }
 
 // Ordered alphabetically by `label` so the picker menu reads A→Z; keep it sorted when adding topics.
 export const CATEGORIES: CategoryDef[] = [
-  { id: 'animals', domain: 'animals and nature', label: 'Animals & Nature' },
-  { id: 'arts', domain: 'art, music, film and books', label: 'Arts & Media' },
-  { id: 'city', domain: 'city life and the neighbourhood', label: 'City Life' },
-  { id: 'clothes', domain: 'clothes and appearance', label: 'Clothes' },
-  { id: 'routine', domain: 'daily routine and chores', label: 'Daily Routine' },
-  { id: 'environment', domain: 'the natural world and the environment', label: 'Environment' },
-  { id: 'family', domain: 'family and relationships', label: 'Family' },
-  { id: 'feelings', domain: 'feelings, opinions and personality', label: 'Feelings' },
-  { id: 'food', domain: 'food, cooking and eating out', label: 'Food & Dining' },
-  { id: 'greetings', domain: 'greetings and introductions', label: 'Greetings' },
-  { id: 'health', domain: 'health, the body and the doctor', label: 'Health' },
-  { id: 'hobbies', domain: 'hobbies and free time', label: 'Hobbies' },
-  { id: 'holidays', domain: 'holidays, festivals and celebrations', label: 'Holidays' },
-  { id: 'home', domain: 'home, rooms and furniture', label: 'Home' },
-  { id: 'numbers', domain: 'numbers, time and dates', label: 'Numbers & Time' },
-  { id: 'future', domain: 'plans, dreams and the future', label: 'Plans & Future' },
-  { id: 'shopping', domain: 'shopping and money', label: 'Shopping & Money' },
-  { id: 'sports', domain: 'sports and exercise', label: 'Sports' },
-  { id: 'technology', domain: 'technology, phones and the internet', label: 'Technology' },
-  { id: 'travel', domain: 'travel, directions and transport', label: 'Travel' },
-  { id: 'weather', domain: 'weather and the seasons', label: 'Weather' },
-  { id: 'work', domain: 'work, study and school', label: 'Work & Study' },
+  {
+    id: 'animals',
+    domain: 'animals and nature',
+    label: 'Animals & Nature',
+    examples: ['dog', 'bird', 'tree'],
+  },
+  {
+    id: 'arts',
+    domain: 'art, music, film and books',
+    label: 'Arts & Media',
+    examples: ['movie', 'song', 'book'],
+  },
+  {
+    id: 'city',
+    domain: 'city life and the neighbourhood',
+    label: 'City Life',
+    examples: ['street', 'park', 'building'],
+  },
+  {
+    id: 'clothes',
+    domain: 'clothes and appearance',
+    label: 'Clothes',
+    examples: ['shirt', 'shoes', 'dress'],
+  },
+  {
+    id: 'routine',
+    domain: 'daily routine and chores',
+    label: 'Daily Routine',
+    examples: ['shower', 'breakfast', 'sleep'],
+  },
+  {
+    id: 'environment',
+    domain: 'the natural world and the environment',
+    label: 'Environment',
+    examples: ['ocean', 'forest', 'climate'],
+  },
+  {
+    id: 'family',
+    domain: 'family and relationships',
+    label: 'Family',
+    examples: ['mother', 'brother', 'child'],
+  },
+  {
+    id: 'feelings',
+    domain: 'feelings, opinions and personality',
+    label: 'Feelings',
+    examples: ['joy', 'fear', 'hope'],
+  },
+  {
+    id: 'food',
+    domain: 'food, cooking and eating out',
+    label: 'Food & Dining',
+    examples: ['bread', 'coffee', 'dinner'],
+  },
+  {
+    id: 'greetings',
+    domain: 'greetings and introductions',
+    label: 'Greetings',
+    examples: ['hello', 'name', 'goodbye'],
+  },
+  {
+    id: 'health',
+    domain: 'health, the body and the doctor',
+    label: 'Health',
+    examples: ['doctor', 'medicine', 'body'],
+  },
+  {
+    id: 'hobbies',
+    domain: 'hobbies and free time',
+    label: 'Hobbies',
+    examples: ['music', 'reading', 'games'],
+  },
+  {
+    id: 'holidays',
+    domain: 'holidays, festivals and celebrations',
+    label: 'Holidays',
+    examples: ['party', 'gift', 'festival'],
+  },
+  {
+    id: 'home',
+    domain: 'home, rooms and furniture',
+    label: 'Home',
+    examples: ['kitchen', 'table', 'bed'],
+  },
+  {
+    id: 'numbers',
+    domain: 'numbers, time and dates',
+    label: 'Numbers & Time',
+    examples: ['hour', 'week', 'clock'],
+  },
+  {
+    id: 'future',
+    domain: 'plans, dreams and the future',
+    label: 'Plans & Future',
+    examples: ['dream', 'goal', 'plan'],
+  },
+  {
+    id: 'shopping',
+    domain: 'shopping and money',
+    label: 'Shopping & Money',
+    examples: ['store', 'price', 'money'],
+  },
+  {
+    id: 'sports',
+    domain: 'sports and exercise',
+    label: 'Sports',
+    examples: ['ball', 'team', 'game'],
+  },
+  {
+    id: 'technology',
+    domain: 'technology, phones and the internet',
+    label: 'Technology',
+    examples: ['phone', 'computer', 'internet'],
+  },
+  {
+    id: 'travel',
+    domain: 'travel, directions and transport',
+    label: 'Travel',
+    examples: ['airport', 'ticket', 'map'],
+  },
+  {
+    id: 'weather',
+    domain: 'weather and the seasons',
+    label: 'Weather',
+    examples: ['rain', 'sun', 'snow'],
+  },
+  {
+    id: 'work',
+    domain: 'work, study and school',
+    label: 'Work & Study',
+    examples: ['office', 'teacher', 'school'],
+  },
 ]
 
 // The plain domain strings, in registry order — the generator's theme pool (drop-in for the old
