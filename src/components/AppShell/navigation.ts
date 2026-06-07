@@ -1,6 +1,7 @@
 import HomeIcon from '@mui/icons-material/Home'
 import HistoryIcon from '@mui/icons-material/History'
 import MenuBookIcon from '@mui/icons-material/MenuBook'
+import StyleIcon from '@mui/icons-material/Style'
 import SettingsIcon from '@mui/icons-material/Settings'
 import ShieldIcon from '@mui/icons-material/Shield'
 import BangIcon from './BangIcon'
@@ -16,6 +17,7 @@ export const ADMIN_NAV_ITEM = {
 // Settings always sits last; Admin (when present) is inserted just before it.
 export const NAV_ITEMS = [
   { to: '/', label: 'Practice', Icon: HomeIcon },
+  { to: '/flashcards', label: 'Flash cards', Icon: StyleIcon },
   { to: '/history', label: 'History', Icon: HistoryIcon },
   { to: '/palabradex', label: 'Palabradex', Icon: MenuBookIcon },
   { to: '/translator', label: 'Translate', Icon: BangIcon },

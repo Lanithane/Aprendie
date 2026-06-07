@@ -1,6 +1,9 @@
 import { useState } from 'react'
-import { Alert, Button, Stack } from '@mui/material'
-import { styled } from '@mui/material/styles'
+import { Link as RouterLink } from 'react-router-dom'
+import { Alert, Box, Button, Stack } from '@mui/material'
+import { styled, useTheme } from '@mui/material/styles'
+import { useMediaQuery } from '@mui/material'
+import StyleIcon from '@mui/icons-material/Style'
 import PracticeCard from '../components/PracticeCard/PracticeCard'
 import CorrectionDisplay from '../components/CorrectionDisplay/CorrectionDisplay'
 import StreamingCorrection from '../components/CorrectionDisplay/StreamingCorrection'
@@ -38,6 +41,8 @@ const FlowStage = styled('div')`
 `
 
 export default function HomePage() {
+  const theme = useTheme()
+  const isXs = useMediaQuery(theme.breakpoints.only('xs'))
   const { user, isApproved, bootstrapSentence, consumeBootstrap } = useAuth()
   const { pair } = useLanguagePair()
   const { pref: level, setPref: setLevel } = useLevelPreference()
@@ -155,25 +160,40 @@ export default function HomePage() {
   if (loading || !sentence) return <PreparingSentences />
 
   return (
-    <CenteredStage>
-      <PracticeCard
-        promptText={sentence.promptText}
-        wordBreakdown={sentence.wordBreakdown}
-        learnLanguage={sentence.learnLanguage}
-        guessLanguage={sentence.guessLanguage}
-        locale={sentence.locale}
-        level={level}
-        sentenceLevel={sentence.level}
-        onLevelChange={setLevel}
-        category={category}
-        sentenceTheme={sentence.theme}
-        onCategoryChange={setCategory}
-        onSubmit={(userAnswer) => {
-          setPendingAnswer(userAnswer)
-          void submit(sentence.id, userAnswer)
-        }}
-        submitting={submitting}
-      />
-    </CenteredStage>
+    <>
+      {isXs && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+          <Button
+            component={RouterLink}
+            to='/flashcards'
+            color='secondary'
+            size='small'
+            startIcon={<StyleIcon fontSize='small' />}
+          >
+            Flash cards
+          </Button>
+        </Box>
+      )}
+      <CenteredStage>
+        <PracticeCard
+          promptText={sentence.promptText}
+          wordBreakdown={sentence.wordBreakdown}
+          learnLanguage={sentence.learnLanguage}
+          guessLanguage={sentence.guessLanguage}
+          locale={sentence.locale}
+          level={level}
+          sentenceLevel={sentence.level}
+          onLevelChange={setLevel}
+          category={category}
+          sentenceTheme={sentence.theme}
+          onCategoryChange={setCategory}
+          onSubmit={(userAnswer) => {
+            setPendingAnswer(userAnswer)
+            void submit(sentence.id, userAnswer)
+          }}
+          submitting={submitting}
+        />
+      </CenteredStage>
+    </>
   )
 }

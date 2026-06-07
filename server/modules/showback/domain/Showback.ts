@@ -1,7 +1,12 @@
 import type { SustainabilityEstimate } from '../../../infrastructure/claude/sustainability'
 
 // The billed operations we attribute spend to.
-export type UsageOperation = 'correction' | 'sentence_batch' | 'translation'
+export type UsageOperation =
+  | 'correction'
+  | 'sentence_batch'
+  | 'translation'
+  | 'flashcard_grade'
+  | 'flashcard_batch'
 
 export interface TokenTotals {
   input: number

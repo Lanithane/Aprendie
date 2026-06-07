@@ -12,7 +12,7 @@ import {
   uniqueIndex,
   primaryKey,
 } from 'drizzle-orm/pg-core'
-import type { WordToken } from '../../../shared/languages'
+import type { WordToken, WordGender } from '../../../shared/languages'
 import type { LevelCode } from '../../../shared/levels'
 import type { ThemeMode } from '../../../shared/appearance'
 
@@ -319,6 +319,51 @@ export const lexemeDefinitions = pgTable(
   ]
 )
 
+// Flash-card corpus — the shared, de-duplicated word deck. One row per (learnLanguage,
+// guessLanguage, locale, deckId, contentHash) so a card is generated once and served to every
+// learner on that slice (same philosophy as the `sentences` corpus). `lemma` is the word's
+// dictionary/base form in the learn language (the card front); `gloss` is the canonical
+// one-to-three-word meaning in the guess language (the accepted answer); `example` + its
+// translation are revealed on the back after grading. `contentHash` deduplicates on the
+// normalised lemma so the same root word can't appear twice in one deck.
+export const flashcards = pgTable(
+  'flashcards',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    learnLanguage: text('learn_language').notNull(),
+    guessLanguage: text('guess_language').notNull(),
+    locale: text('locale').notNull(),
+    deckId: text('deck_id').notNull(),
+    lemma: text('lemma').notNull(),
+    gloss: text('gloss').notNull(),
+    partOfSpeech: text('part_of_speech').notNull(),
+    gender: text('gender').$type<WordGender | null>(),
+    example: text('example'),
+    exampleTranslation: text('example_translation'),
+    contentHash: text('content_hash').notNull(),
+    genInputTokens: integer('gen_input_tokens').notNull().default(0),
+    genOutputTokens: integer('gen_output_tokens').notNull().default(0),
+    genCachedInputTokens: integer('gen_cached_input_tokens').notNull().default(0),
+    batchId: text('batch_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('uq_flashcards_content').on(
+      table.learnLanguage,
+      table.guessLanguage,
+      table.locale,
+      table.deckId,
+      table.contentHash
+    ),
+    index('idx_flashcards_deck').on(
+      table.learnLanguage,
+      table.guessLanguage,
+      table.locale,
+      table.deckId
+    ),
+  ]
+)
+
 // Per-user daily spend counter backing the operator-key cap. One row per (user, UTC day);
 // `count` is the number of graded sentences (corrections) that day. `day` is a
 // 'YYYY-MM-DD' UTC string so the boundary is timezone-stable and the row is a cheap
@@ -347,7 +392,11 @@ export const usageEvents = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    operation: text('operation').$type<'correction' | 'sentence_batch' | 'translation'>().notNull(),
+    operation: text('operation')
+      .$type<
+        'correction' | 'sentence_batch' | 'translation' | 'flashcard_grade' | 'flashcard_batch'
+      >()
+      .notNull(),
     model: text('model').notNull(),
     inputTokens: integer('input_tokens').notNull().default(0),
     outputTokens: integer('output_tokens').notNull().default(0),
@@ -423,6 +472,8 @@ export const session = pgTable(
   (table) => [index('IDX_session_expire').on(table.expire)]
 )
 
+export type FlashcardRow = typeof flashcards.$inferSelect
+export type NewFlashcardRow = typeof flashcards.$inferInsert
 export type UserRow = typeof users.$inferSelect
 export type NewUserRow = typeof users.$inferInsert
 // Legacy per-user pool row (kept only for the corpus backfill).

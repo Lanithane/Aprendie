@@ -15,6 +15,7 @@ import sentenceController from './modules/sentence/controllers/sentenceControlle
 import correctionController from './modules/correction/controllers/correctionController'
 import historyController from './modules/history/controllers/historyController'
 import palabradexController from './modules/palabradex/controllers/palabradexController'
+import flashcardController from './modules/flashcard/controllers/flashcardController'
 import languageController from './modules/language/controllers/languageController'
 import translatorController from './modules/translator/controllers/translatorController'
 import feedbackController from './modules/feedback/controllers/feedbackController'
@@ -47,6 +48,7 @@ app.use('/api/sentence', sentenceController)
 app.use('/api/correct', correctionController)
 app.use('/api/history', historyController)
 app.use('/api/palabradex', palabradexController)
+app.use('/api/flashcards', flashcardController)
 app.use('/api/language', languageController)
 app.use('/api/translate', translatorController)
 app.use('/api/feedback', feedbackController)

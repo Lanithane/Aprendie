@@ -76,9 +76,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
   // persisted to localStorage so it survives reloads.
   const { collapsed, toggleCollapsed } = useSidebarCollapsed()
   const navItems = buildNavItems(isAdmin)
-  // The bottom bar can't fit six items on the narrowest phones, so drop Admin on xs — admins
-  // reach it from the button at the top of Settings instead.
-  const mobileNavItems = isXs ? navItems.filter(({ to }) => to !== ADMIN_NAV_ITEM.to) : navItems
+  // The bottom bar can't fit six items on the narrowest phones, so drop Admin and Flash cards on
+  // xs — admins reach Admin from Settings; Flash cards gets a pill shortcut on the home screen.
+  const mobileNavItems = isXs
+    ? navItems.filter(({ to }) => to !== ADMIN_NAV_ITEM.to && to !== '/flashcards')
+    : navItems
   const activePath = navItems.find(({ to }) => isActiveRoute(loc.pathname, to))?.to ?? false
 
   return (

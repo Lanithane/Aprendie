@@ -51,3 +51,10 @@ export async function getRootDetail(
 export async function listLanguages(userId: string): Promise<string[]> {
   return palabradexRepository.distinctLanguages(userId)
 }
+
+// Per-lemma mastery stats for the flash-card picker. Returns the raw rows (including
+// lastSeenAt) so the caller can score by both struggle rate and recency. The caller filters
+// to the lemmas it cares about (the current deck) after the query returns.
+export async function getLexemeStatsForDeck(userId: string, learnLanguage: string) {
+  return palabradexRepository.listLexemes(userId, learnLanguage, 'seen')
+}
