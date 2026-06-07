@@ -16,13 +16,15 @@ const Grid = styled('div')`
   width: 100%;
 `
 
+// Hover/focus thickens the border into the primary colour — a 2.5px ring flush with the card edge
+// (constant width at rest so the colour swap doesn't shift layout).
 const Tile = styled('button')`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: ${({ theme }) => theme.spacing(1.5)};
   padding: ${({ theme }) => theme.spacing(2.5, 2.5, 2)};
-  border: 1.5px solid ${({ theme }) => theme.palette.outlineVariant};
+  border: 3.5px solid ${({ theme }) => theme.palette.outlineVariant};
   border-radius: 16px;
   background: ${({ theme }) => theme.palette.surfaceContainerLow};
   color: ${({ theme }) => theme.palette.text.primary};
@@ -33,10 +35,14 @@ const Tile = styled('button')`
     border-color 120ms;
   &:hover {
     background: ${({ theme }) => theme.palette.surfaceContainer};
-    border-color: ${({ theme }) => theme.palette.outline};
   }
   &:active {
     background: ${({ theme }) => theme.palette.surfaceContainerHigh};
+  }
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    border-color: ${({ theme }) => theme.palette.primary.main};
   }
 `
 
