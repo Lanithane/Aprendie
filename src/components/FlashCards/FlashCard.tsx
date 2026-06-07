@@ -12,6 +12,11 @@ import type { FlashcardDto, FlashcardGradeDto } from '../../api/flashcardApi'
 
 interface FlashCardProps {
   card: FlashcardDto | null
+  // Whether to show the part-of-speech / gender chips. Suppressed on function-word decks
+  // (Conjunctions, Common Verbs, …) where the deck title already names the part of speech, so the
+  // chip would just repeat it; kept for category-noun decks where the chips add real info (noun +
+  // gender).
+  showMeta: boolean
   grade: FlashcardGradeDto | null
   grading: boolean
   error: string | null
@@ -83,6 +88,7 @@ const ExampleBlock = styled('div')`
 
 export default function FlashCard({
   card,
+  showMeta,
   grade,
   grading,
   error,
@@ -123,10 +129,12 @@ export default function FlashCard({
 
       <LemmaDisplay>{card.lemma}</LemmaDisplay>
 
-      <MetaRow>
-        <MetaChip>{card.partOfSpeech}</MetaChip>
-        {card.gender && <MetaChip>{card.gender}</MetaChip>}
-      </MetaRow>
+      {showMeta && (
+        <MetaRow>
+          <MetaChip>{card.partOfSpeech}</MetaChip>
+          {card.gender && <MetaChip>{card.gender}</MetaChip>}
+        </MetaRow>
+      )}
 
       {/* Listen button — available on both question and result screens */}
       {speechSupported && (
@@ -185,22 +193,18 @@ export default function FlashCard({
       ) : (
         <>
           <RevealSection>
-            <div
-              style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center' }}
-            >
-              <div>
-                <Typography variant='body1' sx={{ fontWeight: 700 }}>
-                  {grade.acceptedGloss}
+            <div>
+              <Typography variant='body1' sx={{ fontWeight: 700 }}>
+                {grade.acceptedGloss}
+              </Typography>
+              {!grade.isCorrect && (
+                <Typography variant='body2' color='text.secondary'>
+                  You typed: {answer}
                 </Typography>
-                {!grade.isCorrect && (
-                  <Typography variant='body2' color='text.secondary'>
-                    You typed: {answer}
-                  </Typography>
-                )}
-              </div>
+              )}
             </div>
             {grade.note && (
-              <Typography variant='body2' color='text.secondary' sx={{ textAlign: 'center' }}>
+              <Typography variant='body2' color='text.secondary'>
                 {grade.note}
               </Typography>
             )}
@@ -224,7 +228,7 @@ export default function FlashCard({
             variant='contained'
             size='large'
             onClick={onNext}
-            sx={{ borderRadius: '999px', minWidth: 140 }}
+            sx={{ alignSelf: 'flex-end', borderRadius: '999px', minWidth: 140 }}
           >
             Next
           </Button>

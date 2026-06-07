@@ -16,12 +16,22 @@ const PageWrap = styled('div')`
   padding-block: ${({ theme }) => theme.spacing(2)};
 `
 
-const SessionHeader = styled('div')`
+// Header + card share one centered, card-width column so the title's left edge lines up with the
+// card on wide (md+) screens — the surrounding AppShell column is 760px but the card caps at 560px.
+const SessionView = styled('div')`
   width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing(1)};
+`
+
+const SessionHeader = styled('div')`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: ${({ theme }) => theme.spacing(1)};
+  gap: ${({ theme }) => theme.spacing(3)};
 `
 
 export default function FlashCardsPage() {
@@ -74,28 +84,29 @@ export default function FlashCardsPage() {
 
   return (
     <PageWrap>
-      <SessionHeader>
-        <Button
-          variant='contained'
-          color='secondary'
-          size='small'
-          onClick={() => setActiveDeckState(null)}
-        >
-          ← All decks
-        </Button>
-        {activeDeck && <Typography variant='h5'>{activeDeck.label}</Typography>}
-      </SessionHeader>
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <SessionView>
+        <SessionHeader>
+          <Button
+            variant='contained'
+            color='secondary'
+            size='small'
+            onClick={() => setActiveDeckState(null)}
+          >
+            ← All decks
+          </Button>
+          {activeDeck && <Typography variant='h5'>{activeDeck.label}</Typography>}
+        </SessionHeader>
         <FlashCard
           key={card?.id ?? 'loading'}
           card={card}
+          showMeta={activeDeck?.kind === 'noun'}
           grade={grade}
           grading={grading}
           error={sessionError}
           onSubmit={submit}
           onNext={() => loadNext(activeDeckId)}
         />
-      </div>
+      </SessionView>
     </PageWrap>
   )
 }
