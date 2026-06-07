@@ -25,7 +25,7 @@ export default function HomeTopBar({ level, onLevelChange }: HomeTopBarProps) {
       <Button
         component={RouterLink}
         to='/flashcards'
-        variant='outlined'
+        variant='contained'
         color='secondary'
         size='small'
         startIcon={<StyleIcon fontSize='small' />}

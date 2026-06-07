@@ -260,12 +260,9 @@ export default function PracticeCard({
           aria-label={`Your ${guessName} translation`}
         />
         <Stack direction='row' sx={{ mt: 2, alignItems: 'center' }}>
-          {/* Streak pill tucked bottom-left. The pill's own 12px left padding is cancelled with a
-              -1.5 (12px) negative margin so the flame lines up flush with the answer field's left
-              edge. The submit button stays pinned right via ml:auto. */}
-          <Box sx={{ ml: -1.5 }}>
-            <StreakIndicator />
-          </Box>
+          {/* Streak pill tucked bottom-left, its left edge flush with the answer field — mirroring
+              the submit button pinned right via ml:auto, so the two carry the same inset. */}
+          <StreakIndicator />
           <Button
             color='primary'
             sx={{ ml: 'auto' }}

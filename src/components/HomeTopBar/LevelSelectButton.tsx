@@ -9,9 +9,10 @@ interface LevelSelectButtonProps {
   onLevelChange: (level: LevelPref) => void
 }
 
-// The difficulty (level) selector: an outlined `secondary` button (the flash-card palette) that
+// The difficulty (level) selector: a filled `secondary` button (the flash-card palette) that
 // opens the level menu. Lives in two places on the home screen — the mobile top bar and, on md+,
-// just above the practice card (see HomeTopBar / HomePage).
+// just above the practice card (see HomeTopBar / HomePage). Filled (not outlined) so it stays
+// legible on the tinted page — a pale secondary outline washed out against the light canvas.
 export default function LevelSelectButton({ level, onLevelChange }: LevelSelectButtonProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const open = Boolean(anchorEl)
@@ -26,7 +27,7 @@ export default function LevelSelectButton({ level, onLevelChange }: LevelSelectB
   return (
     <>
       <Button
-        variant='outlined'
+        variant='contained'
         color='secondary'
         size='small'
         onClick={openMenu}

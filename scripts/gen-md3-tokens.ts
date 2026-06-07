@@ -160,11 +160,14 @@ const ROLE_TONES: Record<string, [PaletteKey, number, number]> = {
   onSurfaceVariant: ['NV', 30, 80],
   surfaceDim: ['N', 87, 6],
   surfaceBright: ['N', 98, 24],
+  // Light tones run a touch brighter than the textbook ladder (was 96/94/92/90) so cards — paper =
+  // surfaceContainerLow — read as a more luminous layer above the dimmer page, rather than muted
+  // beige-on-beige on the low-chroma surface seeds. Dark tones unchanged.
   surfaceContainerLowest: ['N', 100, 4],
-  surfaceContainerLow: ['N', 96, 10],
-  surfaceContainer: ['N', 94, 12],
-  surfaceContainerHigh: ['N', 92, 17],
-  surfaceContainerHighest: ['N', 90, 22],
+  surfaceContainerLow: ['N', 98, 10],
+  surfaceContainer: ['N', 96, 12],
+  surfaceContainerHigh: ['N', 94, 17],
+  surfaceContainerHighest: ['N', 92, 22],
   outline: ['NV', 50, 60],
   outlineVariant: ['NV', 80, 30],
   shadow: ['N', 0, 0],
