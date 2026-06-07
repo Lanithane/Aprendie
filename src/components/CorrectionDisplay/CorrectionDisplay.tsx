@@ -10,7 +10,7 @@ import {
   type LocaleCode,
   type WordToken,
 } from '../../../shared/languages'
-import { scoreToGrade } from '../../../shared/grades'
+import { scoreToGrade, type Grade } from '../../../shared/grades'
 import type { CorrectionMistakeDto } from '../../api/correctionApi'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
 import { useSpeech } from '../../hooks/useSpeech'
@@ -19,6 +19,7 @@ import GradeChip, { PERFECT_GOLD } from '../shared/GradeChip'
 import ListenControls from '../shared/ListenControls'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
 import { DiffLine, PromptHeadline, MistakeRow, Added, Removed } from './correctionStyles'
+import { RESULT_TITLES, pickTitle } from './resultTitles'
 
 // Normalize curly quotes to ASCII so a typographic apostrophe (e.g. Claude's "I\u2019m") does not
 // diff against the user's straight-quote "I'm". Written as \u escapes, not literal smart-quote
@@ -99,7 +100,12 @@ export default function CorrectionDisplay({
   const visibleMistakes = mistakes.filter(
     (m) => normalizePunct(m.userPhrase) !== normalizePunct(m.correctPhrase)
   )
-  const displayGrade = grade ?? scoreToGrade(score)
+  const displayGrade: Grade = (grade as Grade | undefined) ?? scoreToGrade(score)
+  // An exact match gets the dedicated "Perfect!" celebration; otherwise pick a varied headline for
+  // this grade and outcome.
+  const headline = isExactMatch
+    ? 'Perfect!'
+    : pickTitle(RESULT_TITLES[displayGrade][isCorrect ? 'success' : 'mistake'], userAnswer)
 
   return (
     <Card aria-live='polite'>
@@ -120,7 +126,7 @@ export default function CorrectionDisplay({
             <CancelIcon color='warning' />
           )}
           <Typography variant='h5' sx={{ flex: '1 1 220px', minWidth: 0 }}>
-            {isExactMatch ? 'Perfect!' : isCorrect ? 'Nice!' : "Close! Here's what to fix"}
+            {headline}
           </Typography>
           <GradeChip grade={displayGrade} size='medium' />
         </Stack>
