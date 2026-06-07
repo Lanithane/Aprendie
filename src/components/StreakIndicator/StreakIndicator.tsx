@@ -3,16 +3,15 @@ import { styled } from '@mui/material/styles'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import { useStreak } from '../../streak/StreakContext'
 
-// A deliberately quiet streak indicator: a flame + day count in a pill, shown only on the practice
-// surfaces (mounted by AppShell). It hides entirely when the learner has opted out or the streak has
-// lapsed, and pops gently the moment today's first activity advances it — no modal, no confetti.
+// A deliberately quiet streak indicator: a flame + day count in a pill, tucked into the bottom-left
+// of the practice cards (HomePage's PracticeCard / FlashCard). It hides entirely when the learner
+// has opted out or the streak has lapsed, and pops gently the moment today's first activity advances
+// it — no modal, no confetti. Spacing/alignment are owned by the card footer that holds it.
 const Pill = styled('div')`
   display: inline-flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing(0.75)};
-  align-self: flex-start;
   padding: ${({ theme }) => theme.spacing(0.5, 1.5)};
-  margin-bottom: ${({ theme }) => theme.spacing(1.5)};
   border-radius: 999px;
   background: ${({ theme }) => theme.palette.surfaceContainerHigh};
   color: ${({ theme }) => theme.palette.onSurface};

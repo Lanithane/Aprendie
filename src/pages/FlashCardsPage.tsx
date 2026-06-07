@@ -19,8 +19,9 @@ const PageWrap = styled('div')`
 const SessionHeader = styled('div')`
   width: 100%;
   display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing(2)};
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.spacing(1)};
 `
 
 export default function FlashCardsPage() {

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Box, Button, CircularProgress, Typography, TextField, Alert } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import GradeChip from '../shared/GradeChip'
+import StreakIndicator from '../StreakIndicator/StreakIndicator'
 import { scoreToGrade } from '../../../shared/grades'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
 import { useSpeech } from '../../hooks/useSpeech'
@@ -151,7 +152,11 @@ export default function FlashCard({
           <TextField
             autoFocus
             fullWidth
-            label='Type the meaning'
+            // No floating label: the outline-notch label overlaps the field border on iOS Safari, so
+            // we follow the app's working pattern (PracticeCard / Translator) — placeholder +
+            // aria-label instead.
+            placeholder='Type the meaning'
+            aria-label='Type the meaning'
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -162,15 +167,20 @@ export default function FlashCard({
             spellCheck={false}
             variant='outlined'
           />
-          <Button
-            variant='contained'
-            size='large'
-            onClick={() => onSubmit(answer.trim())}
-            disabled={grading || !answer.trim()}
-            sx={{ borderRadius: '999px', minWidth: 140 }}
-          >
-            {grading ? <CircularProgress size={22} color='inherit' /> : 'Check'}
-          </Button>
+          {/* Streak pill bottom-left; Check pinned right via ml:auto so it holds position whether
+              or not the streak is showing. */}
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center' }}>
+            <StreakIndicator />
+            <Button
+              variant='contained'
+              size='large'
+              onClick={() => onSubmit(answer.trim())}
+              disabled={grading || !answer.trim()}
+              sx={{ ml: 'auto', borderRadius: '999px', minWidth: 140 }}
+            >
+              {grading ? <CircularProgress size={22} color='inherit' /> : 'Check'}
+            </Button>
+          </Box>
         </>
       ) : (
         <>

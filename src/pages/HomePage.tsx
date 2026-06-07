@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
 import { Alert, Box, Button, Stack } from '@mui/material'
-import { styled, useTheme } from '@mui/material/styles'
-import { useMediaQuery } from '@mui/material'
-import StyleIcon from '@mui/icons-material/Style'
+import { styled } from '@mui/material/styles'
 import PracticeCard from '../components/PracticeCard/PracticeCard'
+import HomeTopBar from '../components/HomeTopBar/HomeTopBar'
+import LevelSelectButton from '../components/HomeTopBar/LevelSelectButton'
 import CorrectionDisplay from '../components/CorrectionDisplay/CorrectionDisplay'
 import StreamingCorrection from '../components/CorrectionDisplay/StreamingCorrection'
 import AccessGate from '../components/AccessGate/AccessGate'
@@ -41,8 +40,6 @@ const FlowStage = styled('div')`
 `
 
 export default function HomePage() {
-  const theme = useTheme()
-  const isXs = useMediaQuery(theme.breakpoints.only('xs'))
   const { user, isApproved, bootstrapSentence, consumeBootstrap } = useAuth()
   const { pair } = useLanguagePair()
   const { pref: level, setPref: setLevel } = useLevelPreference()
@@ -161,29 +158,20 @@ export default function HomePage() {
 
   return (
     <>
-      {isXs && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-          <Button
-            component={RouterLink}
-            to='/flashcards'
-            color='secondary'
-            size='small'
-            startIcon={<StyleIcon fontSize='small' />}
-          >
-            Flash cards
-          </Button>
-        </Box>
-      )}
+      <HomeTopBar level={level} onLevelChange={setLevel} />
       <CenteredStage>
+        {/* md+: the level selector floats with the card, just above it and left-aligned. Below md
+            it lives in the page-top bar instead (HomeTopBar). */}
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, mb: 1 }}>
+          <LevelSelectButton level={level} onLevelChange={setLevel} />
+        </Box>
         <PracticeCard
           promptText={sentence.promptText}
           wordBreakdown={sentence.wordBreakdown}
           learnLanguage={sentence.learnLanguage}
           guessLanguage={sentence.guessLanguage}
           locale={sentence.locale}
-          level={level}
           sentenceLevel={sentence.level}
-          onLevelChange={setLevel}
           category={category}
           sentenceTheme={sentence.theme}
           onCategoryChange={setCategory}

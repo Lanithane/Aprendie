@@ -7,7 +7,6 @@ import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed'
 import { useScrollToTop } from '../../hooks/useScrollToTop'
 import Sidebar from '../Sidebar/Sidebar'
 import DailyCapBanner from '../DailyCapBanner/DailyCapBanner'
-import StreakIndicator from '../StreakIndicator/StreakIndicator'
 import { ADMIN_NAV_ITEM, buildNavItems, isActiveRoute } from './navigation'
 
 const SIDEBAR_WIDTH = 240
@@ -82,11 +81,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
   // persisted to localStorage so it survives reloads.
   const { collapsed, toggleCollapsed } = useSidebarCollapsed()
   const navItems = buildNavItems(isAdmin)
-  // The bottom bar can't fit six items on the narrowest phones, so drop Admin and Flash cards on
-  // xs — admins reach Admin from Settings; Flash cards gets a pill shortcut on the home screen.
-  const mobileNavItems = isXs
-    ? navItems.filter(({ to }) => to !== ADMIN_NAV_ITEM.to && to !== '/flashcards')
-    : navItems
+  // Flash cards is dropped from the bottom bar across the whole mobile range — it gets a pill
+  // shortcut on the home screen (HomeTopBar) instead. Admin additionally drops on the narrowest
+  // phones (xs), where six items won't fit; admins reach it from Settings there.
+  const mobileNavItems = navItems.filter(
+    ({ to }) => to !== '/flashcards' && !(isXs && to === ADMIN_NAV_ITEM.to)
+  )
   const activePath = navItems.find(({ to }) => isActiveRoute(loc.pathname, to))?.to ?? false
   // The near-cap banner belongs to the spend surfaces — sentence practice and flash cards, which
   // share the one daily cap. Elsewhere (history, settings, admin) there's nothing to warn about.
@@ -105,7 +105,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
       )}
       <Main id='main-content' tabIndex={-1}>
         <Content>
-          {isPracticeRoute && <StreakIndicator />}
           {isPracticeRoute && <DailyCapBanner />}
           {children}
         </Content>

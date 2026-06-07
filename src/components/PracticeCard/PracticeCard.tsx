@@ -24,11 +24,11 @@ import {
   type LocaleCode,
   type WordToken,
 } from '../../../shared/languages'
-import { LEVELS, levelLabel, type LevelCode } from '../../../shared/levels'
+import { type LevelCode } from '../../../shared/levels'
 import { CATEGORIES, categoryById, categoryByDomain } from '../../../shared/categories'
-import type { LevelPref } from '../../hooks/useLevelPreference'
 import type { CategoryPref } from '../../hooks/useCategoryPreference'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
+import StreakIndicator from '../StreakIndicator/StreakIndicator'
 import ListenControls from '../shared/ListenControls'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
 import { useSpeech } from '../../hooks/useSpeech'
@@ -54,9 +54,7 @@ interface PracticeCardProps {
   learnLanguage: LanguageCode
   guessLanguage: LanguageCode
   locale: LocaleCode
-  level: LevelPref
   sentenceLevel?: LevelCode | null
-  onLevelChange: (level: LevelPref) => void
   // The pinned practice topic (null = shuffle all) and the current sentence's own topic (its stored
   // domain), so the chip shows the pin when set, else whatever this sentence is about.
   category: CategoryPref
@@ -73,9 +71,7 @@ export default function PracticeCard({
   learnLanguage,
   guessLanguage,
   locale,
-  level,
   sentenceLevel,
-  onLevelChange,
   category,
   sentenceTheme,
   onCategoryChange,
@@ -86,8 +82,6 @@ export default function PracticeCard({
   const [guess, setGuess] = useState('')
   // Refocus the answer field each time a new sentence loads, so the flow stays keyboard-driven.
   const inputRef = useAutoFocus<HTMLInputElement>(promptText)
-  const [levelAnchorEl, setLevelAnchorEl] = useState<HTMLElement | null>(null)
-  const levelMenuOpen = Boolean(levelAnchorEl)
   const [categoryAnchorEl, setCategoryAnchorEl] = useState<HTMLElement | null>(null)
   const categoryMenuOpen = Boolean(categoryAnchorEl)
   const theme = useTheme()
@@ -116,13 +110,6 @@ export default function PracticeCard({
     onSubmit(trimmed)
   }
 
-  const openLevelMenu = (e: MouseEvent<HTMLElement>) => setLevelAnchorEl(e.currentTarget)
-  const closeLevelMenu = () => setLevelAnchorEl(null)
-  const pickLevel = (next: LevelPref) => {
-    onLevelChange(next)
-    closeLevelMenu()
-  }
-
   const openCategoryMenu = (e: MouseEvent<HTMLElement>) => setCategoryAnchorEl(e.currentTarget)
   const closeCategoryMenu = () => setCategoryAnchorEl(null)
   const pickCategory = (next: CategoryPref) => {
@@ -131,7 +118,6 @@ export default function PracticeCard({
   }
 
   const guessName = languageName(guessLanguage)
-  const levelChipLabel = level ? levelLabel(level) : 'Level: any'
   // The chip shows the pinned topic when set, otherwise the current sentence's own topic; falling
   // back to "Shuffle" only before any sentence has a known category.
   const pinnedCategory = category ? categoryById(category) : undefined
@@ -155,7 +141,9 @@ export default function PracticeCard({
 
   return (
     <Card>
-      <CardContent>
+      {/* Drop CardContent's default 24px last-child bottom padding to the 16px side padding so the
+          streak pill sits the same distance from the card's left and bottom edges. */}
+      <CardContent sx={{ '&:last-child': { pb: 2 } }}>
         <Stack
           direction='row'
           spacing={1}
@@ -176,14 +164,6 @@ export default function PracticeCard({
               clickable
               aria-haspopup='menu'
               aria-expanded={categoryMenuOpen}
-            />
-            <Chip
-              size='small'
-              label={levelChipLabel}
-              onClick={openLevelMenu}
-              clickable
-              aria-haspopup='menu'
-              aria-expanded={levelMenuOpen}
             />
           </Stack>
           {speechSupported && (
@@ -252,18 +232,6 @@ export default function PracticeCard({
             {categoryOptions}
           </Menu>
         )}
-        <Menu anchorEl={levelAnchorEl} open={levelMenuOpen} onClose={closeLevelMenu}>
-          <MenuItem selected={level === null} onClick={() => pickLevel(null)}>
-            Any level
-          </MenuItem>
-          <Divider />
-          {LEVELS.map((l) => (
-            <MenuItem key={l.code} selected={level === l.code} onClick={() => pickLevel(l.code)}>
-              {l.cefr ? `${l.name} (${l.cefr})` : l.name}
-            </MenuItem>
-          ))}
-        </Menu>
-
         <SentenceCenter>
           <SentenceTokens
             text={promptText}
@@ -291,9 +259,16 @@ export default function PracticeCard({
           disabled={disabled || submitting}
           aria-label={`Your ${guessName} translation`}
         />
-        <Stack direction='row' sx={{ mt: 2, justifyContent: 'flex-end' }}>
+        <Stack direction='row' sx={{ mt: 2, alignItems: 'center' }}>
+          {/* Streak pill tucked bottom-left. The pill's own 12px left padding is cancelled with a
+              -1.5 (12px) negative margin so the flame lines up flush with the answer field's left
+              edge. The submit button stays pinned right via ml:auto. */}
+          <Box sx={{ ml: -1.5 }}>
+            <StreakIndicator />
+          </Box>
           <Button
             color='primary'
+            sx={{ ml: 'auto' }}
             onClick={submit}
             // Stay enabled while checking (re-entry is guarded in submit()) so the button keeps its
             // resting look and the aria-busy ring stays lit — disabling would blur it and grey it out.
