@@ -18,7 +18,7 @@ import { OFFSET_URL, SUPPORT_URL, formatUsd, formatWater } from './contribute'
 // Same inset pill geometry as the sidebar nav items (kept in sync with Sidebar's navSx), but
 // tighter vertical padding and a touch more room between the icon and the label.
 const itemSx = (rail: boolean) => ({
-  mx: 1,
+  mx: 0.5,
   my: 0.5,
   py: 0.5,
   minHeight: 40,
@@ -87,9 +87,7 @@ export default function ContributeSection({ showback, showLabels }: ContributeSe
       >
         <Box
           sx={{
-            ml: 1,
-            mr: 0.75,
-            mb: 1,
+            m: 1,
             borderRadius: '16px',
             bgcolor: 'surfaceContainerHigh',
             border: '1px solid',
@@ -106,7 +104,7 @@ export default function ContributeSection({ showback, showLabels }: ContributeSe
                 lineHeight: 1.5,
                 pt: 0.5,
                 pb: 0,
-                pl: 3,
+                pl: 2.5,
                 fontWeight: 800,
                 fontSize: '1rem',
                 color: 'onSurface',

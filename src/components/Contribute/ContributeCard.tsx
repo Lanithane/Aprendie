@@ -19,7 +19,7 @@ export default function ContributeCard({ userId }: { userId: string | undefined 
   return (
     <SectionCard
       title='Usage & Contributing'
-      description="Aprendie is free, don't worry! This is just what your practice has cost on the shared key so far, with ways to give back if you'd like."
+      description="Aprendie is free, don't worry! Here are some ways to give back though, if you'd like."
     >
       <Stack spacing={2}>
         <Box>
