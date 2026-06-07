@@ -43,7 +43,7 @@ export const users = pgTable('users', {
   themeMode: text('theme_mode').$type<ThemeMode | null>(),
   // Language pair + locale, persisted per account. Loose-typed text like `level`/`role`;
   // nullable until the user picks during onboarding (the client falls back to DEFAULT_PAIR),
-  // so the server can prewarm the chosen pool.
+  // so the server can warm the chosen pool.
   learnLanguage: text('learn_language'),
   guessLanguage: text('guess_language'),
   locale: text('locale'),

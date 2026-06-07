@@ -169,3 +169,17 @@ export async function getBootstrapSentence(input: PoolInput): Promise<SentenceVi
   await sentenceRepository.recordExposure(input.user.id, sentence.id)
   return toSentenceView(sentence)
 }
+
+// Ensure a slice has at least one servable sentence, generating inline if the shared corpus is cold,
+// then topping up off the critical path. Called from onboarding so the learner's first practice
+// fetch lands warm (no cold-start spinner on the practice page). Unlike getNextSentence it neither
+// selects nor records an exposure — it just warms the corpus. The inline gen is deduped per slice
+// (see refillPool), so this is safe to call alongside a racing practice fetch.
+export async function ensureWarmFirstSentence(input: PoolInput): Promise<void> {
+  assertCanSpend(input.user)
+  await assertSpendEnabled(input.user)
+  const slice = sliceOf(input)
+  const corpus = await sentenceRepository.listCorpus(slice)
+  if (corpus.length === 0) await refillPool(input, COLD_START_SIZE)
+  triggerBackgroundRefill(input)
+}

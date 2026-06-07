@@ -1,18 +1,19 @@
 import type { UserRow, SentenceRow } from '../../../infrastructure/db/schema'
-import type { LanguageCode } from '../../../../shared/languages'
+import type { LanguageCode, LocaleCode } from '../../../../shared/languages'
 import type { LevelCode } from '../../../../shared/levels'
 import {
   getOperatorAnthropicClient,
   CORRECTION_MODEL,
 } from '../../../infrastructure/claude/anthropicClient'
+import type { TokenUsage } from '../../../infrastructure/claude/pricing'
 import { assertCanSpend } from '../../user/application/access'
 import { assertSpendEnabled } from '../../settings/application/appSettings'
 import { assertWithinDailyCap, recordGradedSentence } from '../../usage/application/dailyCap'
 import { recordUsage } from '../../showback/application/recordUsage'
 import * as sentenceRepository from '../../sentence/persistence/sentenceRepository'
 import { recordAttempt } from '../../history/application/recordAttempt'
-import { scoreTranslation } from './scoreTranslation'
-import type { CorrectionView } from '../domain/Correction'
+import { scoreTranslation, scoreTranslationStream } from './scoreTranslation'
+import type { CorrectionResult, CorrectionView } from '../domain/Correction'
 
 interface CorrectInput {
   user: UserRow
@@ -27,35 +28,66 @@ export class SentenceNotFoundError extends Error {
   }
 }
 
-export async function correctTranslation(input: CorrectInput): Promise<CorrectionView> {
-  // Grading spends the operator key: assert the account is allowed to spend, that the
-  // global spend pause is off, then enforce the daily cap (admins are exempt).
+// The resolved, gated slice a grade runs against — shared by the blocking and streaming paths.
+interface GradeContext {
+  sentence: SentenceRow
+  learnLanguage: LanguageCode
+  guessLanguage: LanguageCode
+  locale: LocaleCode
+  level: LevelCode | null
+}
+
+// Run the spend gates and resolve the sentence. Throws before any model call: a non-approved or
+// spend-paused account, a capped non-admin, or an unknown sentence id never reaches the grader.
+async function gateAndLoad(input: CorrectInput): Promise<GradeContext> {
+  // Grading spends the operator key: assert the account is allowed to spend, then that the
+  // global spend pause is off (the cheap cached kill-switch) before doing any work.
   assertCanSpend(input.user)
   await assertSpendEnabled(input.user)
-  const capped = input.user.role !== 'admin'
-  if (capped) await assertWithinDailyCap(input.user)
 
-  // The corpus is shared (Epic 20), so grading just resolves the sentence by id — there's no
-  // per-user ownership to assert, and the id came from a sentence we served this user.
-  const sentence: SentenceRow | null = await sentenceRepository.findById(input.sentenceId)
+  // The cap check (countToday) and the sentence lookup are independent DB reads, so run them
+  // concurrently and await in priority order — error precedence stays cap-then-not-found, and the
+  // noop catch keeps a rejected lookup from surfacing as an unhandled rejection if the cap throws
+  // first. The corpus is shared (Epic 20), so grading just resolves the sentence by id; the id came
+  // from a sentence we served this user, so there's no per-user ownership to assert.
+  const capped = input.user.role !== 'admin'
+  const capCheck = capped ? assertWithinDailyCap(input.user) : Promise.resolve()
+  const sentenceLookup = sentenceRepository.findById(input.sentenceId)
+  sentenceLookup.catch(() => {})
+
+  await capCheck
+  const sentence = await sentenceLookup
   if (!sentence) throw new SentenceNotFoundError()
 
-  const learnLanguage = sentence.learnLanguage as LanguageCode
-  const guessLanguage = sentence.guessLanguage as LanguageCode
-  const locale = sentence.locale
-  const level = (sentence.level as LevelCode | null) ?? null
+  return {
+    sentence,
+    learnLanguage: sentence.learnLanguage as LanguageCode,
+    guessLanguage: sentence.guessLanguage as LanguageCode,
+    locale: sentence.locale,
+    level: (sentence.level as LevelCode | null) ?? null,
+  }
+}
 
-  const anthropic = getOperatorAnthropicClient()
-  const { result, usage } = await scoreTranslation(anthropic, {
-    learnLanguage,
-    guessLanguage,
-    locale,
-    promptText: sentence.promptText,
-    answerText: sentence.answerText,
-    userAnswer: input.userAnswer,
-  })
+function scoreInputFor(ctx: GradeContext, userAnswer: string) {
+  return {
+    learnLanguage: ctx.learnLanguage,
+    guessLanguage: ctx.guessLanguage,
+    locale: ctx.locale,
+    promptText: ctx.sentence.promptText,
+    answerText: ctx.sentence.answerText,
+    userAnswer,
+  }
+}
 
-  // Snapshot the spend for showback. Never let a usage-recording failure fail the grade.
+// Record showback + history + the daily counter for a completed grade and shape the view. Shared
+// tail of both paths: usage snapshot is fire-and-forget; the attempt insert and the cap bump run
+// concurrently (different tables) so the response isn't gated on two serial writes.
+async function persistGrade(
+  input: CorrectInput,
+  ctx: GradeContext,
+  result: CorrectionResult,
+  usage: TokenUsage
+): Promise<CorrectionView> {
   recordUsage({
     userId: input.user.id,
     operation: 'correction',
@@ -63,41 +95,70 @@ export async function correctTranslation(input: CorrectInput): Promise<Correctio
     usage,
   }).catch((err) => console.error('[showback] recordUsage(correction) failed:', err))
 
-  // Persist a denormalized snapshot of this attempt (the single source for the history view).
-  await recordAttempt({
-    userId: input.user.id,
-    sentenceId: sentence.id,
-    learnLanguage,
-    guessLanguage,
-    locale,
-    level,
-    promptText: sentence.promptText,
-    answerText: sentence.answerText,
-    userAnswer: input.userAnswer,
-    correctedAnswer: result.correctedAnswer,
-    score: result.score,
-    grade: result.grade,
-    isCorrect: result.isCorrect,
-    mistakes: result.mistakes,
-    notes: result.notes,
-    wordBreakdown: sentence.wordBreakdown ?? [],
-  })
-
-  // Record every graded sentence (including admins) so the admin "Graded today" tile
-  // reflects all activity. The cap is only *enforced* for non-admins (asserted above);
-  // counting an admin's sentences here never blocks them, since they skip that check.
-  await recordGradedSentence(input.user)
+  await Promise.all([
+    recordAttempt({
+      userId: input.user.id,
+      sentenceId: ctx.sentence.id,
+      learnLanguage: ctx.learnLanguage,
+      guessLanguage: ctx.guessLanguage,
+      locale: ctx.locale,
+      level: ctx.level,
+      promptText: ctx.sentence.promptText,
+      answerText: ctx.sentence.answerText,
+      userAnswer: input.userAnswer,
+      correctedAnswer: result.correctedAnswer,
+      score: result.score,
+      grade: result.grade,
+      isCorrect: result.isCorrect,
+      mistakes: result.mistakes,
+      notes: result.notes,
+      wordBreakdown: ctx.sentence.wordBreakdown ?? [],
+    }),
+    // recordGradedSentence counts every graded sentence (including admins) so the admin "Graded
+    // today" tile reflects all activity; the cap is only *enforced* for non-admins (gated above),
+    // so counting an admin's sentence here never blocks them.
+    recordGradedSentence(input.user),
+  ])
 
   return {
-    sentenceId: sentence.id,
-    learnLanguage,
-    guessLanguage,
-    locale,
-    level,
-    promptText: sentence.promptText,
-    answerText: sentence.answerText,
+    sentenceId: ctx.sentence.id,
+    learnLanguage: ctx.learnLanguage,
+    guessLanguage: ctx.guessLanguage,
+    locale: ctx.locale,
+    level: ctx.level,
+    promptText: ctx.sentence.promptText,
+    answerText: ctx.sentence.answerText,
     userAnswer: input.userAnswer,
-    wordBreakdown: sentence.wordBreakdown ?? [],
+    wordBreakdown: ctx.sentence.wordBreakdown ?? [],
     ...result,
   }
+}
+
+// Blocking grade: gate, score in one shot, persist, return the full view. Backs the non-streaming
+// /api/correct endpoint, which the client falls back to if the stream drops mid-grade.
+export async function correctTranslation(input: CorrectInput): Promise<CorrectionView> {
+  const ctx = await gateAndLoad(input)
+  const { result, usage } = await scoreTranslation(
+    getOperatorAnthropicClient(),
+    scoreInputFor(ctx, input.userAnswer)
+  )
+  return persistGrade(input, ctx, result, usage)
+}
+
+// Streaming grade: same gate → score → persist, but the model call streams and `onDelta` fires for
+// each text delta so the controller can forward a live preview over SSE. Gate/lookup errors still
+// throw before the first delta, so the controller can answer them as a normal HTTP error.
+export async function correctTranslationStreaming(
+  input: CorrectInput,
+  onDelta: (delta: string) => void,
+  signal?: AbortSignal
+): Promise<CorrectionView> {
+  const ctx = await gateAndLoad(input)
+  const { result, usage } = await scoreTranslationStream(
+    getOperatorAnthropicClient(),
+    scoreInputFor(ctx, input.userAnswer),
+    onDelta,
+    signal
+  )
+  return persistGrade(input, ctx, result, usage)
 }

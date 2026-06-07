@@ -34,7 +34,7 @@ const SYSTEM_PROMPT_TEXT = `You are a kind, precise translation tutor. A learner
    - Reserve the lowest scores (0-49) for translations that are essentially entirely wrong: the meaning is lost, most words are incorrect, or the sentence is unintelligible. If the learner got part of the sentence right, the score MUST stay above 49 and reflect the share they conveyed correctly. A single wrong or missing word in an otherwise-correct sentence is a minor deduction, not a failure.
    - A word-for-word literal translation that conveys the correct meaning but sounds unnatural in the GUESS language scores at most 96 (accurate but stiff).
 3. Return "naturalness": "natural" if the translation sounds fluent and idiomatic in the GUESS language; "stiff" if it is accurate but sounds word-for-word, overly literal, or unnatural.
-4. Provide "correctedAnswer": a natural translation in the GUESS language. This need not match the reference. Allow valid alternatives. If the learner was already correct, repeat their answer.
+4. Provide "correctedAnswer": a natural translation in the GUESS language when the learner's answer could be improved. This need not match the reference; allow valid alternatives. If the learner's answer is already fully correct and natural, so you would only repeat it back verbatim, return an empty string "" instead of repeating it.
 5. List "mistakes": for each error, give the userPhrase (from the learner), the correctPhrase (in the GUESS language), the sourceText (the word(s) in the LEARN sentence they misunderstood), and a TIGHT explanation: ONE sentence, ~12 words max, learner-friendly. No filler.
 6. Optional "notes": ONE-sentence grammar or cultural tip if it genuinely helps. Otherwise omit.
 
@@ -54,10 +54,9 @@ Return ONLY valid JSON, no markdown, no commentary. JSON shape:
 const A_PLUS_THRESHOLD = 97
 const A_BAND_CAP = 96
 
-export async function scoreTranslation(
-  anthropic: Anthropic,
-  input: ScoreInput
-): Promise<ScoredTranslation> {
+// The Messages-API request body for one grade. Shared by the blocking and streaming paths so both
+// send the byte-identical cached system block.
+function buildScoreParams(input: ScoreInput): Anthropic.MessageCreateParamsNonStreaming {
   const userText = `Learn language: ${languageName(input.learnLanguage)} (${input.learnLanguage})
 Guess language: ${languageName(input.guessLanguage)} (${input.guessLanguage})
 Regional locale: ${input.locale}
@@ -67,19 +66,23 @@ Learner's translation: "${input.userAnswer}"
 
 Score it now.`
 
-  const resp = await anthropic.messages.create({
+  return {
     model: CORRECTION_MODEL,
     max_tokens: 1500,
     system: [{ type: 'text', text: SYSTEM_PROMPT_TEXT, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: userText }],
-  })
+  }
+}
 
-  const text = extractJsonText(resp, 'correction/score')
-  const parsed = JSON.parse(text) as {
+// Turn the model's raw JSON text into the authoritative scored result: validate the shape, apply the
+// stiff cap and the F-band floor, and map to a letter grade. Shared by both paths so a streamed grade
+// is scored identically to a blocking one.
+function finalizeScore(rawJson: string, userAnswer: string, usage: TokenUsage): ScoredTranslation {
+  const parsed = JSON.parse(rawJson) as {
     isCorrect: boolean
     score: number
     naturalness?: string
-    correctedAnswer: string
+    correctedAnswer?: string
     mistakes?: CorrectionResult['mistakes']
     notes?: string | null
   }
@@ -94,13 +97,19 @@ Score it now.`
 
   const mistakes = parsed.mistakes ?? []
 
+  // The model returns "" when the learner's answer was already perfect, so it skips re-emitting the
+  // whole sentence — output tokens are the dominant grading latency, and that's pure waste on the
+  // happy path. Fall back to the learner's own answer so downstream (the diff display, the score
+  // floor below) always has the correct text to work with.
+  const correctedAnswer = parsed.correctedAnswer?.trim() ? parsed.correctedAnswer : userAnswer
+
   // Cap accurate-but-stiff answers out of A+ territory.
   const cappedScore =
     naturalness === 'stiff' && parsed.score >= A_PLUS_THRESHOLD ? A_BAND_CAP : parsed.score
 
   // Deterministic backstop: a majority-correct answer can't fall into the F band,
   // even if the model ignored that rule in its scoring.
-  const score = applyScoreFloor(cappedScore, parsed.correctedAnswer, mistakes)
+  const score = applyScoreFloor(cappedScore, correctedAnswer, mistakes)
 
   return {
     result: {
@@ -108,10 +117,41 @@ Score it now.`
       score,
       grade: scoreToGrade(score),
       naturalness,
-      correctedAnswer: parsed.correctedAnswer,
+      correctedAnswer,
       mistakes,
       notes: parsed.notes ?? undefined,
     },
-    usage: toTokenUsage(resp.usage),
+    usage,
   }
+}
+
+export async function scoreTranslation(
+  anthropic: Anthropic,
+  input: ScoreInput
+): Promise<ScoredTranslation> {
+  const resp = await anthropic.messages.create(buildScoreParams(input))
+  return finalizeScore(
+    extractJsonText(resp, 'correction/score'),
+    input.userAnswer,
+    toTokenUsage(resp.usage)
+  )
+}
+
+// Streaming grade: forwards each model text delta to `onDelta` as it arrives (so the caller can push
+// a live preview to the client), then finalizes identically to scoreTranslation once the model is
+// done. `signal` lets the caller abort the model call if the learner navigates away mid-grade.
+export async function scoreTranslationStream(
+  anthropic: Anthropic,
+  input: ScoreInput,
+  onDelta: (delta: string) => void,
+  signal?: AbortSignal
+): Promise<ScoredTranslation> {
+  const stream = anthropic.messages.stream(buildScoreParams(input), { signal })
+  stream.on('text', (delta) => onDelta(delta))
+  const msg = await stream.finalMessage()
+  return finalizeScore(
+    extractJsonText(msg, 'correction/score'),
+    input.userAnswer,
+    toTokenUsage(msg.usage)
+  )
 }

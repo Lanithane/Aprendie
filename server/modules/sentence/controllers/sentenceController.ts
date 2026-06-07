@@ -3,8 +3,7 @@ import { z } from 'zod'
 import type { UserRow } from '../../../infrastructure/db/schema'
 import { requireAuth } from '../../../infrastructure/http/requireAuth'
 import { asyncHandler } from '../../../infrastructure/http/asyncHandler'
-import { getNextSentence } from '../application/getNextSentence'
-import { triggerBackgroundRefill } from '../application/sentencePool'
+import { ensureWarmFirstSentence, getNextSentence } from '../application/getNextSentence'
 import {
   isSupportedLanguage,
   isValidLocaleFor,
@@ -24,7 +23,7 @@ interface PoolParams {
 }
 
 // Shared validation for the pool selectors carried by both `GET /` (query) and
-// `POST /prewarm` (body): supported, distinct languages and a locale valid for the learn
+// `POST /warm` (body): supported, distinct languages and a locale valid for the learn
 // language. Returns a 400 message on failure, or the normalized params on success.
 function parsePoolParams(input: {
   learnLanguage: string
@@ -74,21 +73,22 @@ router.get(
   })
 )
 
-// Kick off a background pool fill with the given selections (no inline generation — returns
-// immediately). Called by the wizard with staged selections so the pool is warm before submit.
-router.post('/prewarm', requireAuth, (req, res) => {
-  const parsed = selectorSchema.safeParse(req.body)
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.flatten().fieldErrors })
-    return
-  }
-  const pool = parsePoolParams(parsed.data)
-  if ('error' in pool) {
-    res.status(400).json({ error: pool.error })
-    return
-  }
-  triggerBackgroundRefill({ user: req.user as UserRow, ...pool })
-  res.json({ ok: true })
-})
+// Warm the slice for the given selections, BLOCKING until at least one sentence exists (inline
+// generation if the shared corpus is cold), then return. Called from onboarding so the first
+// practice sentence is ready by the time the learner lands on it, instead of cold-starting there.
+router.post(
+  '/warm',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const parsed = selectorSchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten().fieldErrors })
+    }
+    const pool = parsePoolParams(parsed.data)
+    if ('error' in pool) return res.status(400).json({ error: pool.error })
+    await ensureWarmFirstSentence({ user: req.user as UserRow, ...pool })
+    res.json({ ok: true })
+  })
+)
 
 export default router
