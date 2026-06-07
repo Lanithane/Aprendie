@@ -20,6 +20,11 @@ function fakeRow(): UserRow {
     autoSpeakDelayMs: null,
     capExemptUntil: null,
     dailyCapOverride: null,
+    streakEnabled: null,
+    timezone: null,
+    streakCurrent: 0,
+    streakLongest: 0,
+    streakLastDay: null,
     createdAt: new Date('2026-01-01T00:00:00Z'),
     updatedAt: new Date('2026-01-01T00:00:00Z'),
   }

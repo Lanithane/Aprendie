@@ -7,6 +7,7 @@ import {
 } from '../api/flashcardApi'
 import type { LanguagePair } from '../../shared/languages'
 import { useDailyUsage } from '../usage/DailyUsageContext'
+import { useStreak } from '../streak/StreakContext'
 
 type SessionState =
   | { phase: 'loading' }
@@ -24,6 +25,7 @@ interface UseFlashcardSessionResult {
 export function useFlashcardSession(pair: LanguagePair): UseFlashcardSessionResult {
   const [state, setState] = useState<SessionState>({ phase: 'loading' })
   const { applySnapshot } = useDailyUsage()
+  const { applyStreak } = useStreak()
 
   const loadNext = useCallback(
     (deckId: string) => {
@@ -50,10 +52,12 @@ export function useFlashcardSession(pair: LanguagePair): UseFlashcardSessionResu
           setState({ phase: 'result', card, grade })
           // This grade counted against the daily cap (shared with sentences) — refresh the banner.
           applySnapshot(grade.dailyUsage)
+          // ...and advanced the streak (when enabled) — update the indicator from its snapshot.
+          if (grade.streak) applyStreak(grade.streak)
         })
         .catch((err: Error) => setState({ phase: 'error', message: err.message }))
     },
-    [state, applySnapshot]
+    [state, applySnapshot, applyStreak]
   )
 
   return { state, loadNext, submit }

@@ -9,6 +9,8 @@ import {
   InputLabel,
   ToggleButton,
   ToggleButtonGroup,
+  Switch,
+  FormControlLabel,
 } from '@mui/material'
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined'
 import ShieldIcon from '@mui/icons-material/Shield'
@@ -24,12 +26,16 @@ import ThemePicker from '../components/ThemePicker/ThemePicker'
 import { useAuth } from '../auth/AuthContext'
 import { clearSessionMarker } from '../auth/sessionMarker'
 import { useLevelPreference } from '../hooks/useLevelPreference'
+import { useStreakPreference } from '../hooks/useStreakPreference'
+import { useStreak } from '../streak/StreakContext'
 import { useThemeMode, type ThemeMode } from '../ThemeModeProvider'
 import { LEVELS, levelLabel } from '../../shared/levels'
 
 export default function SettingsPage() {
   const { user, isAdmin } = useAuth()
   const { pref, setPref } = useLevelPreference()
+  const { enabled: streakEnabled, setEnabled: setStreakEnabled } = useStreakPreference()
+  const { streak } = useStreak()
   const { mode, setMode } = useThemeMode()
   const { openFeedback } = useFeedback()
 
@@ -107,6 +113,29 @@ export default function SettingsPage() {
           <Stack spacing={2}>
             <VoicePicker />
             <AutoSpeakControls />
+          </Stack>
+        </SectionCard>
+
+        <SectionCard
+          title='Streak'
+          description='Count consecutive days you practice. Turn it off any time — no pressure.'
+        >
+          <Stack spacing={1}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={streakEnabled}
+                  onChange={(e) => setStreakEnabled(e.target.checked)}
+                />
+              }
+              label='Track my streak'
+            />
+            {streakEnabled && (streak.current > 0 || streak.longest > 0) && (
+              <Typography variant='body2' color='text.secondary'>
+                Current: {streak.current} {streak.current === 1 ? 'day' : 'days'} · Longest:{' '}
+                {streak.longest} {streak.longest === 1 ? 'day' : 'days'}
+              </Typography>
+            )}
           </Stack>
         </SectionCard>
 

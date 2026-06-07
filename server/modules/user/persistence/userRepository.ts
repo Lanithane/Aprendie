@@ -132,3 +132,42 @@ export async function updateAutoSpeak(id: string, patch: AutoSpeakPatch): Promis
   const updated = await db.update(users).set(set).where(eq(users.id, id)).returning()
   return updated[0]
 }
+
+export interface StreakPatch {
+  current: number
+  longest: number
+  lastDay: string
+}
+
+// Persists the running streak counts after an activity advances them (see recordStreakActivity).
+export async function updateStreak(id: string, patch: StreakPatch): Promise<UserRow> {
+  const updated = await db
+    .update(users)
+    .set({
+      streakCurrent: patch.current,
+      streakLongest: patch.longest,
+      streakLastDay: patch.lastDay,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, id))
+    .returning()
+  return updated[0]
+}
+
+export async function updateStreakEnabled(id: string, enabled: boolean): Promise<UserRow> {
+  const updated = await db
+    .update(users)
+    .set({ streakEnabled: enabled, updatedAt: new Date() })
+    .where(eq(users.id, id))
+    .returning()
+  return updated[0]
+}
+
+export async function updateTimezone(id: string, timezone: string): Promise<UserRow> {
+  const updated = await db
+    .update(users)
+    .set({ timezone, updatedAt: new Date() })
+    .where(eq(users.id, id))
+    .returning()
+  return updated[0]
+}

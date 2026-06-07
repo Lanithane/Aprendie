@@ -169,6 +169,13 @@
       "when": 1781000000005,
       "tag": "0023_spicy_triton",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1781000000006,
+      "tag": "0024_jazzy_komodo",
+      "breakpoints": true
     }
   ]
 }

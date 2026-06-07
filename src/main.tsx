@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './auth/AuthContext'
 import { DailyUsageProvider } from './usage/DailyUsageContext'
+import { StreakProvider } from './streak/StreakContext'
 import { ThemeModeProvider } from './ThemeModeProvider'
 import { FeedbackProvider } from './components/Feedback/FeedbackProvider'
 import '@fontsource/roboto/300.css'
@@ -19,13 +20,15 @@ ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <AuthProvider>
       <DailyUsageProvider>
-        <ThemeModeProvider>
-          <BrowserRouter>
-            <FeedbackProvider>
-              <App />
-            </FeedbackProvider>
-          </BrowserRouter>
-        </ThemeModeProvider>
+        <StreakProvider>
+          <ThemeModeProvider>
+            <BrowserRouter>
+              <FeedbackProvider>
+                <App />
+              </FeedbackProvider>
+            </BrowserRouter>
+          </ThemeModeProvider>
+        </StreakProvider>
       </DailyUsageProvider>
     </AuthProvider>
   </React.StrictMode>
