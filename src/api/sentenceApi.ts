@@ -25,21 +25,20 @@ export interface FetchSentenceParams {
   category?: string | null
 }
 
-// Fire-and-forget background pool warm. No awaiting — the server starts generating immediately
-// and returns 200; the caller doesn't need the result.
-export function warmPool(params: FetchSentenceParams): void {
+// Blocking warm: ensure the slice has at least one sentence (inline-generating if the shared corpus
+// is cold), so the next fetch lands warm. Awaited by onboarding behind a "preparing" screen, so the
+// learner's first practice sentence is ready instead of cold-starting on the practice page.
+export function warmFirstSentences(params: FetchSentenceParams): Promise<void> {
   const body: Record<string, string> = {
     learnLanguage: params.learnLanguage,
     guessLanguage: params.guessLanguage,
     locale: params.locale,
   }
   if (params.level) body.level = params.level
-  void api<{ ok: boolean }>('/api/sentence/prewarm', {
+  return api<{ ok: boolean }>('/api/sentence/warm', {
     method: 'POST',
     body: JSON.stringify(body),
-  }).catch(() => {
-    // best-effort — a failed prewarm just means the first sentence generates inline
-  })
+  }).then(() => undefined)
 }
 
 export function fetchSentence(params: FetchSentenceParams): Promise<SentenceDto> {

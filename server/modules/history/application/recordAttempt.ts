@@ -44,19 +44,17 @@ export async function recordAttempt(input: RecordAttemptInput): Promise<AttemptV
   })
 
   // Fold this attempt into the per-user word Palabradex (cross-module orchestration). It's a
-  // derived aggregate keyed off the snapshot we just inserted, so a failure here must never
-  // lose the graded attempt the user just earned — best-effort, log and move on.
-  try {
-    await recordSeenWords({
-      userId: input.userId,
-      learnLanguage: input.learnLanguage,
-      wordBreakdown: input.wordBreakdown,
-      mistakes: input.mistakes,
-      seenAt: row.createdAt,
-    })
-  } catch (err) {
+  // derived aggregate keyed off the snapshot we just inserted, so it must never delay or fail the
+  // graded attempt the user just earned — fire-and-forget off the request path, log and move on.
+  void recordSeenWords({
+    userId: input.userId,
+    learnLanguage: input.learnLanguage,
+    wordBreakdown: input.wordBreakdown,
+    mistakes: input.mistakes,
+    seenAt: row.createdAt,
+  }).catch((err) =>
     console.error('[recordAttempt] recordSeenWords failed (palabradex skipped):', err)
-  }
+  )
 
   return toAttemptView(row)
 }

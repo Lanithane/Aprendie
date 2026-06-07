@@ -1,10 +1,12 @@
+import { useState } from 'react'
 import { Alert, Button, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import PracticeCard from '../components/PracticeCard/PracticeCard'
 import CorrectionDisplay from '../components/CorrectionDisplay/CorrectionDisplay'
+import StreamingCorrection from '../components/CorrectionDisplay/StreamingCorrection'
 import AccessGate from '../components/AccessGate/AccessGate'
 import OnboardingWizard from '../components/Onboarding/OnboardingWizard'
-import LoadingSpinner from '../components/shared/LoadingSpinner'
+import PreparingSentences from '../components/shared/PreparingSentences'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useLevelPreference } from '../hooks/useLevelPreference'
@@ -40,7 +42,7 @@ export default function HomePage() {
   const { pair } = useLanguagePair()
   const { pref: level, setPref: setLevel } = useLevelPreference()
   const { pref: category, setPref: setCategory } = useCategoryPreference()
-  const { needsOnboarding, error: onboardingError, complete } = useOnboarding()
+  const { needsOnboarding, error: onboardingError, preparing, complete } = useOnboarding()
   const {
     sentence,
     loading,
@@ -57,7 +59,17 @@ export default function HomePage() {
     initialSentence: bootstrapSentence,
     onConsumeInitial: consumeBootstrap,
   })
-  const { correction, submitting, error: submitError, submit, reset } = useCorrectionSubmission()
+  const {
+    correction,
+    preview,
+    submitting,
+    error: submitError,
+    submit,
+    reset,
+  } = useCorrectionSubmission()
+  // The submitted answer, held so the streaming view can echo it back while grading (PracticeCard
+  // owns the input, so it's captured on submit). Cleared when we leave the result view.
+  const [pendingAnswer, setPendingAnswer] = useState<string | null>(null)
 
   // A pending/blocked account can't spend the operator key.
   if (user && !isApproved)
@@ -71,7 +83,7 @@ export default function HomePage() {
   if (needsOnboarding)
     return (
       <FlowStage>
-        <OnboardingWizard error={onboardingError} onComplete={complete} />
+        <OnboardingWizard error={onboardingError} preparing={preparing} onComplete={complete} />
       </FlowStage>
     )
 
@@ -88,6 +100,7 @@ export default function HomePage() {
             onClick={() => {
               reset()
               clear()
+              setPendingAnswer(null)
             }}
           >
             Try again
@@ -115,13 +128,31 @@ export default function HomePage() {
           onNext={() => {
             reset()
             clear()
+            setPendingAnswer(null)
           }}
         />
       </FlowStage>
     )
   }
 
-  if (loading || !sentence) return <LoadingSpinner />
+  // While the grade streams in, reveal it progressively in place of the practice card. Guarded on
+  // pendingAnswer so we only enter once the learner has actually submitted (not on a bare reload).
+  if (submitting && sentence && pendingAnswer !== null) {
+    return (
+      <FlowStage>
+        <StreamingCorrection
+          learnLanguage={sentence.learnLanguage}
+          guessLanguage={sentence.guessLanguage}
+          promptText={sentence.promptText}
+          wordBreakdown={sentence.wordBreakdown}
+          userAnswer={pendingAnswer}
+          preview={preview ?? { mistakes: [] }}
+        />
+      </FlowStage>
+    )
+  }
+
+  if (loading || !sentence) return <PreparingSentences />
 
   return (
     <CenteredStage>
@@ -138,6 +169,7 @@ export default function HomePage() {
         sentenceTheme={sentence.theme}
         onCategoryChange={setCategory}
         onSubmit={(userAnswer) => {
+          setPendingAnswer(userAnswer)
           void submit(sentence.id, userAnswer)
         }}
         submitting={submitting}

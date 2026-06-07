@@ -3,14 +3,27 @@ import * as settingsRepository from '../persistence/settingsRepository'
 import { toSettingsView, type AppSettings } from '../domain/Settings'
 import { SpendPausedError } from '../domain/errors'
 
+// The settings row is a read-mostly singleton hit on every spend path — grading alone reads it
+// up to three times per submission (the spend gate plus two cap lookups). Cache it in-process for
+// a short window so those collapse to one DB round-trip. `updateSettings` refreshes the cache with
+// the new value so the admin sees their change at once; the TTL bounds cross-instance staleness
+// (a flipped spendPaused / cap propagates within TTL_MS on other instances).
+const TTL_MS = 5_000
+let cache: { value: AppSettings; at: number } | null = null
+
 export async function getSettings(): Promise<AppSettings> {
-  return toSettingsView(await settingsRepository.get())
+  if (cache && Date.now() - cache.at < TTL_MS) return cache.value
+  const value = toSettingsView(await settingsRepository.get())
+  cache = { value, at: Date.now() }
+  return value
 }
 
 export async function updateSettings(
   patch: settingsRepository.SettingsPatch
 ): Promise<AppSettings> {
-  return toSettingsView(await settingsRepository.update(patch))
+  const value = toSettingsView(await settingsRepository.update(patch))
+  cache = { value, at: Date.now() }
+  return value
 }
 
 // Guard for spend paths: throws SpendPausedError when the global maintenance pause is on.

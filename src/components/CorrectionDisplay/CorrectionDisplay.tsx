@@ -18,6 +18,7 @@ import { useSpeechRate } from '../../hooks/useSpeechRate'
 import GradeChip, { PERFECT_GOLD } from '../shared/GradeChip'
 import ListenControls from '../shared/ListenControls'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
+import { DiffLine, PromptHeadline, MistakeRow, Added, Removed } from './correctionStyles'
 
 // Normalize curly quotes to ASCII so a typographic apostrophe (e.g. Claude's "I\u2019m") does not
 // diff against the user's straight-quote "I'm". Written as \u escapes, not literal smart-quote
@@ -48,15 +49,6 @@ interface CorrectionDisplayProps {
   onNext: () => void
 }
 
-const DiffLine = styled('div')`
-  font-size: 1.1rem;
-  line-height: 1.6;
-  padding: ${({ theme }) => theme.spacing(1.25, 1.5)};
-  border-radius: 12px;
-  background: ${({ theme }) => theme.palette.surfaceContainerHighest};
-  white-space: pre-wrap;
-`
-
 // When the answer is a perfect match, both diff boxes would show the identical sentence — so we
 // collapse to a single centered sentence, flanked by sparkles in both top corners (mirroring the
 // A+ celebration on GradeChip).
@@ -77,35 +69,6 @@ const Sparkle = styled(AutoAwesomeIcon)`
   font-size: 18px;
   color: ${PERFECT_GOLD};
   filter: drop-shadow(0 0 1.5px ${PERFECT_GOLD}59);
-`
-
-const Added = styled('span')`
-  color: ${({ theme }) => theme.palette.success.main};
-  font-weight: 700;
-`
-
-const Removed = styled('span')`
-  color: ${({ theme }) => theme.palette.error.main};
-  text-decoration: line-through;
-  font-weight: 500;
-`
-
-const PromptHeadline = styled('div')`
-  font-size: 1.7rem;
-  font-weight: 500;
-  line-height: 1.35;
-  font-style: italic;
-  padding: ${({ theme }) => theme.spacing(1, 0, 2)};
-  ${({ theme }) => theme.breakpoints.down('sm')} {
-    font-size: 1.35rem;
-  }
-`
-
-const MistakeRow = styled(Stack)`
-  padding: ${({ theme }) => theme.spacing(1.25, 1.5)};
-  border-left: 4px solid ${({ theme }) => theme.palette.tertiary.main};
-  background: ${({ theme }) => theme.palette.surfaceContainerHighest};
-  border-radius: 0 12px 12px 0;
 `
 
 export default function CorrectionDisplay({

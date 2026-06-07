@@ -1,9 +1,16 @@
 import { useCallback, useState } from 'react'
-import { submitCorrection, type CorrectionDto } from '../api/correctionApi'
+import {
+  submitCorrection,
+  submitCorrectionStream,
+  type CorrectionDto,
+  type CorrectionPreview,
+} from '../api/correctionApi'
+import { ApiError } from '../api/client'
 import { trackEvent } from '../api/analyticsApi'
 
 interface UseCorrectionSubmissionResult {
   correction: CorrectionDto | null
+  preview: CorrectionPreview | null
   submitting: boolean
   error: string | null
   submit: (sentenceId: string, userAnswer: string) => Promise<CorrectionDto | null>
@@ -12,16 +19,18 @@ interface UseCorrectionSubmissionResult {
 
 export function useCorrectionSubmission(): UseCorrectionSubmissionResult {
   const [correction, setCorrection] = useState<CorrectionDto | null>(null)
+  const [preview, setPreview] = useState<CorrectionPreview | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const submit = useCallback(async (sentenceId: string, userAnswer: string) => {
     setSubmitting(true)
     setError(null)
+    setPreview(null)
     // Lightweight usage metrics (Epic 16); fire-and-forget, never blocks the grade.
     trackEvent('guess_submitted', { sentenceId })
     try {
-      const result = await submitCorrection(sentenceId, userAnswer)
+      const result = await gradeWithStreamFallback(sentenceId, userAnswer, setPreview)
       setCorrection(result)
       trackEvent('grade_received', { sentenceId, score: result.score, isCorrect: result.isCorrect })
       return result
@@ -30,13 +39,31 @@ export function useCorrectionSubmission(): UseCorrectionSubmissionResult {
       return null
     } finally {
       setSubmitting(false)
+      setPreview(null)
     }
   }, [])
 
   const reset = useCallback(() => {
     setCorrection(null)
+    setPreview(null)
     setError(null)
   }, [])
 
-  return { correction, submitting, error, submit, reset }
+  return { correction, preview, submitting, error, submit, reset }
+}
+
+// Grade via the streaming endpoint for a progressive reveal, falling back to the blocking endpoint
+// if the stream drops mid-grade. A gate failure (cap reached, spend paused, access) comes back as an
+// ApiError before streaming starts — surface it directly rather than retrying the grade.
+async function gradeWithStreamFallback(
+  sentenceId: string,
+  userAnswer: string,
+  onPreview: (preview: CorrectionPreview) => void
+): Promise<CorrectionDto> {
+  try {
+    return await submitCorrectionStream(sentenceId, userAnswer, onPreview)
+  } catch (err) {
+    if (err instanceof ApiError) throw err
+    return submitCorrection(sentenceId, userAnswer)
+  }
 }

@@ -93,10 +93,34 @@ export function toCorpusRows(
   }))
 }
 
+// In-flight inline refills, keyed by slice + category, so concurrent cold-starts for the same
+// selection generate ONCE and share the result. Without this, two simultaneous cold requests — React
+// StrictMode double-fires the fetch effect in dev, and genuinely concurrent users hit the same empty
+// slice in prod — each fire their own inline generation, and N concurrent gens on the operator key
+// rate-limit each other into long retry backoffs (the "stuck for a minute" cold start). The
+// background batch path already dedups via the jobs table; this is its inline analogue.
+const inflightRefills = new Map<string, Promise<void>>()
+
+function refillKey(input: PoolInput): string {
+  const s = sliceOf(input)
+  return `${s.learnLanguage}|${s.guessLanguage}|${s.locale}|${s.level ?? ''}|${input.category ?? ''}`
+}
+
 // SYNCHRONOUS, full-price refill — used only on the cold-start critical path (empty corpus, a user
 // waiting). Generates inline so the first sentence of a brand-new slice returns promptly; the rest
-// is then warmed off the critical path by the half-price batch in triggerBackgroundRefill.
-export async function refillPool(input: PoolInput, count?: number): Promise<void> {
+// is then warmed off the critical path by the half-price batch in triggerBackgroundRefill. Concurrent
+// callers for the same slice share one generation (see inflightRefills above).
+export function refillPool(input: PoolInput, count?: number): Promise<void> {
+  const key = refillKey(input)
+  const existing = inflightRefills.get(key)
+  if (existing) return existing
+  const work = generateAndStore(input, count).finally(() => inflightRefills.delete(key))
+  inflightRefills.set(key, work)
+  return work
+}
+
+async function generateAndStore(input: PoolInput, count?: number): Promise<void> {
+  const startedAt = Date.now()
   const anthropic = getOperatorAnthropicClient()
   const { sentences, usage } = await generateSentenceBatch(
     anthropic,
@@ -122,6 +146,11 @@ export async function refillPool(input: PoolInput, count?: number): Promise<void
   // Insert into the SHARED corpus — keyed on (pair, locale, level, contentHash), so a sentence
   // another user already generated is de-duplicated away rather than stored per-user.
   await sentenceRepository.insertCorpus(toCorpusRows(input, sentences, usage, null))
+  // One line of observability for a rare, expensive op — surfaces cold-start latency (and any
+  // rate-limit retry backoff) in the server log without extra instrumentation.
+  console.log(
+    `[sentence/refill] inline cold-start (${refillKey(input)}) generated ${sentences.length} in ${Date.now() - startedAt}ms`
+  )
 }
 
 // Encode a slice into a custom_id for the batch request. base64url keeps it within the API's

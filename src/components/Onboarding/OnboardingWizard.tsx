@@ -12,9 +12,9 @@ import {
 } from '@mui/material'
 import SectionCard from '../shared/SectionCard'
 import VoicePicker from '../VoicePicker/VoicePicker'
+import PreparingSentences from '../shared/PreparingSentences'
 import { useLanguagePair } from '../../hooks/useLanguagePair'
 import { useLevelPreference } from '../../hooks/useLevelPreference'
-import { usePoolWarming } from '../../hooks/usePoolWarming'
 import {
   LANGUAGES,
   SUPPORTED_LANGUAGE_CODES,
@@ -27,13 +27,15 @@ import { LEVELS, levelLabel, type LevelCode } from '../../../shared/levels'
 
 interface OnboardingWizardProps {
   error: string | null
+  // True once the learner has hit "Start" and we're saving + warming the first sentence.
+  preparing: boolean
   onComplete: (
     pair: { learnLanguage: LanguageCode; guessLanguage: LanguageCode; locale: LocaleCode },
     level: LevelCode | null
   ) => void
 }
 
-export default function OnboardingWizard({ error, onComplete }: OnboardingWizardProps) {
+export default function OnboardingWizard({ error, preparing, onComplete }: OnboardingWizardProps) {
   // Seed from the current (cache/default) pair + level so existing accounts see their last choice
   // pre-selected and brand-new ones get a sensible default.
   const { pair } = useLanguagePair()
@@ -44,9 +46,6 @@ export default function OnboardingWizard({ error, onComplete }: OnboardingWizard
   const [locale, setLocale] = useState<LocaleCode>(pair.locale)
   const [level, setLevel] = useState<LevelCode | null>(pref)
 
-  // Warm the pool for the current selections so it's ready when the user submits.
-  usePoolWarming(learn, guess, locale, level)
-
   const learnLocales = localesFor(learn)
   const showRegion = learnLocales.length > 1
 
@@ -56,6 +55,15 @@ export default function OnboardingWizard({ error, onComplete }: OnboardingWizard
     if (next === guess) setGuess(learn)
     setLearn(next)
     setLocale(defaultLocaleFor(next))
+  }
+
+  // Once they hit "Start", swap the form for the warming state while the first sentence generates.
+  if (preparing) {
+    return (
+      <Box sx={{ width: '100%', maxWidth: 460, mx: 'auto' }}>
+        <PreparingSentences />
+      </Box>
+    )
   }
 
   return (
