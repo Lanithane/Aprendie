@@ -76,10 +76,10 @@ export default function FlashCardsPage() {
     <PageWrap>
       <SessionHeader>
         <Button
-          variant='text'
+          variant='contained'
+          color='secondary'
           size='small'
           onClick={() => setActiveDeckState(null)}
-          sx={{ borderRadius: '999px' }}
         >
           ← All decks
         </Button>

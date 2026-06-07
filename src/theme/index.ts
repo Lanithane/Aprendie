@@ -193,14 +193,16 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
             // Hold the contained fill steady on hover so the state layer (not a darkened fill)
             // carries the feedback — MD3 expresses states as a translucent on-color overlay.
             const restingFill = ownerState.variant === 'contained' ? paletteColor?.main : undefined
-            // Focus ring. The primary button reuses the BrandWordmark's inner fill — tertiary — so
-            // the title and the main CTA share the same accent. But on themes where tertiary is too
-            // close to the primary fill (e.g. viñedo: green tertiary on a green button), the ring
-            // blends in, so we only keep it when tertiary is perceptually distinct enough from the
-            // fill; otherwise — and for every non-primary colour — we fall back to the theme colour
-            // that stands out MOST against both the button's fill AND the surface behind it. Scoring
-            // against the surfaces too is what stops the fallback ring (which sits offset on the page)
-            // from picking `surface` and vanishing into the background — notably in dark mode.
+            // Focus ring. The primary/secondary buttons (and the default) reuse the BrandWordmark's
+            // inner fill — tertiary — so they share the same accent and read as one themed family
+            // rather than letting the secondary buttons fall back to a near-black contrast ring. But
+            // on themes where tertiary is too close to the button's own fill (e.g. viñedo: green
+            // tertiary on a green button), the ring blends in, so we only keep it when tertiary is
+            // perceptually distinct enough from the fill; otherwise — and for the tertiary/error
+            // colours, where the brand accent would clash or vanish — we fall back to the theme
+            // colour that stands out MOST against both the button's fill AND the surface behind it.
+            // Scoring against the surfaces too is what stops the fallback ring (which sits offset on
+            // the page) from picking `surface` and vanishing into the background — notably in dark mode.
             const fill = paletteColor?.main ?? theme.palette.primary.main
             const ringPool = [
               theme.palette.primary.main,
@@ -216,14 +218,14 @@ export function createAprendieTheme(themeId: ThemeId, mode: 'light' | 'dark'): T
             const RING_BLEND_DISTANCE = 85
             const tertiaryReads =
               colorDistance(theme.palette.tertiary.main, fill) >= RING_BLEND_DISTANCE
-            const isPrimary = c === 'primary' || c == null
+            const usesBrandRing = c == null || c === 'primary' || c === 'secondary'
             const ringBases = [
               fill,
               theme.palette.background.default,
               theme.palette.background.paper,
             ]
             const focusRing =
-              isPrimary && tertiaryReads
+              usesBrandRing && tertiaryReads
                 ? theme.palette.tertiary.main
                 : mostContrasting(ringBases, ringPool)
             const focusOutline = { outline: `2.5px solid ${focusRing}`, outlineOffset: 2 }
