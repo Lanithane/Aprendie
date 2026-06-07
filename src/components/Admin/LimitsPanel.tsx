@@ -48,7 +48,9 @@ interface LimitsPanelProps {
 // (daily cap + two kill switches) and surfaces a few derived stats off the user list.
 export default function LimitsPanel({ users }: LimitsPanelProps) {
   const { settings, loading, error, update } = useAdminSettings()
-  const [capInput, setCapInput] = useState('')
+  // null = untouched (mirror the saved cap); a string (incl. '') = the user is editing,
+  // so an empty field stays empty instead of snapping back to the saved value.
+  const [capInput, setCapInput] = useState<string | null>(null)
   const [capSaveState, setCapSaveState] = useState<CapSaveState>('idle')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
 
@@ -59,7 +61,7 @@ export default function LimitsPanel({ users }: LimitsPanelProps) {
     (u) => u.capExemptUntil && new Date(u.capExemptUntil).getTime() > now
   ).length
 
-  const capValue = capInput !== '' ? capInput : settings ? String(settings.dailyGradedCap) : ''
+  const capValue = capInput ?? (settings ? String(settings.dailyGradedCap) : '')
   const capDirty = settings != null && capValue !== String(settings.dailyGradedCap)
 
   const saveCap = async () => {
@@ -68,7 +70,7 @@ export default function LimitsPanel({ users }: LimitsPanelProps) {
     setCapSaveState('saving')
     const ok = await update({ dailyGradedCap: next })
     if (ok) {
-      setCapInput('')
+      setCapInput(null)
       setCapSaveState('success')
       setTimeout(() => setCapSaveState('idle'), 5000)
     } else {
