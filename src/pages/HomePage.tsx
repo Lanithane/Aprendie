@@ -18,33 +18,16 @@ import { useCurrentSentence } from '../hooks/useCurrentSentence'
 import { useCorrectionSubmission } from '../hooks/useCorrectionSubmission'
 import { useDelayedFlag } from '../hooks/useDelayedFlag'
 
-// The vertical anchor shared by every card state of the practice flow — the prompt card, the
-// streaming grade, and the final correction. We pin the card a fixed distance below the top of the
-// content column (~upper quarter) and let it grow downward, rather than vertically centering it.
-// That fixed offset is the whole point: the result card changes height several times as the grade
-// streams in (the suggested answer appears, then mistakes arrive row by row), and a centered card —
-// whose position is derived from its height — would slide upward on every chunk. Anchoring the top
-// edge holds it still while the body fills in, and because the prompt card uses the very same anchor
-// the transition from prompt → grade doesn't jump.
-const PracticeStage = styled('div')`
-  width: 100%;
-  /* Phones sit the card high so the answer field clears the soft keyboard without the browser having
-     to scroll the document to reveal it — that forced scroll (compounded by iOS recomputing vh as its
-     URL bar collapses) is what made typing jump around. md+ drops it to the upper quarter; either way
-     the top anchor holds, so prompt → streaming grade doesn't slide. */
-  margin-top: 8vh;
-  padding-bottom: ${({ theme }) => theme.spacing(2)};
-  ${({ theme }) => theme.breakpoints.up('md')} {
-    margin-top: 18vh;
-  }
-  ${({ theme }) => theme.breakpoints.down('md')} {
-    padding-bottom: calc(${({ theme }) => theme.spacing(2)} + env(safe-area-inset-bottom));
-  }
-`
-
-// Top-anchored wrapper for the flow's non-card states (access gate, onboarding, errors) — these
-// aren't part of the prompt → grade visual continuity, so they just sit near the top.
-const FlowStage = styled('div')`
+// Top-anchored wrapper for every state of the flow — the prompt card, the streaming grade, the final
+// correction, plus the access gate / onboarding / error views. The card grows downward from a fixed
+// top edge so it never slides as the grade fills in (the suggested answer appears, then mistakes
+// arrive row by row); a vertically centered card — whose position is derived from its height — would
+// drift on every chunk. Everything is pinned to the top of the column rather than offset down it: an
+// offset (we used a vh margin) pushed the answer field low enough that the mobile soft keyboard
+// forced the browser to scroll the document to reveal it, and that scroll — compounded by iOS
+// recomputing vh as its URL bar collapses — kept making typing jump around. Top-pinned, the field
+// stays above the keyboard and nothing scrolls.
+const Stage = styled('div')`
   width: 100%;
   padding-block: ${({ theme }) => theme.spacing(2)};
   ${({ theme }) => theme.breakpoints.down('md')} {
@@ -93,23 +76,23 @@ export default function HomePage() {
   // A pending/blocked account can't spend the operator key.
   if (user && !isApproved)
     return (
-      <FlowStage>
+      <Stage>
         <AccessGate access={user.access} email={user.email} />
-      </FlowStage>
+      </Stage>
     )
 
   // First run: guide the learner's first choice and warm the pool before practice (Epic 11).
   if (needsOnboarding)
     return (
-      <FlowStage>
+      <Stage>
         <OnboardingWizard error={onboardingError} preparing={preparing} onComplete={complete} />
-      </FlowStage>
+      </Stage>
     )
 
   const error = sentenceError ?? submitError
   if (error)
     return (
-      <FlowStage>
+      <Stage>
         <Stack spacing={2} sx={{ alignItems: 'center' }}>
           <Alert severity='error' sx={{ width: '100%' }}>
             {error}
@@ -125,12 +108,12 @@ export default function HomePage() {
             Try again
           </Button>
         </Stack>
-      </FlowStage>
+      </Stage>
     )
 
   if (correction) {
     return (
-      <PracticeStage>
+      <Stage>
         <CorrectionDisplay
           learnLanguage={correction.learnLanguage}
           guessLanguage={correction.guessLanguage}
@@ -150,7 +133,7 @@ export default function HomePage() {
             setPendingAnswer(null)
           }}
         />
-      </PracticeStage>
+      </Stage>
     )
   }
 
@@ -158,7 +141,7 @@ export default function HomePage() {
   // pendingAnswer so we only enter once the learner has actually submitted (not on a bare reload).
   if (submitting && sentence && pendingAnswer !== null) {
     return (
-      <PracticeStage>
+      <Stage>
         <StreamingCorrection
           learnLanguage={sentence.learnLanguage}
           guessLanguage={sentence.guessLanguage}
@@ -167,7 +150,7 @@ export default function HomePage() {
           userAnswer={pendingAnswer}
           preview={preview ?? { mistakes: [] }}
         />
-      </PracticeStage>
+      </Stage>
     )
   }
 
@@ -178,7 +161,7 @@ export default function HomePage() {
   return (
     <>
       <HomeTopBar level={level} onLevelChange={setLevel} />
-      <PracticeStage>
+      <Stage>
         {/* md+: the level selector floats with the card, just above it and left-aligned. Below md
             it lives in the page-top bar instead (HomeTopBar). */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, mb: 1 }}>
@@ -200,7 +183,7 @@ export default function HomePage() {
           }}
           submitting={submitting}
         />
-      </PracticeStage>
+      </Stage>
     </>
   )
 }
