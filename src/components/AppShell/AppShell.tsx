@@ -4,6 +4,7 @@ import { styled, useTheme } from '@mui/material/styles'
 import { Box, useMediaQuery, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material'
 import { useAuth } from '../../auth/AuthContext'
 import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed'
+import { useScrollToTop } from '../../hooks/useScrollToTop'
 import Sidebar from '../Sidebar/Sidebar'
 import DailyCapBanner from '../DailyCapBanner/DailyCapBanner'
 import StreakIndicator from '../StreakIndicator/StreakIndicator'
@@ -74,6 +75,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const isXs = useMediaQuery(theme.breakpoints.only('xs'))
   const { isAdmin } = useAuth()
   const loc = useLocation()
+  // Reset to the top of the page on every navigation — React Router otherwise
+  // keeps the previous view's scroll offset.
+  useScrollToTop()
   // Desktop sidebar defaults to the collapsed rail; users expand it on demand. The choice is
   // persisted to localStorage so it survives reloads.
   const { collapsed, toggleCollapsed } = useSidebarCollapsed()
