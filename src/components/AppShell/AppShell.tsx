@@ -19,6 +19,10 @@ const ShellRoot = styled(Box)`
 
 const Main = styled('main')`
   flex: 1;
+  /* min-width: 0 lets this flex child shrink below its content's intrinsic width — without it
+     recharts' ResponsiveContainer keeps the column wider than the viewport on phones (horizontal
+     scroll / pinch-to-zoom-out). */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   padding: ${({ theme }) => theme.spacing(3)};
