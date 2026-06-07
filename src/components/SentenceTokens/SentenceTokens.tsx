@@ -72,20 +72,42 @@ export default function SentenceTokens({
   }
   const close = () => setAnchorEl(null)
 
+  // Group consecutive segments that contain no whitespace into nowrap clusters so
+  // punctuation never wraps to a new line detached from its adjacent word.
+  const clusters: (typeof segments)[] = []
+  for (const seg of segments) {
+    const lastCluster = clusters[clusters.length - 1]
+    const lastSeg = lastCluster?.[lastCluster.length - 1]
+    if (!lastCluster || /\s/.test(seg.text) || /\s/.test(lastSeg?.text ?? '')) {
+      clusters.push([seg])
+    } else {
+      lastCluster.push(seg)
+    }
+  }
+
+  const renderSeg = (seg: (typeof segments)[number], key: string) =>
+    seg.token ? (
+      <TokenButton
+        key={key}
+        type='button'
+        onClick={(e) => open(e, seg.token as WordToken)}
+        aria-label={`Show the dictionary form and grammar of ${seg.text}`}
+      >
+        {seg.text}
+      </TokenButton>
+    ) : (
+      <span key={key}>{seg.text}</span>
+    )
+
   return (
     <SentenceText lang={learnLanguage}>
-      {segments.map((seg, i) =>
-        seg.token ? (
-          <TokenButton
-            key={i}
-            type='button'
-            onClick={(e) => open(e, seg.token as WordToken)}
-            aria-label={`Show the dictionary form and grammar of ${seg.text}`}
-          >
-            {seg.text}
-          </TokenButton>
+      {clusters.map((cluster, ci) =>
+        cluster.length === 1 ? (
+          renderSeg(cluster[0], `c${ci}`)
         ) : (
-          <span key={i}>{seg.text}</span>
+          <span key={ci} style={{ whiteSpace: 'nowrap' }}>
+            {cluster.map((seg, si) => renderSeg(seg, `c${ci}s${si}`))}
+          </span>
         )
       )}
       <WordPopover
