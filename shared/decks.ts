@@ -1,10 +1,16 @@
-// Flash-card deck registry — the closed-vocabulary sets the card generator works from. Each `spec`
-// is a plain-English description of the words to produce, handed verbatim to Claude; `size` caps
+// Flash-card deck registry — the vocabulary sets the card generator works from. Each `spec` is a
+// plain-English description of the words to produce, handed verbatim to Claude; `size` caps
 // generation so the deck stays focused (months = 12, days = 7, etc.). The `id` is the stable slug
 // used over the wire and as a corpus dedup key; never rename one after cards have been generated.
 //
-// `kind: 'function'` covers closed-class / high-frequency items (conjunctions, pronouns, etc.).
-// `kind: 'noun'` is reserved for phase-2 category-noun decks derived from `shared/categories.ts`.
+// `kind: 'function'` covers closed-class / high-frequency items (conjunctions, pronouns, etc.) —
+// closed sets whose spec enumerates every word.
+// `kind: 'noun'` covers the open-class category-noun decks derived from `shared/categories.ts`: one
+// deck per sentence category, asking the generator for that topic's most common everyday nouns. They
+// are appended after the function decks (see `NOUN_DECKS` below) so they read as a second group in
+// the picker.
+
+import { CATEGORIES } from './categories'
 
 export interface DeckDef {
   id: string
@@ -16,7 +22,8 @@ export interface DeckDef {
   size: number
 }
 
-export const DECKS: DeckDef[] = [
+// Closed-class / fixed-vocabulary decks. Order here is the picker order for the first group.
+export const FUNCTION_DECKS: DeckDef[] = [
   {
     id: 'conjunctions',
     label: 'Conjunctions',
@@ -60,6 +67,25 @@ export const DECKS: DeckDef[] = [
     size: 7,
   },
 ]
+
+// How many cards a category-noun deck asks for. Nouns are an open class, so the spec asks the model
+// to pick the most common ones rather than enumerating them.
+const NOUN_DECK_SIZE = 20
+
+// One noun deck per sentence category (see `shared/categories.ts`). `id` is namespaced with a
+// `nouns-` prefix so it never collides with a function deck's id (e.g. the `numbers` function deck
+// vs. the `numbers` category). `label` reuses the category's display label.
+export const NOUN_DECKS: DeckDef[] = CATEGORIES.map((category) => ({
+  id: `nouns-${category.id}`,
+  label: category.label,
+  kind: 'noun' as const,
+  spec: `the ${NOUN_DECK_SIZE} most common everyday nouns about ${category.domain}, in their dictionary singular form — concrete, high-frequency words a beginner learner needs to talk about this topic`,
+  size: NOUN_DECK_SIZE,
+}))
+
+// The full registry the picker, generator, and seed script all read: function decks first, then the
+// category-noun decks as a second scrollable group.
+export const DECKS: DeckDef[] = [...FUNCTION_DECKS, ...NOUN_DECKS]
 
 export function deckById(id: string): DeckDef | undefined {
   return DECKS.find((d) => d.id === id)

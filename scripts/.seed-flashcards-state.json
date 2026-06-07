@@ -1,8 +1,10 @@
 {
   "batchIds": [
-    null
+    "msgbatch_01HVPxXs7CtntiuRZ7zvER4N",
+    "msgbatch_015are2opA2wVdjnWHUHqB38"
   ],
   "collected": [
+    false,
     false
   ]
 }
