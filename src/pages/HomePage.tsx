@@ -17,20 +17,28 @@ import { useOnboarding } from '../hooks/useOnboarding'
 import { useCurrentSentence } from '../hooks/useCurrentSentence'
 import { useCorrectionSubmission } from '../hooks/useCorrectionSubmission'
 
-// Floats the practice flow in the vertical center of the content column (auto block margins
-// absorb the slack above/below), giving the calm, centered "homepage" feel — biased above true
-// center so it sits higher in the eyeline: ~12% of the viewport up on mobile, a gentle nudge on
-// desktop.
-const CenteredStage = styled('div')`
-  margin-block: auto;
+// The vertical anchor shared by every card state of the practice flow — the prompt card, the
+// streaming grade, and the final correction. We pin the card a fixed distance below the top of the
+// content column (~upper quarter) and let it grow downward, rather than vertically centering it.
+// That fixed offset is the whole point: the result card changes height several times as the grade
+// streams in (the suggested answer appears, then mistakes arrive row by row), and a centered card —
+// whose position is derived from its height — would slide upward on every chunk. Anchoring the top
+// edge holds it still while the body fills in, and because the prompt card uses the very same anchor
+// the transition from prompt → grade doesn't jump.
+const PracticeStage = styled('div')`
   width: 100%;
-  padding-block: ${({ theme }) => theme.spacing(2)};
-  transform: translateY(-12vh);
+  margin-top: 24vh;
+  padding-bottom: ${({ theme }) => theme.spacing(2)};
   ${({ theme }) => theme.breakpoints.up('md')} {
-    transform: translateY(-${({ theme }) => theme.spacing(6)});
+    margin-top: 18vh;
+  }
+  ${({ theme }) => theme.breakpoints.down('md')} {
+    padding-bottom: calc(${({ theme }) => theme.spacing(2)} + env(safe-area-inset-bottom));
   }
 `
 
+// Top-anchored wrapper for the flow's non-card states (access gate, onboarding, errors) — these
+// aren't part of the prompt → grade visual continuity, so they just sit near the top.
 const FlowStage = styled('div')`
   width: 100%;
   padding-block: ${({ theme }) => theme.spacing(2)};
@@ -113,7 +121,7 @@ export default function HomePage() {
 
   if (correction) {
     return (
-      <FlowStage>
+      <PracticeStage>
         <CorrectionDisplay
           learnLanguage={correction.learnLanguage}
           guessLanguage={correction.guessLanguage}
@@ -133,7 +141,7 @@ export default function HomePage() {
             setPendingAnswer(null)
           }}
         />
-      </FlowStage>
+      </PracticeStage>
     )
   }
 
@@ -141,7 +149,7 @@ export default function HomePage() {
   // pendingAnswer so we only enter once the learner has actually submitted (not on a bare reload).
   if (submitting && sentence && pendingAnswer !== null) {
     return (
-      <FlowStage>
+      <PracticeStage>
         <StreamingCorrection
           learnLanguage={sentence.learnLanguage}
           guessLanguage={sentence.guessLanguage}
@@ -150,16 +158,21 @@ export default function HomePage() {
           userAnswer={pendingAnswer}
           preview={preview ?? { mistakes: [] }}
         />
-      </FlowStage>
+      </PracticeStage>
     )
   }
 
-  if (loading || !sentence) return <PreparingSentences />
+  if (loading || !sentence)
+    return (
+      <PracticeStage>
+        <PreparingSentences />
+      </PracticeStage>
+    )
 
   return (
     <>
       <HomeTopBar level={level} onLevelChange={setLevel} />
-      <CenteredStage>
+      <PracticeStage>
         {/* md+: the level selector floats with the card, just above it and left-aligned. Below md
             it lives in the page-top bar instead (HomeTopBar). */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, mb: 1 }}>
@@ -181,7 +194,7 @@ export default function HomePage() {
           }}
           submitting={submitting}
         />
-      </CenteredStage>
+      </PracticeStage>
     </>
   )
 }
