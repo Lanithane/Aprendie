@@ -23,14 +23,15 @@ export interface SiteMetricsView {
   activeUsers: MetricPoint[]
 }
 
-// Per-account metrics for the history page and the admin user-detail page: lifetime + today
-// headline totals plus the account's attempts-over-time series.
+// Per-account metrics for the history page and the admin user-detail page, all scoped to the
+// requested range: headline attempts + accuracy totals plus the attempts and correct-attempt
+// series (the latter overlaid as accuracy on the chart). Used by the history page (self) and
+// admin user-detail.
 export interface UserMetricsView {
   totals: {
     attempts: number
     accuracy: number // 0..1
-    today: number
-    costUsd: number
   }
   attempts: MetricPoint[]
+  correct: MetricPoint[]
 }

@@ -29,10 +29,9 @@ export interface UserMetrics {
   totals: {
     attempts: number
     accuracy: number
-    today: number
-    costUsd: number
   }
   attempts: MetricPoint[]
+  correct: MetricPoint[]
 }
 
 export function fetchSiteMetrics(range: MetricsRange): Promise<SiteMetrics> {

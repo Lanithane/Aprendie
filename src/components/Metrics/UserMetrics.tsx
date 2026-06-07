@@ -1,30 +1,28 @@
 import { useState } from 'react'
 import { Alert, Box, Stack, Typography } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
 import SectionCard from '../shared/SectionCard'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import MetricStat from './MetricStat'
 import RangeToggle from './RangeToggle'
-import MetricsChart from './MetricsChart'
+import AttemptsAccuracyChart from './AttemptsAccuracyChart'
 import { useUserMetrics, type UserMetricsSource } from '../../hooks/useUserMetrics'
-import { formatUsd } from '../Contribute/contribute'
 import type { MetricsRange } from '../../api/metricsApi'
 
 // Per-account metrics, shared by the history page (self) and the admin user-detail page: headline
-// lifetime/today totals plus an attempts-over-time line graph with a range toggle.
+// attempts + accuracy totals plus an attempts/accuracy-over-time chart, all scoped to the selected
+// range.
 export default function UserMetrics({
   source,
-  title = 'Metrics',
+  title = 'Your metrics',
 }: {
   source: UserMetricsSource
   title?: string
 }) {
   const [range, setRange] = useState<MetricsRange>('all')
   const { data, loading, error } = useUserMetrics(source, range)
-  const theme = useTheme()
 
   return (
-    <SectionCard title={title} description='Practice activity and spend on the operator key.'>
+    <SectionCard title={title} collapsible>
       {error && (
         <Alert severity='error' sx={{ mb: 2 }}>
           {error}
@@ -37,8 +35,6 @@ export default function UserMetrics({
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
             <MetricStat label='Attempts' value={data.totals.attempts.toLocaleString()} />
             <MetricStat label='Accuracy' value={`${Math.round(data.totals.accuracy * 100)}%`} />
-            <MetricStat label='Today' value={data.totals.today.toLocaleString()} />
-            <MetricStat label='Spend' value={formatUsd(data.totals.costUsd)} />
           </Box>
           <Box>
             <Box
@@ -51,11 +47,11 @@ export default function UserMetrics({
               }}
             >
               <Typography variant='subtitle2' color='text.secondary'>
-                Attempts over time
+                Attempts &amp; accuracy over time
               </Typography>
               <RangeToggle value={range} onChange={setRange} />
             </Box>
-            <MetricsChart data={data.attempts} range={range} color={theme.palette.primary.main} />
+            <AttemptsAccuracyChart attempts={data.attempts} correct={data.correct} range={range} />
           </Box>
         </Stack>
       ) : null}

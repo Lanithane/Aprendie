@@ -125,6 +125,25 @@ export async function attemptsPerBucket(opts: SeriesOptions): Promise<SeriesPoin
   )
 }
 
+// Correct-attempt counts per time bucket, oldest first. Pairs with `attemptsPerBucket` (same
+// buckets/window) so the client can derive per-bucket accuracy. Sitewide when `userId` is omitted.
+export async function correctPerBucket(opts: SeriesOptions): Promise<SeriesPoint[]> {
+  const conds: SQL[] = [eq(attempts.isCorrect, true)]
+  if (opts.userId) conds.push(eq(attempts.userId, opts.userId))
+  if (opts.since) conds.push(gte(attempts.createdAt, opts.since))
+  const b = bucketExpr(opts.bucket)
+  return (
+    db
+      .select({ bucket: b, value: sql<number>`count(*)::int` })
+      .from(attempts)
+      .where(and(...conds))
+      // Group/order by the bucket's output position: repeating the parametrized expression here
+      // would make Postgres treat the two as distinct bind params and reject the ungrouped column.
+      .groupBy(sql`1`)
+      .orderBy(sql`1`)
+  )
+}
+
 // Distinct active users (anyone with an attempt) per time bucket, oldest first.
 export async function activeUsersPerBucket(
   opts: Omit<SeriesOptions, 'userId'>
@@ -165,20 +184,19 @@ export async function siteAttemptStats(): Promise<AttemptStats> {
 export interface UserAttemptStats {
   total: number
   correct: number
-  today: number
 }
 
-// Lifetime + today attempt totals for one user. `today` is bounded by the UTC calendar day,
-// matching the daily-cap boundary used elsewhere (see usage/persistence/usageRepository.utcDay).
-export async function userAttemptStats(userId: string): Promise<UserAttemptStats> {
-  const sinceMidnight = new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`)
+// Attempt totals (count + correct) for one user, scoped to `since` when provided (omit for
+// lifetime). Mirrors the window used by the attempts series so the headline matches the chart.
+export async function userAttemptStats(userId: string, since?: Date): Promise<UserAttemptStats> {
+  const conds = [eq(attempts.userId, userId)]
+  if (since) conds.push(gte(attempts.createdAt, since))
   const rows = await db
     .select({
       total: sql<number>`count(*)::int`,
       correct: sql<number>`coalesce(sum(case when ${attempts.isCorrect} then 1 else 0 end), 0)::int`,
-      today: sql<number>`coalesce(sum(case when ${attempts.createdAt} >= ${sinceMidnight} then 1 else 0 end), 0)::int`,
     })
     .from(attempts)
-    .where(eq(attempts.userId, userId))
-  return rows[0] ?? { total: 0, correct: 0, today: 0 }
+    .where(and(...conds))
+  return rows[0] ?? { total: 0, correct: 0 }
 }

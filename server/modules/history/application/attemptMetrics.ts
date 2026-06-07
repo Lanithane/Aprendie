@@ -15,6 +15,10 @@ export function getAttemptSeries(opts: SeriesOptions): Promise<SeriesPoint[]> {
   return historyRepository.attemptsPerBucket(opts)
 }
 
+export function getCorrectSeries(opts: SeriesOptions): Promise<SeriesPoint[]> {
+  return historyRepository.correctPerBucket(opts)
+}
+
 export function getActiveUserSeries(opts: Omit<SeriesOptions, 'userId'>): Promise<SeriesPoint[]> {
   return historyRepository.activeUsersPerBucket(opts)
 }
@@ -23,6 +27,6 @@ export function getSiteAttemptStats(): Promise<AttemptStats> {
   return historyRepository.siteAttemptStats()
 }
 
-export function getUserAttemptStats(userId: string): Promise<UserAttemptStats> {
-  return historyRepository.userAttemptStats(userId)
+export function getUserAttemptStats(userId: string, since?: Date): Promise<UserAttemptStats> {
+  return historyRepository.userAttemptStats(userId, since)
 }
