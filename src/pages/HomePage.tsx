@@ -8,7 +8,7 @@ import CorrectionDisplay from '../components/CorrectionDisplay/CorrectionDisplay
 import StreamingCorrection from '../components/CorrectionDisplay/StreamingCorrection'
 import AccessGate from '../components/AccessGate/AccessGate'
 import OnboardingWizard from '../components/Onboarding/OnboardingWizard'
-import PreparingSentences from '../components/shared/PreparingSentences'
+import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useLevelPreference } from '../hooks/useLevelPreference'
@@ -16,6 +16,7 @@ import { useCategoryPreference } from '../hooks/useCategoryPreference'
 import { useOnboarding } from '../hooks/useOnboarding'
 import { useCurrentSentence } from '../hooks/useCurrentSentence'
 import { useCorrectionSubmission } from '../hooks/useCorrectionSubmission'
+import { useDelayedFlag } from '../hooks/useDelayedFlag'
 
 // The vertical anchor shared by every card state of the practice flow — the prompt card, the
 // streaming grade, and the final correction. We pin the card a fixed distance below the top of the
@@ -80,6 +81,10 @@ export default function HomePage() {
   // The submitted answer, held so the streaming view can echo it back while grading (PracticeCard
   // owns the input, so it's captured on submit). Cleared when we leave the result view.
   const [pendingAnswer, setPendingAnswer] = useState<string | null>(null)
+
+  // Gate the loading state behind a short delay so quick loads (a parked/prefetched sentence, a
+  // warm pool) never flash a spinner — only a genuinely slow fetch crosses the threshold.
+  const showLoader = useDelayedFlag(loading || !sentence, 350)
 
   // A pending/blocked account can't spend the operator key.
   if (user && !isApproved)
@@ -162,12 +167,9 @@ export default function HomePage() {
     )
   }
 
-  if (loading || !sentence)
-    return (
-      <PracticeStage>
-        <PreparingSentences />
-      </PracticeStage>
-    )
+  // Nothing to show yet. Render blank until the delay elapses, then a plain spinner — the
+  // "preparing your first sentences" cold-start copy belongs to onboarding, not every load.
+  if (loading || !sentence) return showLoader ? <LoadingSpinner /> : null
 
   return (
     <>
