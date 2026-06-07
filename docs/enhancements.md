@@ -5,6 +5,51 @@ involved. Newest first.
 
 ---
 
+## 2026-06-06 — Sliding scale leniency + sentence cooldown
+
+Fixed two bugs that caused the same sentence to repeat over and over, especially on new accounts.
+
+### 1. Score-based resurface threshold (not "imperfect")
+
+The review signal previously re-drilled a sentence whenever its attempt was `isCorrect: false`,
+meaning a good paraphrase of a long sentence scored B/A but still got treated as a miss. Now the
+re-drill threshold is **score < 65** (D/F only — meaning largely lost).
+
+- [`AttemptSignal`](../server/modules/sentence/domain/selectSentence.ts) carries `score: number`
+  instead of `isCorrect`. `buildReviewSignal` uses the score threshold; A/B/C paraphrases never
+  enter the mistake set.
+- **Latest-attempt-per-sentence deduplication**: if the learner later aces a sentence (score ≥ 65),
+  it exits the drill set immediately — the most-recent attempt per sentence id wins.
+- [`listRecentAttemptSignals`](../server/modules/sentence/persistence/sentenceRepository.ts) now
+  selects `attempts.score` instead of `attempts.isCorrect`.
+
+### 2. Cooldown window — no sentence ever repeats immediately
+
+`selectNext` now excludes the 3 most-recently-served sentences from consideration on every pick.
+The cooldown auto-relaxes when the corpus is too small to honor it (always leaves at least one
+servable candidate). A wrong answer returns no sooner than the 4th sentence.
+
+- `cooldownWindow: 3` added to
+  [`SelectionWeights`](../server/modules/sentence/domain/selectSentence.ts) (default 3, tunable).
+
+### 3. Cold-start runway raised to 2 sentences
+
+A brand-new account now generates **2 sentences inline** instead of 1, so the cooldown window
+always has at least two distinct sentences to rotate through before the background batch lands.
+
+- `COLD_START_SIZE = 2` in
+  [`sentencePool`](../server/modules/sentence/application/sentencePool.ts).
+
+### 4. Grading prompt — explicit long-sentence paraphrase leniency
+
+Extended the existing meaning-preserving-variation rule in the grader system prompt to explicitly
+cover **full-clause restructuring of longer sentences**: a faithful paraphrase (reordered clauses,
+same meaning) scores A/B range, not a failure.
+
+- [`SYSTEM_PROMPT_TEXT`](../server/modules/correction/application/scoreTranslation.ts)
+
+---
+
 ## 2026-06-06 — Submission grading latency + cold-start first sentence
 
 Two related pushes on perceived load time: how fast a graded result comes back after the learner

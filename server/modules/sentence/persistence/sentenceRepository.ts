@@ -117,7 +117,7 @@ export async function listRecentAttemptSignals(
     .select({
       sentenceId: attempts.sentenceId,
       theme: sentences.theme,
-      isCorrect: attempts.isCorrect,
+      score: attempts.score,
     })
     .from(attempts)
     .leftJoin(sentences, eq(attempts.sentenceId, sentences.id))

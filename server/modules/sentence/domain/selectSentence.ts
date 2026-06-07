@@ -43,6 +43,10 @@ export interface SelectionWeights {
   mistake: number // the user recently got this exact sentence wrong
   category: number // the sentence's theme is one the user is currently struggling with (× 0..1)
   lexeme: number // the sentence contains a word the user keeps missing, by lifetime stats (× 0..1)
+  // A just-served sentence cannot reappear until at least this many *other* distinct sentences have
+  // been served. Auto-relaxes when the corpus is smaller than cooldownWindow + 1 so the learner is
+  // never stranded with no servable sentences.
+  cooldownWindow: number
 }
 
 export const DEFAULT_WEIGHTS: SelectionWeights = {
@@ -52,6 +56,7 @@ export const DEFAULT_WEIGHTS: SelectionWeights = {
   mistake: 1.5,
   category: 1.5,
   lexeme: 1.5,
+  cooldownWindow: 3,
 }
 
 // The per-request review signal, derived from the user's recent attempts + lifetime word stats (see
@@ -84,8 +89,22 @@ export function selectNext(
 ): string | null {
   if (candidates.length === 0) return null
 
+  // Cooldown: exclude the most-recently-seen N sentences so no sentence ever repeats immediately.
+  // N is clamped so at least one candidate remains — the learner is never stranded.
+  const candidateIds = new Set(candidates.map((c) => c.id))
+  const effectiveCooldown = Math.min(weights.cooldownWindow, candidates.length - 1)
+  const recentlyServed = new Set(
+    [...exposures]
+      .filter((e) => candidateIds.has(e.sentenceId))
+      .sort((a, b) => b.lastSeenAt.getTime() - a.lastSeenAt.getTime())
+      .slice(0, effectiveCooldown)
+      .map((e) => e.sentenceId)
+  )
+  const eligible =
+    effectiveCooldown > 0 ? candidates.filter((c) => !recentlyServed.has(c.id)) : candidates
+
   const lastSeenById = new Map(exposures.map((e) => [e.sentenceId, e.lastSeenAt.getTime()]))
-  const unseen = candidates.filter((c) => !lastSeenById.has(c.id))
+  const unseen = eligible.filter((c) => !lastSeenById.has(c.id))
 
   // Drain mode: plenty of fresh material → serve the oldest-inserted unseen sentence.
   if (unseen.length >= weights.reviewWhenUnseenBelow) return oldestUnseen(unseen)
@@ -94,7 +113,7 @@ export function selectNext(
   // clears the flat unseen baseline; otherwise keep draining the remaining fresh material. With no
   // unseen left, the best-scoring seen sentence is always served (LRU is the floor when there's no
   // mistake/category/lexeme signal).
-  const seen = candidates.filter((c) => lastSeenById.has(c.id))
+  const seen = eligible.filter((c) => lastSeenById.has(c.id))
   const bestSeen = bestSeenCandidate(seen, lastSeenById, signal, weights)
   if (unseen.length > 0) {
     return bestSeen && bestSeen.score > weights.unseenBase ? bestSeen.id : oldestUnseen(unseen)
@@ -185,11 +204,12 @@ export function lemmasOf(wordBreakdown: WordToken[] | null | undefined): string[
 
 // One recent graded attempt, reduced to just the fields the review signal needs. `theme` is the
 // category of the sentence that attempt was on (joined from the corpus; null if the sentence was
-// pruned or never corpus'd).
+// pruned or never corpus'd). `score` (0–100) is used instead of `isCorrect` so that high-scoring
+// paraphrases are never treated as mistakes to re-drill.
 export interface AttemptSignal {
   sentenceId: string | null
   theme: string | null
-  isCorrect: boolean
+  score: number
 }
 
 // One lemma's lifetime stats from `lexeme_stats`, reduced to the fields the review signal needs.
@@ -206,30 +226,48 @@ export interface ReviewInputs {
   lexemes?: LexemeSignal[]
 }
 
+// Attempts scoring below this threshold are treated as misses for re-drill purposes. A/B/C
+// paraphrases (≥ 65) are never resurfaced as mistakes; only D/F (meaning largely lost) are.
+export const RESURFACE_BELOW_SCORE = 65
+
 export interface SignalOptions {
   // A theme only counts as "struggling" once at least this many of the user's recent attempts in it
   // were wrong — avoids over-reacting to a single slip.
   minThemeMisses?: number
   // A lemma only counts as "struggling" once it has at least this many lifetime incorrect attempts.
   minLexemeMisses?: number
+  // Score below which an attempt counts as a miss (default: RESURFACE_BELOW_SCORE).
+  resurfaceBelowScore?: number
 }
 
-// Pure: fold the user's recent attempts + lifetime word stats into a `ReviewSignal`. Wrong attempts
-// contribute their sentence id (resurface-the-exact-miss) and tally per-theme misses; a theme
-// crossing the miss threshold becomes a struggling category weighted by wrong-share. Lemmas with
-// enough lifetime misses become struggling words weighted by their error rate.
+// Pure: fold the user's recent attempts + lifetime word stats into a `ReviewSignal`. Attempts
+// scoring below the threshold contribute their sentence id (resurface-the-exact-miss) and tally
+// per-theme misses; a theme crossing the miss threshold becomes a struggling category weighted by
+// wrong-share. Lemmas with enough lifetime misses become struggling words weighted by their error
+// rate.
+//
+// Attempts arrive most-recent-first (`listRecentAttemptSignals` orders by desc createdAt). For the
+// mistakeSentenceIds set, only the *first (most recent) attempt per sentenceId* is used — so a
+// sentence the learner later aced (score ≥ threshold) exits the drill set immediately.
 export function buildReviewSignal(inputs: ReviewInputs, options: SignalOptions = {}): ReviewSignal {
   const minThemeMisses = options.minThemeMisses ?? 2
   const minLexemeMisses = options.minLexemeMisses ?? 2
+  const threshold = options.resurfaceBelowScore ?? RESURFACE_BELOW_SCORE
   const mistakeSentenceIds = new Set<string>()
   const themeTally = new Map<string, { wrong: number; total: number }>()
+  // Track which sentence ids we've already recorded the latest attempt for.
+  const decidedIds = new Set<string>()
 
   for (const a of inputs.attempts) {
-    if (a.sentenceId && !a.isCorrect) mistakeSentenceIds.add(a.sentenceId)
+    const isMiss = a.score < threshold
+    if (a.sentenceId && !decidedIds.has(a.sentenceId)) {
+      decidedIds.add(a.sentenceId)
+      if (isMiss) mistakeSentenceIds.add(a.sentenceId)
+    }
     if (a.theme) {
       const tally = themeTally.get(a.theme) ?? { wrong: 0, total: 0 }
       tally.total += 1
-      if (!a.isCorrect) tally.wrong += 1
+      if (isMiss) tally.wrong += 1
       themeTally.set(a.theme, tally)
     }
   }

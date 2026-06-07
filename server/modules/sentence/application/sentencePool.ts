@@ -25,11 +25,10 @@ import {
 // the critical path.
 export const REFILL_THRESHOLD = 3
 
-// When the pool is empty we have to generate inline, so generate just one sentence —
-// a single sentence returns from Claude far faster than a full batch, keeping the first
-// load of a new pool (difficulty/language/locale switch) snappy. The rest of the pool is
-// then filled by a background refill so the next Next press is already warm.
-export const COLD_START_SIZE = 1
+// When the pool is empty we have to generate inline. Generate two sentences so a brand-new user
+// has immediate variety (the cooldown window needs at least two distinct sentences to rotate
+// through). The rest of the pool is filled by a background refill so the next Next press is warm.
+export const COLD_START_SIZE = 2
 
 // Cold-starting a freshly PINNED topic is different: there's no rest-of-corpus to fall back on while
 // the background batch fills, and the collector only polls on a 60s cadence (batch latency varies on
