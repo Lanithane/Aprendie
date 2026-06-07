@@ -6,6 +6,7 @@ import {
   type FlashcardGradeDto,
 } from '../api/flashcardApi'
 import type { LanguagePair } from '../../shared/languages'
+import { useDailyUsage } from '../usage/DailyUsageContext'
 
 type SessionState =
   | { phase: 'loading' }
@@ -22,6 +23,7 @@ interface UseFlashcardSessionResult {
 
 export function useFlashcardSession(pair: LanguagePair): UseFlashcardSessionResult {
   const [state, setState] = useState<SessionState>({ phase: 'loading' })
+  const { applySnapshot } = useDailyUsage()
 
   const loadNext = useCallback(
     (deckId: string) => {
@@ -44,10 +46,14 @@ export function useFlashcardSession(pair: LanguagePair): UseFlashcardSessionResu
       const { card } = state
       setState({ phase: 'grading', card })
       gradeCard(card.id, answer)
-        .then((grade) => setState({ phase: 'result', card, grade }))
+        .then((grade) => {
+          setState({ phase: 'result', card, grade })
+          // This grade counted against the daily cap (shared with sentences) — refresh the banner.
+          applySnapshot(grade.dailyUsage)
+        })
         .catch((err: Error) => setState({ phase: 'error', message: err.message }))
     },
-    [state]
+    [state, applySnapshot]
   )
 
   return { state, loadNext, submit }

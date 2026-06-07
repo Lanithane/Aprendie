@@ -122,7 +122,7 @@ Grade now.`
 
   // Fold the result into Palabradex (shared mastery model with sentence practice).
   const seenAt = new Date()
-  await Promise.all([
+  const [, dailyUsage] = await Promise.all([
     recordSeenWords({
       userId: input.user.id,
       learnLanguage: card.learnLanguage as LanguageCode,
@@ -152,5 +152,6 @@ Grade now.`
     gloss: card.gloss,
     example: card.example ?? '',
     exampleTranslation: card.exampleTranslation ?? '',
+    dailyUsage,
   }
 }

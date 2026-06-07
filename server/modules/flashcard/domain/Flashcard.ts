@@ -1,5 +1,6 @@
 import type { LanguageCode, LocaleCode, WordGender } from '../../../../shared/languages'
 import type { FlashcardRow } from '../../../infrastructure/db/schema'
+import type { DailyUsageSnapshot } from '../../usage/domain/DailyUsage'
 
 export interface FlashcardView {
   id: string
@@ -33,6 +34,9 @@ export interface FlashcardGradeView {
   gloss: string
   example: string
   exampleTranslation: string
+  // The learner's daily-cap posture after this grade counted (flashcards share the sentence cap),
+  // so the practice UI can update its near-cap banner without a refetch.
+  dailyUsage: DailyUsageSnapshot
 }
 
 export function toFlashcardView(row: FlashcardRow): FlashcardView {

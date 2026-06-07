@@ -5,6 +5,7 @@ import { Box, useMediaQuery, BottomNavigation, BottomNavigationAction, Paper } f
 import { useAuth } from '../../auth/AuthContext'
 import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed'
 import Sidebar from '../Sidebar/Sidebar'
+import DailyCapBanner from '../DailyCapBanner/DailyCapBanner'
 import { ADMIN_NAV_ITEM, buildNavItems, isActiveRoute } from './navigation'
 
 const SIDEBAR_WIDTH = 240
@@ -82,6 +83,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
     ? navItems.filter(({ to }) => to !== ADMIN_NAV_ITEM.to && to !== '/flashcards')
     : navItems
   const activePath = navItems.find(({ to }) => isActiveRoute(loc.pathname, to))?.to ?? false
+  // The near-cap banner belongs to the spend surfaces — sentence practice and flash cards, which
+  // share the one daily cap. Elsewhere (history, settings, admin) there's nothing to warn about.
+  const isPracticeRoute = loc.pathname === '/' || loc.pathname === '/flashcards'
 
   return (
     <ShellRoot>
@@ -95,7 +99,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
         />
       )}
       <Main id='main-content' tabIndex={-1}>
-        <Content>{children}</Content>
+        <Content>
+          {isPracticeRoute && <DailyCapBanner />}
+          {children}
+        </Content>
       </Main>
       {isMobile && (
         <MobileNavSurface elevation={8}>

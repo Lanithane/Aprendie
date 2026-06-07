@@ -95,7 +95,7 @@ async function persistGrade(
     usage,
   }).catch((err) => console.error('[showback] recordUsage(correction) failed:', err))
 
-  await Promise.all([
+  const [, dailyUsage] = await Promise.all([
     recordAttempt({
       userId: input.user.id,
       sentenceId: ctx.sentence.id,
@@ -116,7 +116,8 @@ async function persistGrade(
     }),
     // recordGradedSentence counts every graded sentence (including admins) so the admin "Graded
     // today" tile reflects all activity; the cap is only *enforced* for non-admins (gated above),
-    // so counting an admin's sentence here never blocks them.
+    // so counting an admin's sentence here never blocks them. Its snapshot rides back in the view
+    // so the client's near-cap banner updates from the grade response.
     recordGradedSentence(input.user),
   ])
 
@@ -130,6 +131,7 @@ async function persistGrade(
     answerText: ctx.sentence.answerText,
     userAnswer: input.userAnswer,
     wordBreakdown: ctx.sentence.wordBreakdown ?? [],
+    dailyUsage,
     ...result,
   }
 }

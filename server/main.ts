@@ -21,6 +21,7 @@ import translatorController from './modules/translator/controllers/translatorCon
 import feedbackController from './modules/feedback/controllers/feedbackController'
 import analyticsController from './modules/analytics/controllers/analyticsController'
 import showbackController from './modules/showback/controllers/showbackController'
+import usageController from './modules/usage/controllers/usageController'
 import metricsController from './modules/metrics/controllers/metricsController'
 import { startBatchCollector } from './modules/sentence/application/batchCollector'
 
@@ -54,6 +55,7 @@ app.use('/api/translate', translatorController)
 app.use('/api/feedback', feedbackController)
 app.use('/api/events', analyticsController)
 app.use('/api/showback', showbackController)
+app.use('/api/usage', usageController)
 app.use('/api/metrics', metricsController)
 
 if (env.NODE_ENV === 'production') {

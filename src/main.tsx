@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './auth/AuthContext'
+import { DailyUsageProvider } from './usage/DailyUsageContext'
 import { ThemeModeProvider } from './ThemeModeProvider'
 import { FeedbackProvider } from './components/Feedback/FeedbackProvider'
 import '@fontsource/roboto/300.css'
@@ -17,13 +18,15 @@ if (!rootEl) throw new Error('#root not found')
 ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <AuthProvider>
-      <ThemeModeProvider>
-        <BrowserRouter>
-          <FeedbackProvider>
-            <App />
-          </FeedbackProvider>
-        </BrowserRouter>
-      </ThemeModeProvider>
+      <DailyUsageProvider>
+        <ThemeModeProvider>
+          <BrowserRouter>
+            <FeedbackProvider>
+              <App />
+            </FeedbackProvider>
+          </BrowserRouter>
+        </ThemeModeProvider>
+      </DailyUsageProvider>
     </AuthProvider>
   </React.StrictMode>
 )
