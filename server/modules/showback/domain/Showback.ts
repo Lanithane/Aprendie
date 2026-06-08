@@ -7,6 +7,7 @@ export type UsageOperation =
   | 'translation'
   | 'flashcard_grade'
   | 'flashcard_batch'
+  | 'grammar'
 
 export interface TokenTotals {
   input: number

@@ -176,6 +176,13 @@
       "when": 1781000000006,
       "tag": "0024_jazzy_komodo",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1781000000007,
+      "tag": "0025_worried_carnage",
+      "breakpoints": true
     }
   ]
 }

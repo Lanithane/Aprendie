@@ -14,6 +14,7 @@ const EMPTY_BY_OPERATION: Record<UsageOperation, number> = {
   translation: 0,
   flashcard_grade: 0,
   flashcard_batch: 0,
+  grammar: 0,
 }
 
 // Cumulative showback for one account: total cost, per-operation breakdown, token totals, and

@@ -39,7 +39,7 @@ Epics are listed by number (a stable identifier); see the intro for the current 
 | 16   | Feedback & analytics (self-hosted, in admin)                                                   | ✅ Done                             |
 | 17   | Single Starter level (drop Foundation) + Starter word-meaning hints                            | ✅ Done                             |
 | 18   | Same-language practice mode (paraphrase / tense-shift, by difficulty)                          | ⬜ Not started                      |
-| 19   | Grammar reference inside the Palabradex (POS inventory + example sentence, per learn language) | ⬜ Not started                      |
+| 19   | Grammar reference inside the Palabradex (POS inventory + example sentence, per learn language) | ✅ Done (grammar context + cache)   |
 | 20   | Shared sentence corpus + per-user exposure ledger (kill per-user generation dup)               | ✅ Done                             |
 | 21   | Tunable review / selection policy ("sliding scale" resurfacing)                                | ✅ Done                             |
 | 22   | Batch-API background sentence fills (50% off) + durable collector                              | ✅ Done                             |
@@ -828,7 +828,7 @@ The learner picks the rewrite _task_ via a **button-group toggle** on the practi
 
 ---
 
-## ⬜ Epic 19 — Grammar reference inside the Palabradex
+## ✅ Epic 19 — Grammar reference inside the Palabradex
 
 A **second mode of the existing Palabradex** ([PalabradexPage.tsx](src/pages/PalabradexPage.tsx),
 `/palabradex`, Epic 8) — **not** a new page or sidebar icon. Where the Palabradex today answers
@@ -850,12 +850,15 @@ be conflated.
 
 **Decided:**
 
-- **Claude-generated content** — a new bounded context (provisional `grammar`) generates the
-  per-language grammar overview + detail via `anthropicClientForUser`
-  ([resolveAnthropicClient.ts](server/modules/apiKey/application/resolveAnthropicClient.ts)), reusing
-  the Epic 12 access-gate + daily-cap spend path. **Cache per (learnLanguage, locale)** so a visit
-  doesn't regenerate (persist generated grammar like `word_breakdown`/`lexeme_stats` are cached) —
-  generation should be rare, not per page view.
+- **Claude-generated content** — a new `grammar` bounded context generates the per-language grammar
+  overview + detail on the operator key (`getOperatorAnthropicClient`, Haiku/`SENTENCE_MODEL`),
+  reusing the Epic 12 access-gate + daily-cap spend path (gates only on a cache **miss**; the cap is
+  asserted but never incremented — grammar isn't a graded sentence). Spend is attributed to a new
+  `grammar` showback operation. **Implemented cache key = (learnLanguage, guessLanguage, locale)**
+  (not the originally-sketched `(learnLanguage, locale)`): explanations/notes render in the learner's
+  **known/guess language** like `lexeme_definitions`, so the key must include the guess language —
+  member words + example sentences stay in the learn language. One generation serves every learner on
+  that triple; generation is rare, not per page view.
 - **Overview + detail drill-down, rendered as a Palabradex mode** — a part-of-speech overview (one
   section per POS: short explanation + example members + an example sentence), each expandable into
   detail: verb conjugation patterns, article gender/number, adjective agreement, pronoun sets, etc.
@@ -863,36 +866,45 @@ be conflated.
   _beside_ the per-user lexeme stats (its own `grammar` context + cache), never mixed into them. The
   UI just reads the active pair and requests (or pulls cached) grammar for that language.
 
-- [ ] **Palabradex mode switch (UI)** — add a mode toggle to
-      [PalabradexPage.tsx](src/pages/PalabradexPage.tsx) (e.g. "Your words" ⇄ "Language", as Tabs or
-      a `ToggleButtonGroup`, MD3, matching the existing sort-toggle pattern). "Your words" stays
-      today's `RootList`; "Language" renders the new grammar reference. Page stays thin per
-      [CLAUDE.md](CLAUDE.md) — new UI goes in [src/components/Palabradex/](src/components/Palabradex/).
-- [ ] **`grammar` bounded context** — `server/modules/grammar/` with the four layers
-      (`domain`/`application`/`persistence`/`controllers`); `application` orchestrates the Claude
-      call through `anthropicClientForUser` and asserts access + daily cap; response parsed via
-      [responseParser](server/infrastructure/claude/responseParser.ts) into a typed grammar model
-      (POS sections + example members + example sentence + drill-down blocks). Kept as its own
-      context — generated language-reference data, not part of the per-user palabradex persistence.
-- [ ] **Caching + schema** — persist generated grammar keyed by `(learnLanguage, locale)` (new
-      table via `npm run db:generate`, snapshot + journal per the migration rules in
-      [CLAUDE.md](CLAUDE.md)); `application` returns the cached row when present, else generates +
-      stores.
-- [ ] **`GET /api/grammar`** controller — resolves the requesting user's pair, returns cached-or-
-      generated grammar JSON for the active language; 403/429 surface the existing access/cap codes.
-- [ ] **API wrapper + hook** — `src/api/grammarApi.ts` on top of
-      [client.ts](src/api/client.ts) (no direct `fetch`); a `useGrammar` data hook in
-      [src/hooks/](src/hooks/) that reads `useLanguagePair().pair` and fetches when the Palabradex
-      "Language" mode is active / the pair changes.
-- [ ] **Grammar reference components** — a POS-overview + expandable-detail UI under
-      [src/components/Palabradex/](src/components/Palabradex/) (or a `Grammar/` subfolder there),
-      MD3-styled (theme tokens, `@emotion/styled`, [components/shared/](src/components/shared/)
-      loading/section cards) per [CLAUDE.md](CLAUDE.md). **No standalone `GrammarPage`, `/grammar`
-      route, or new sidebar item** — the reference lives at `/palabradex`, reusing the existing nav
-      entry.
-- [ ] **Language-change behaviour** — switching the learn language in Settings (or via the
-      Palabradex language tabs) re-fetches (or pulls the cached) grammar for the new language so the
-      "Language" mode always matches the active pair.
+- [x] **Palabradex mode switch (UI)** — `ToggleButtonGroup` ("Your words" ⇄ "Language") on
+      [PalabradexPage.tsx](src/pages/PalabradexPage.tsx); the page is now thin (mode state + heading +
+      toggle) and delegates each mode to a component — today's `RootList` view was extracted into
+      [WordCollection.tsx](src/components/Palabradex/WordCollection.tsx), and "Language" renders the
+      new grammar reference. The two data sources stay separate, never conflated.
+- [x] **`grammar` bounded context** — [server/modules/grammar/](server/modules/grammar/) with all
+      four layers. `application` ([getGrammarReference.ts](server/modules/grammar/application/getGrammarReference.ts))
+      orchestrates the Claude call on the operator key and asserts access + spend-pause + daily cap on
+      a cache miss; the prompt/parse live in
+      [generateGrammar.ts](server/modules/grammar/application/generateGrammar.ts) (cached system block,
+      `extractJsonText`), normalised by a pure domain function
+      ([GrammarReference.ts](server/modules/grammar/domain/GrammarReference.ts), unit-tested in
+      [normaliseGrammar.test.ts](server/modules/grammar/domain/normaliseGrammar.test.ts)). Its own
+      context — reference data, separate from the per-user palabradex persistence.
+- [x] **Caching + schema** — `grammar_references` table in
+      [schema.ts](server/infrastructure/db/schema.ts) keyed unique on
+      `(learnLanguage, guessLanguage, locale)` (see the cache-key note above), JSON `sections`
+      payload; migration `0025_worried_carnage` via `npm run db:generate` (sql + snapshot + journal).
+      [grammarRepository.ts](server/modules/grammar/persistence/grammarRepository.ts) returns the
+      cached row when present, else the use case generates + `onConflictDoNothing`-stores.
+- [x] **`GET /api/grammar`** controller
+      ([grammarController.ts](server/modules/grammar/controllers/grammarController.ts)) — validates the
+      requested pair (the client passes its active pair), returns cached-or-generated grammar JSON;
+      403/429/503 propagate to the shared errorHandler with their access/cap/spend codes.
+- [x] **API wrapper + hook** — [grammarApi.ts](src/api/grammarApi.ts) on
+      [client.ts](src/api/client.ts) (no direct `fetch`); [useGrammar.ts](src/hooks/useGrammar.ts)
+      reads `useLanguagePair().pair`, fetches on mount (the component only mounts in "Language" mode)
+      and refetches when the pair changes.
+- [x] **Grammar reference components** — a `Grammar/` subfolder under
+      [src/components/Palabradex/](src/components/Palabradex/):
+      [GrammarReference.tsx](src/components/Palabradex/Grammar/GrammarReference.tsx) (loading/error/empty
+      + section list), [GrammarPosCard.tsx](src/components/Palabradex/Grammar/GrammarPosCard.tsx)
+      (always-visible overview: explanation + member chips + example sentence; "Show forms" reveals the
+      detail), [GrammarDetailTable.tsx](src/components/Palabradex/Grammar/GrammarDetailTable.tsx)
+      (label→value drill-down table). MD3 theme tokens + `@emotion/styled`, no hardcoded colours, reuses
+      `components/shared/`. No standalone page/route/sidebar item — lives at `/palabradex`.
+- [x] **Language-change behaviour** — `useGrammar` keys on the active pair, so changing the learn
+      language in Settings re-fetches (cache hit on a revisit) and the "Language" mode always matches
+      the active pair.
 
 ---
 

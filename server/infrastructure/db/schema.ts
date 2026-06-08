@@ -15,6 +15,7 @@ import {
 import type { WordToken, WordGender } from '../../../shared/languages'
 import type { LevelCode } from '../../../shared/levels'
 import type { ThemeMode } from '../../../shared/appearance'
+import type { GrammarPosSection } from '../../../shared/grammar'
 
 // Denormalized snapshot of a graded attempt. Mirrors the correction `Mistake`
 // shape structurally so the DB layer stays free of module imports.
@@ -329,6 +330,28 @@ export const lexemeDefinitions = pgTable(
   ]
 )
 
+// Epic 19 — shared (cross-user) cache of the AI-generated grammar reference: the part-of-speech
+// "how the language is built" overview that backs the Palabradex "Language" mode. Keyed by
+// (learnLanguage, guessLanguage, locale) — member words + example sentences are in the learn
+// language, the explanations/translations in the guess language, and dialect comes from the locale,
+// so one row serves every learner on that triple (the same shared-reference philosophy as
+// `lexeme_definitions` and the sentence corpus). Reference data: no user FK. `sections` is the
+// `GrammarPosSection[]` payload; the row's columns carry the cache key.
+export const grammarReferences = pgTable(
+  'grammar_references',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    learnLanguage: text('learn_language').notNull(),
+    guessLanguage: text('guess_language').notNull(),
+    locale: text('locale').notNull(),
+    sections: json('sections').$type<GrammarPosSection[]>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('uq_grammar_references').on(table.learnLanguage, table.guessLanguage, table.locale),
+  ]
+)
+
 // Flash-card corpus — the shared, de-duplicated word deck. One row per (learnLanguage,
 // guessLanguage, locale, deckId, contentHash) so a card is generated once and served to every
 // learner on that slice (same philosophy as the `sentences` corpus). `lemma` is the word's
@@ -404,7 +427,12 @@ export const usageEvents = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     operation: text('operation')
       .$type<
-        'correction' | 'sentence_batch' | 'translation' | 'flashcard_grade' | 'flashcard_batch'
+        | 'correction'
+        | 'sentence_batch'
+        | 'translation'
+        | 'flashcard_grade'
+        | 'flashcard_batch'
+        | 'grammar'
       >()
       .notNull(),
     model: text('model').notNull(),
@@ -504,6 +532,8 @@ export type LexemeVariantStatsRow = typeof lexemeVariantStats.$inferSelect
 export type NewLexemeVariantStatsRow = typeof lexemeVariantStats.$inferInsert
 export type LexemeDefinitionRow = typeof lexemeDefinitions.$inferSelect
 export type NewLexemeDefinitionRow = typeof lexemeDefinitions.$inferInsert
+export type GrammarReferenceRow = typeof grammarReferences.$inferSelect
+export type NewGrammarReferenceRow = typeof grammarReferences.$inferInsert
 export type UsageDailyRow = typeof usageDaily.$inferSelect
 export type UsageEventRow = typeof usageEvents.$inferSelect
 export type NewUsageEventRow = typeof usageEvents.$inferInsert
