@@ -79,7 +79,7 @@
     "pronunciationTitle": "Aussprache",
     "pronunciationDesc": "Wähle die Stimme, die Sätze vorliest, und ob neue Sätze von selbst abgespielt werden. Verfügbare Stimmen hängen von deinem Gerät ab.",
     "streakTitle": "Serie",
-    "streakDesc": "Zählt aufeinanderfolgende Übungstage. Du kannst sie jederzeit ausschalten – kein Druck.",
+    "streakDesc": "Zählt aufeinanderfolgende Übungstage. Du kannst sie jederzeit ausschalten.",
     "trackMyStreak": "Meine Serie verfolgen",
     "streakSummary": "Aktuell: {{current}} · Längste: {{longest}}",
     "feedbackTitle": "Feedback",
@@ -116,7 +116,9 @@
     "levelAny": "Niveau: beliebig"
   },
   "streak": {
-    "indicatorAria": "{{count}}-Tage-Serie"
+    "indicatorAria": "{{count}}-Tage-Serie",
+    "days": "{{count}} Tage",
+    "best": "Bestens: {{count}}"
   },
   "metrics": {
     "yourMetrics": "Deine Statistiken",
@@ -184,7 +186,13 @@
         "mistake": ["Ganz knapp!", "Guter Versuch", "Nicht ganz!"]
       },
       "B": {
-        "success": ["Schöne Arbeit!", "Gut gemacht!", "Gute Arbeit!", "Weiter so!", "Fast geschafft!"],
+        "success": [
+          "Schöne Arbeit!",
+          "Gut gemacht!",
+          "Gute Arbeit!",
+          "Weiter so!",
+          "Fast geschafft!"
+        ],
         "mistake": [
           "Knapp! Das solltest du korrigieren",
           "Fast geschafft!",
@@ -194,7 +202,13 @@
         ]
       },
       "C": {
-        "success": ["Guter Einsatz!", "Nicht schlecht!", "Du kriegst es hin!", "Du machst Fortschritte!", "Weiter geht's!"],
+        "success": [
+          "Guter Einsatz!",
+          "Nicht schlecht!",
+          "Du kriegst es hin!",
+          "Du machst Fortschritte!",
+          "Weiter geht's!"
+        ],
         "mistake": ["Auf dem richtigen Weg", "Bleib dran!", "Fortschritt!", "Übe weiter!"]
       },
       "D": {

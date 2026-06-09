@@ -79,7 +79,7 @@
     "pronunciationTitle": "Pronunciation",
     "pronunciationDesc": "Choose the voice used to read sentences aloud, and whether new sentences play on their own. Available voices depend on your device.",
     "streakTitle": "Streak",
-    "streakDesc": "Count consecutive days you practice. Turn it off any time — no pressure.",
+    "streakDesc": "Count consecutive days you practice. Turn it off any time.",
     "trackMyStreak": "Track my streak",
     "streakSummary": "Current: {{current}} · Longest: {{longest}}",
     "feedbackTitle": "Feedback",
@@ -116,7 +116,9 @@
     "levelAny": "Level: any"
   },
   "streak": {
-    "indicatorAria": "{{count}}-day streak"
+    "indicatorAria": "{{count}}-day streak",
+    "days": "{{count}} days",
+    "best": "Best: {{count}}"
   },
   "metrics": {
     "yourMetrics": "Your metrics",
@@ -194,7 +196,13 @@
         ]
       },
       "C": {
-        "success": ["Good effort!", "Not bad!", "You're getting it!", "Making progress!", "Keep going!"],
+        "success": [
+          "Good effort!",
+          "Not bad!",
+          "You're getting it!",
+          "Making progress!",
+          "Keep going!"
+        ],
         "mistake": ["On the right track", "Keep at it!", "Progress!", "Keep practicing!"]
       },
       "D": {

@@ -79,7 +79,7 @@
     "pronunciationTitle": "Pronúncia",
     "pronunciationDesc": "Escolha a voz que lê as frases em voz alta e se as frases novas tocam sozinhas. As vozes disponíveis dependem do seu dispositivo.",
     "streakTitle": "Sequência",
-    "streakDesc": "Conta os dias seguidos que você pratica. Desative quando quiser, sem pressão.",
+    "streakDesc": "Conta os dias seguidos que você pratica. Desative quando quiser.",
     "trackMyStreak": "Acompanhar minha sequência",
     "streakSummary": "Atual: {{current}} · Mais longa: {{longest}}",
     "feedbackTitle": "Feedback",
@@ -116,7 +116,9 @@
     "levelAny": "Nível: qualquer"
   },
   "streak": {
-    "indicatorAria": "Sequência de {{count}} dias"
+    "indicatorAria": "Sequência de {{count}} dias",
+    "days": "{{count}} dias",
+    "best": "Recorde: {{count}}"
   },
   "metrics": {
     "yourMetrics": "Suas estatísticas",
@@ -184,7 +186,13 @@
         "mistake": ["Quase!", "Boa tentativa", "Não exatamente!"]
       },
       "B": {
-        "success": ["Bom trabalho!", "Muito bem!", "Mandou bem!", "Continue assim!", "Você quase conseguiu!"],
+        "success": [
+          "Bom trabalho!",
+          "Muito bem!",
+          "Mandou bem!",
+          "Continue assim!",
+          "Você quase conseguiu!"
+        ],
         "mistake": [
           "Perto! Veja o que corrigir",
           "Você quase conseguiu!",
@@ -194,7 +202,13 @@
         ]
       },
       "C": {
-        "success": ["Bom esforço!", "Nada mal!", "Você está pegando o jeito!", "Você está progredindo!", "Continue!"],
+        "success": [
+          "Bom esforço!",
+          "Nada mal!",
+          "Você está pegando o jeito!",
+          "Você está progredindo!",
+          "Continue!"
+        ],
         "mistake": ["No caminho certo", "Continue assim!", "Progresso!", "Continue praticando!"]
       },
       "D": {

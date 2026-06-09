@@ -79,7 +79,7 @@
     "pronunciationTitle": "Pronunciación",
     "pronunciationDesc": "Elige la voz que lee las frases en voz alta y si las frases nuevas se reproducen solas. Las voces disponibles dependen de tu dispositivo.",
     "streakTitle": "Racha",
-    "streakDesc": "Cuenta los días seguidos que practicas. Desactívala cuando quieras, sin presión.",
+    "streakDesc": "Cuenta los días seguidos que practicas. Desactívala cuando quieras.",
     "trackMyStreak": "Registrar mi racha",
     "streakSummary": "Actual: {{current}} · Más larga: {{longest}}",
     "feedbackTitle": "Comentarios",
@@ -116,7 +116,9 @@
     "levelAny": "Nivel: cualquiera"
   },
   "streak": {
-    "indicatorAria": "Racha de {{count}} días"
+    "indicatorAria": "Racha de {{count}} días",
+    "days": "{{count}} días",
+    "best": "Récord: {{count}}"
   },
   "metrics": {
     "yourMetrics": "Tus estadísticas",
@@ -194,7 +196,13 @@
         ]
       },
       "C": {
-        "success": ["¡Buen esfuerzo!", "¡Nada mal!", "¡Lo vas pillando!", "¡Vas progresando!", "¡Sigue así!"],
+        "success": [
+          "¡Buen esfuerzo!",
+          "¡Nada mal!",
+          "¡Lo vas pillando!",
+          "¡Vas progresando!",
+          "¡Sigue así!"
+        ],
         "mistake": ["Vas por buen camino", "¡Sigue así!", "¡Progreso!", "¡Sigue practicando!"]
       },
       "D": {

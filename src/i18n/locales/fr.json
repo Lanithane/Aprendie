@@ -79,7 +79,7 @@
     "pronunciationTitle": "Prononciation",
     "pronunciationDesc": "Choisissez la voix qui lit les phrases à voix haute et si les nouvelles phrases se lancent seules. Les voix disponibles dépendent de votre appareil.",
     "streakTitle": "Série",
-    "streakDesc": "Compte les jours consécutifs où vous pratiquez. Désactivez-la quand vous voulez, sans pression.",
+    "streakDesc": "Compte les jours consécutifs où vous pratiquez. Désactivez-la quand vous voulez.",
     "trackMyStreak": "Suivre ma série",
     "streakSummary": "Actuelle : {{current}} · Plus longue : {{longest}}",
     "feedbackTitle": "Commentaires",
@@ -116,7 +116,9 @@
     "levelAny": "Niveau : tous"
   },
   "streak": {
-    "indicatorAria": "Série de {{count}} jours"
+    "indicatorAria": "Série de {{count}} jours",
+    "days": "{{count}} jours",
+    "best": "Record : {{count}}"
   },
   "metrics": {
     "yourMetrics": "Vos statistiques",
@@ -184,7 +186,13 @@
         "mistake": ["Tout près !", "Bel essai", "Pas tout à fait !"]
       },
       "B": {
-        "success": ["Beau travail !", "Bravo !", "Bien joué !", "Continuez comme ça !", "Vous y êtes presque !"],
+        "success": [
+          "Beau travail !",
+          "Bravo !",
+          "Bien joué !",
+          "Continuez comme ça !",
+          "Vous y êtes presque !"
+        ],
         "mistake": [
           "Presque ! Voici ce qu'il faut corriger",
           "Vous y êtes presque !",
@@ -194,7 +202,13 @@
         ]
       },
       "C": {
-        "success": ["Bel effort !", "Pas mal !", "Vous y arrivez !", "Vous progressez !", "Continuez !"],
+        "success": [
+          "Bel effort !",
+          "Pas mal !",
+          "Vous y arrivez !",
+          "Vous progressez !",
+          "Continuez !"
+        ],
         "mistake": ["Sur la bonne voie", "Continuez !", "Du progrès !", "Continuez à pratiquer !"]
       },
       "D": {

@@ -79,7 +79,7 @@
     "pronunciationTitle": "Pronuncia",
     "pronunciationDesc": "Scegli la voce che legge le frasi ad alta voce e se le nuove frasi vengono riprodotte da sole. Le voci disponibili dipendono dal tuo dispositivo.",
     "streakTitle": "Serie",
-    "streakDesc": "Conta i giorni consecutivi in cui ti eserciti. Disattivala quando vuoi, senza pressioni.",
+    "streakDesc": "Conta i giorni consecutivi in cui ti eserciti. Disattivala quando vuoi.",
     "trackMyStreak": "Tieni traccia della mia serie",
     "streakSummary": "Attuale: {{current}} · Più lunga: {{longest}}",
     "feedbackTitle": "Feedback",
@@ -116,7 +116,9 @@
     "levelAny": "Livello: qualsiasi"
   },
   "streak": {
-    "indicatorAria": "Serie di {{count}} giorni"
+    "indicatorAria": "Serie di {{count}} giorni",
+    "days": "{{count}} giorni",
+    "best": "Massimo: {{count}}"
   },
   "metrics": {
     "yourMetrics": "Le tue statistiche",
@@ -194,16 +196,37 @@
         ]
       },
       "C": {
-        "success": ["Bell'impegno!", "Niente male!", "Ci stai prendendo la mano!", "Stai migliorando!", "Continua!"],
-        "mistake": ["Sulla strada giusta", "Continua così!", "Progressi!", "Continua a esercitarti!"]
+        "success": [
+          "Bell'impegno!",
+          "Niente male!",
+          "Ci stai prendendo la mano!",
+          "Stai migliorando!",
+          "Continua!"
+        ],
+        "mistake": [
+          "Sulla strada giusta",
+          "Continua così!",
+          "Progressi!",
+          "Continua a esercitarti!"
+        ]
       },
       "D": {
         "success": ["Continua così!", "Non mollare!", "Tieni duro!", "Continua a spingere!"],
-        "mistake": ["Sulla strada giusta", "Continua così!", "Progressi!", "Continua a esercitarti!"]
+        "mistake": [
+          "Sulla strada giusta",
+          "Continua così!",
+          "Progressi!",
+          "Continua a esercitarti!"
+        ]
       },
       "F": {
         "success": ["Non mollare!", "Continua così!"],
-        "mistake": ["Sulla strada giusta", "Continua così!", "Progressi!", "Continua a esercitarti!"]
+        "mistake": [
+          "Sulla strada giusta",
+          "Continua così!",
+          "Progressi!",
+          "Continua a esercitarti!"
+        ]
       }
     }
   },
