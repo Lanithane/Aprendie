@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { styled, useTheme } from '@mui/material/styles'
 import { Box, useMediaQuery, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material'
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
+import MenuIcon from '@mui/icons-material/Menu'
 import { useAuth } from '../../auth/AuthContext'
 import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed'
 import { useScrollToTop } from '../../hooks/useScrollToTop'
@@ -136,7 +136,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <BottomNavigationAction
                 aria-label={t('nav.more')}
                 value={MORE_VALUE}
-                icon={<MoreHorizIcon />}
+                icon={<MenuIcon />}
                 onClick={() => setMoreOpen(true)}
               />
             </BottomNavigation>
