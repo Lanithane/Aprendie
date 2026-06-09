@@ -47,9 +47,7 @@ export default function LoginPage() {
       <LoginContent spacing={2}>
         <BrandWordmark size='login' />
         {sessionExpired && (
-          <SessionExpiredAlert severity='info'>
-            {t('login.sessionExpired')}
-          </SessionExpiredAlert>
+          <SessionExpiredAlert severity='info'>{t('login.sessionExpired')}</SessionExpiredAlert>
         )}
         <TaglineText>{t('login.tagline')}</TaglineText>
         <Button
