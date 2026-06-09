@@ -19,7 +19,7 @@ const TRANSLATOR_NAV_ITEM = {
   Icon: BangIcon,
 } as const
 
-// The four items that appear in the primary bar everywhere (bottom nav on mobile, top of sidebar on desktop).
+// The four items that appear in the mobile bottom nav.
 export const PRIMARY_NAV_ITEMS = [
   { to: '/', labelKey: 'nav.practice', Icon: HomeIcon },
   { to: '/flashcards', labelKey: 'nav.flashcards', Icon: StyleIcon },
@@ -27,12 +27,20 @@ export const PRIMARY_NAV_ITEMS = [
   { to: '/history', labelKey: 'nav.history', Icon: HistoryIcon },
 ] as const
 
+// Desktop sidebar primary section: same as mobile bottom nav plus Translate.
+export const SIDEBAR_PRIMARY_NAV_ITEMS = [...PRIMARY_NAV_ITEMS, TRANSLATOR_NAV_ITEM] as const
+
 // Items surfaced in the "More" drawer on mobile and below the divider on desktop sidebar.
 // Admin is inserted before Settings when the user is an admin.
 export function buildMoreItems(isAdmin: boolean) {
   return isAdmin
     ? ([TRANSLATOR_NAV_ITEM, ADMIN_NAV_ITEM, SETTINGS_NAV_ITEM] as const)
     : ([TRANSLATOR_NAV_ITEM, SETTINGS_NAV_ITEM] as const)
+}
+
+// Desktop sidebar bottom rail: Admin (if applicable) + Settings. Translate lives in primary instead.
+export function buildSidebarMoreItems(isAdmin: boolean) {
+  return isAdmin ? ([ADMIN_NAV_ITEM, SETTINGS_NAV_ITEM] as const) : ([SETTINGS_NAV_ITEM] as const)
 }
 
 // Full flat list (sidebar rendering, active-path detection).

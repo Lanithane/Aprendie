@@ -19,11 +19,13 @@ import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined'
 import { styled } from '@mui/material/styles'
 import { useAuth } from '../../auth/AuthContext'
 import { useFeedback } from '../Feedback/FeedbackProvider'
-import { useShowback } from '../../hooks/useShowback'
-import ContributeSection from '../Contribute/ContributeSection'
 import { useViewportCenterY } from '../../hooks/useViewportCenterY'
 import BrandWordmark from '../Brand/BrandWordmark'
-import { PRIMARY_NAV_ITEMS, buildMoreItems, isActiveRoute } from '../AppShell/navigation'
+import {
+  SIDEBAR_PRIMARY_NAV_ITEMS,
+  buildSidebarMoreItems,
+  isActiveRoute,
+} from '../AppShell/navigation'
 
 interface SidebarProps {
   collapsed: boolean
@@ -100,13 +102,12 @@ export default function Sidebar({
   const { t } = useTranslation()
   const { user, isAdmin } = useAuth()
   const { openFeedback } = useFeedback()
-  const { showback } = useShowback(user?.id)
   const loc = useLocation()
 
   const bottomDividerRef = useRef<HTMLHRElement>(null)
   const toggleTop = useViewportCenterY(bottomDividerRef, [!!user, isAdmin])
 
-  const moreItems = buildMoreItems(isAdmin)
+  const moreItems = buildSidebarMoreItems(isAdmin)
 
   const width = collapsed ? widthCollapsed : widthExpanded
   const showLabels = !collapsed
@@ -124,7 +125,7 @@ export default function Sidebar({
       <HeaderRow>{showLabels && <BrandWordmark size='sidebar' />}</HeaderRow>
       <Divider />
       <List>
-        {PRIMARY_NAV_ITEMS.map(({ to, labelKey, Icon }) => (
+        {SIDEBAR_PRIMARY_NAV_ITEMS.map(({ to, labelKey, Icon }) => (
           <ListItem key={to} disablePadding>
             <Tooltip title={!showLabels ? t(labelKey) : ''} placement='right'>
               <ListItemButton
@@ -144,9 +145,22 @@ export default function Sidebar({
       </List>
 
       <BottomRail>
-        <ContributeSection showback={showback} showLabels={showLabels} />
         <Divider ref={bottomDividerRef} />
         <List>
+          <ListItem disablePadding>
+            <Tooltip title={!showLabels ? t('sidebar.sendFeedback') : ''} placement='right'>
+              <ListItemButton
+                sx={navSx(!showLabels)}
+                onClick={openFeedback}
+                aria-label={t('sidebar.sendFeedback')}
+              >
+                <ListItemIcon>
+                  <FeedbackOutlinedIcon />
+                </ListItemIcon>
+                {showLabels && <ListItemText primary={t('sidebar.feedback')} />}
+              </ListItemButton>
+            </Tooltip>
+          </ListItem>
           {moreItems.map(({ to, labelKey, Icon }) => (
             <ListItem key={to} disablePadding>
               <Tooltip title={!showLabels ? t(labelKey) : ''} placement='right'>
@@ -164,20 +178,6 @@ export default function Sidebar({
               </Tooltip>
             </ListItem>
           ))}
-          <ListItem disablePadding>
-            <Tooltip title={!showLabels ? t('sidebar.sendFeedback') : ''} placement='right'>
-              <ListItemButton
-                sx={navSx(!showLabels)}
-                onClick={openFeedback}
-                aria-label={t('sidebar.sendFeedback')}
-              >
-                <ListItemIcon>
-                  <FeedbackOutlinedIcon />
-                </ListItemIcon>
-                {showLabels && <ListItemText primary={t('sidebar.feedback')} />}
-              </ListItemButton>
-            </Tooltip>
-          </ListItem>
         </List>
       </BottomRail>
     </StyledDrawer>
