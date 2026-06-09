@@ -1,22 +1,57 @@
-import { Alert, Button, Container, Stack, Typography } from '@mui/material'
+import { Alert, Button, Container, Stack, styled, Typography } from '@mui/material'
 import GoogleIcon from '@mui/icons-material/Google'
 import { useTranslation } from 'react-i18next'
 import BrandWordmark from '../components/Brand/BrandWordmark'
 import { useAuth } from '../auth/AuthContext'
 
+const LoginContainer = styled(Container)(({ theme }) => ({
+  minHeight: '100dvh',
+  paddingTop: theme.spacing(10),
+  display: 'flex',
+  flexDirection: 'column',
+  [theme.breakpoints.up('sm')]: {
+    paddingTop: theme.spacing(14),
+  },
+}))
+
+const LoginContent = styled(Stack)`
+  align-items: center;
+  text-align: center;
+`
+
+const SessionExpiredAlert = styled(Alert)`
+  width: 100%;
+`
+
+const TaglineText = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+}))
+
+const AnthropicAttribution = styled('div')`
+  width: 100%;
+  margin-top: auto;
+  padding-bottom: ${({ theme }) => theme.spacing(1)};
+  text-align: center;
+`
+
+const PoweredByText = styled(Typography)`
+  color: #d97757;
+  opacity: 0.9;
+`
+
 export default function LoginPage() {
   const { t } = useTranslation()
   const { sessionExpired } = useAuth()
   return (
-    <Container maxWidth='xs' sx={{ pt: { xs: 10, sm: 14 } }}>
-      <Stack spacing={2} sx={{ alignItems: 'center', textAlign: 'center' }}>
+    <LoginContainer maxWidth='xs'>
+      <LoginContent spacing={2}>
         <BrandWordmark size='login' />
         {sessionExpired && (
-          <Alert severity='info' sx={{ width: '100%' }}>
+          <SessionExpiredAlert severity='info'>
             {t('login.sessionExpired')}
-          </Alert>
+          </SessionExpiredAlert>
         )}
-        <Typography color='text.secondary'>{t('login.tagline')}</Typography>
+        <TaglineText>{t('login.tagline')}</TaglineText>
         <Button
           variant='contained'
           size='large'
@@ -26,10 +61,10 @@ export default function LoginPage() {
         >
           {t('login.signInGoogle')}
         </Button>
-        <Typography variant='caption' color='text.secondary'>
-          {t('login.poweredBy')}
-        </Typography>
-      </Stack>
-    </Container>
+      </LoginContent>
+      <AnthropicAttribution>
+        <PoweredByText variant='caption'>{t('login.poweredBy')}</PoweredByText>
+      </AnthropicAttribution>
+    </LoginContainer>
   )
 }
