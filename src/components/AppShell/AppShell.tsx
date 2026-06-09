@@ -121,7 +121,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <BottomNavigation
               value={bottomNavValue}
               aria-label={t('appShell.primaryNavigation')}
-              sx={{ '& .MuiBottomNavigationAction-label': { display: 'none' } }}
+              sx={{
+                '& .MuiBottomNavigationAction-label': { display: 'none' },
+                '& .MuiSvgIcon-root': { fontSize: '1.75rem' },
+                pb: 0.5,
+              }}
             >
               {PRIMARY_NAV_ITEMS.map(({ to, labelKey, Icon }) => (
                 <BottomNavigationAction
