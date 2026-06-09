@@ -1,0 +1,350 @@
+{
+  "common": {
+    "tryAgain": "Tentar de novo",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "next": "Próximo",
+    "back": "Voltar",
+    "close": "Fechar",
+    "loading": "Carregando…",
+    "loadingAria": "Carregando",
+    "light": "Claro",
+    "dark": "Escuro",
+    "system": "Sistema",
+    "anyLevel": "Qualquer nível",
+    "dayCount_one": "{{count}} dia",
+    "dayCount_other": "{{count}} dias"
+  },
+  "languages": {
+    "en": "Inglês",
+    "es": "Espanhol",
+    "fr": "Francês",
+    "de": "Alemão",
+    "it": "Italiano",
+    "pt": "Português"
+  },
+  "languagePicker": {
+    "wantToLearn": "Quero aprender",
+    "region": "Região",
+    "translateInto": "Traduzir para",
+    "orTypePlace": "Ou digite um lugar",
+    "placeExample": "ex.: Buenos Aires",
+    "detect": "Detectar",
+    "detecting": "Detectando…",
+    "regionHelp": "Escolhe a melhor variante regional para o idioma que você está aprendendo."
+  },
+  "onboarding": {
+    "welcome": "Bem-vindo ao Aprendie",
+    "intro": "Conte o que você quer praticar e deixaremos suas primeiras frases prontas.",
+    "practiceTitle": "Sua prática",
+    "practiceDesc": "Você pode mudar tudo isso depois nas Configurações.",
+    "difficultyLevel": "Nível de dificuldade",
+    "voiceNote": "Salvo neste dispositivo. As vozes disponíveis dependem das que estão instaladas.",
+    "start": "Começar a praticar"
+  },
+  "nav": {
+    "practice": "Praticar",
+    "flashcards": "Cartões",
+    "history": "Histórico",
+    "palabradex": "Palabradex",
+    "translate": "Traduzir",
+    "settings": "Configurações",
+    "admin": "Admin"
+  },
+  "appShell": {
+    "skipToContent": "Pular para o conteúdo",
+    "primaryNavigation": "Navegação principal"
+  },
+  "sidebar": {
+    "expand": "Expandir barra lateral",
+    "collapse": "Recolher barra lateral",
+    "feedback": "Feedback",
+    "sendFeedback": "Enviar feedback",
+    "signOut": "Sair",
+    "modeLight": "Modo claro (clique para alternar)",
+    "modeDark": "Modo escuro (clique para alternar)",
+    "modeSystem": "Modo do sistema (clique para alternar)"
+  },
+  "settings": {
+    "title": "Configurações",
+    "appearanceTitle": "Aparência",
+    "appearanceDesc": "Escolha um tema de cor e sua preferência de claro/escuro. Todos os temas se adaptam aos dois.",
+    "modeAria": "Modo claro ou escuro",
+    "languagesTitle": "Idiomas",
+    "languagesDesc": "Escolha o que aprender, sua variante regional e o idioma em que você responde.",
+    "difficultyTitle": "Nível de dificuldade",
+    "difficultyDesc": "Controla a complexidade das frases. Você também pode mudar isso no cartão de prática.",
+    "level": "Nível",
+    "pronunciationTitle": "Pronúncia",
+    "pronunciationDesc": "Escolha a voz que lê as frases em voz alta e se as frases novas tocam sozinhas. As vozes disponíveis dependem do seu dispositivo.",
+    "streakTitle": "Sequência",
+    "streakDesc": "Conta os dias seguidos que você pratica. Desative quando quiser, sem pressão.",
+    "trackMyStreak": "Acompanhar minha sequência",
+    "streakSummary": "Atual: {{current}} · Mais longa: {{longest}}",
+    "feedbackTitle": "Feedback",
+    "feedbackDesc": "Achou um bug ou tem uma ideia? Envie direto para a equipe.",
+    "sendFeedback": "Enviar feedback",
+    "accountTitle": "Conta",
+    "signOut": "Sair",
+    "colorTheme": "Tema de cor"
+  },
+  "voicePicker": {
+    "unsupported": "Seu navegador não oferece suporte à síntese de voz, então as vozes não estão disponíveis aqui.",
+    "noVoices": "Nenhuma voz de {{language}} está instalada neste dispositivo. As configurações de voz do seu sistema controlam quais estão disponíveis.",
+    "voiceLabel": "Voz de {{language}}",
+    "automatic": "Automática",
+    "preview": "Testar voz",
+    "previewAria": "Testar a voz de {{language}}"
+  },
+  "autoSpeak": {
+    "toggle": "Ler cada nova frase em voz alta automaticamente",
+    "delay": "Atraso antes de tocar: {{seconds}} s",
+    "none": "Nenhum"
+  },
+  "levels": {
+    "starter": "Nível inicial",
+    "a1": "Nível iniciante",
+    "a2": "Nível elementar",
+    "b1": "Nível intermediário",
+    "b2": "Nível intermediário superior",
+    "c1": "Nível avançado",
+    "c2": "Nível de proficiência",
+    "starterShort": "Inicial"
+  },
+  "home": {
+    "levelAny": "Nível: qualquer"
+  },
+  "streak": {
+    "indicatorAria": "Sequência de {{count}} dias"
+  },
+  "metrics": {
+    "yourMetrics": "Suas estatísticas",
+    "attempts": "Tentativas",
+    "accuracy": "Precisão",
+    "overTime": "Tentativas e precisão ao longo do tempo",
+    "noData": "Ainda não há dados.",
+    "rangeAll": "Tudo",
+    "range1w": "1sem",
+    "range1d": "1d"
+  },
+  "contribute": {
+    "cardTitle": "Uso e contribuição",
+    "cardDesc": "O Aprendie é gratuito, não se preocupe! Mas aqui estão algumas formas de contribuir, se você quiser.",
+    "spentSoFar": "Gasto até agora · ~{{water}} de água (estimado)",
+    "offsetFootprint": "Compensar pegada hídrica",
+    "support": "Apoiar o desenvolvedor",
+    "usage": "Uso",
+    "usageSoFar": "Uso até agora: {{usd}}, ~{{water}} de água.",
+    "reassurance": "Não se preocupe, o Aprendie é gratuito! Mas agradecemos qualquer doação.",
+    "waterAmount": "~{{water}} H₂O",
+    "offsetWater": "Compensar consumo de água"
+  },
+  "login": {
+    "sessionExpired": "Sua sessão expirou após 30 dias de inatividade. Faça login novamente.",
+    "tagline": "Pratique traduzindo frases e receba correções instantâneas e amigáveis.",
+    "signInGoogle": "Entrar com o Google",
+    "poweredBy": "Desenvolvido com Anthropic AI"
+  },
+  "practice": {
+    "shuffle": "Aleatório",
+    "shuffleAll": "Misturar todos os temas",
+    "topic": "Tema de prática",
+    "translateTo": "Traduza para {{language}}…",
+    "answerAria": "Sua tradução para {{language}}",
+    "submit": "Enviar",
+    "checking": "Verificando"
+  },
+  "correction": {
+    "perfect": "Perfeito!",
+    "checkingAnswer": "Verificando sua resposta…",
+    "yourAnswer": "Sua resposta",
+    "correct": "Correto",
+    "suggested": "Sugerida",
+    "mistakes": "Erros",
+    "tip": "Dica",
+    "next": "Próximo ›",
+    "resultTitles": {
+      "A+": {
+        "success": [
+          "Impecável!",
+          "Perfeito!",
+          "Acertou em cheio!",
+          "Ouro puro!",
+          "Não dá pra fazer melhor!",
+          "Magistral!",
+          "Exato!",
+          "Brilhante!",
+          "É assim que se faz."
+        ],
+        "mistake": ["Quase!", "Quase perfeito!", "Você quase conseguiu!"]
+      },
+      "A": {
+        "success": ["Excelente!", "Muito bem!", "Ótimo trabalho!", "Impressionante!"],
+        "mistake": ["Quase!", "Boa tentativa", "Não exatamente!"]
+      },
+      "B": {
+        "success": ["Bom trabalho!", "Muito bem!", "Mandou bem!", "Continue assim!", "Você quase conseguiu!"],
+        "mistake": [
+          "Perto! Veja o que corrigir",
+          "Você quase conseguiu!",
+          "Falta pouco!",
+          "Você está no caminho certo",
+          "Bom esforço!"
+        ]
+      },
+      "C": {
+        "success": ["Bom esforço!", "Nada mal!", "Você está pegando o jeito!", "Você está progredindo!", "Continue!"],
+        "mistake": ["No caminho certo", "Continue assim!", "Progresso!", "Continue praticando!"]
+      },
+      "D": {
+        "success": ["Continue assim!", "Não desista!", "Aguente firme!", "Continue se esforçando!"],
+        "mistake": ["No caminho certo", "Continue assim!", "Progresso!", "Continue praticando!"]
+      },
+      "F": {
+        "success": ["Não desista!", "Continue assim!"],
+        "mistake": ["No caminho certo", "Continue assim!", "Progresso!", "Continue praticando!"]
+      }
+    }
+  },
+  "sentence": {
+    "wordAria": "Mostrar a forma de dicionário e a gramática de {{word}}"
+  },
+  "history": {
+    "title": "Histórico",
+    "empty": "Ainda não há histórico. Conclua uma frase para vê-la aqui.",
+    "emptySelection": "Nenhum histórico para esta seleção.",
+    "loadMore": "Carregar mais",
+    "level": "Nível",
+    "all": "Todos",
+    "sort": "Ordenar",
+    "newest": "Mais recentes primeiro",
+    "mostMistakes": "Mais erros primeiro",
+    "attemptsShown_one": "{{count}} tentativa exibida",
+    "attemptsShown_other": "{{count}} tentativas exibidas",
+    "attemptsTotal_one": "{{count}} tentativa no total",
+    "attemptsTotal_other": "{{count}} tentativas no total",
+    "toggleDetails": "Mostrar ou ocultar detalhes da tentativa",
+    "sentenceLabel": "Frase"
+  },
+  "grade": {
+    "aria": "Nota {{grade}}"
+  },
+  "feedback": {
+    "title": "Enviar feedback",
+    "subtitle": "Ideias, bugs ou só um oi! Tudo ajuda a moldar o Aprendie.",
+    "categoryAria": "Categoria de feedback",
+    "catIdea": "Ideia",
+    "catBug": "Bug",
+    "catPraise": "Elogio",
+    "catOther": "Outro",
+    "messageLabel": "Sua mensagem",
+    "emptyError": "Escreva uma mensagem breve primeiro.",
+    "sendError": "Não foi possível enviar o feedback. Tente novamente.",
+    "sending": "Enviando…",
+    "send": "Enviar",
+    "thanks": "Obrigado pelo seu feedback!"
+  },
+  "flashcards": {
+    "allDecks": "← Todos os baralhos",
+    "chooseDeck": "Escolha um baralho",
+    "typeMeaning": "Digite o significado",
+    "check": "Verificar",
+    "youTyped": "Você digitou: {{answer}}",
+    "notGenerated": "Ainda não gerado",
+    "cardsCount_one": "{{count}} cartão",
+    "cardsCount_other": "{{count}} cartões",
+    "seenProgress": "{{seen}} / {{total}} vistos",
+    "toReview_one": "{{count}} para revisar",
+    "toReview_other": "{{count}} para revisar",
+    "complete": "Concluído",
+    "struggling_one": "{{count}} com dificuldade",
+    "struggling_other": "{{count}} com dificuldade"
+  },
+  "listen": {
+    "playbackSpeed": "Velocidade de reprodução",
+    "speedAria": "Velocidade de reprodução: {{rate}}×",
+    "stop": "Parar",
+    "listen": "Ouvir",
+    "stopAria": "Parar a leitura da frase em voz alta",
+    "listenAria": "Ler a frase em voz alta",
+    "slow": "Lenta",
+    "fast": "Rápida",
+    "rateAria": "Velocidade da voz"
+  },
+  "preparing": {
+    "title": "Preparando suas primeiras frases…",
+    "subtitle": "Isso leva só alguns segundos na primeira vez."
+  },
+  "translator": {
+    "translating": "Traduzindo…",
+    "swapAria": "Inverter a direção da tradução (atualmente {{source}} para {{target}})",
+    "inputAria": "Texto em {{language}}",
+    "inputPlaceholder": "Digite algo em {{language}}…"
+  },
+  "palabradex": {
+    "wordsTitle": "Coleção de palavras",
+    "grammarTitle": "Gramática de {{language}}",
+    "wordsDesc": "Cada palavra raiz que você encontrou, com a frequência de acertos.",
+    "grammarDesc": "Os blocos de construção do idioma que você está aprendendo.",
+    "yourWords": "Suas palavras",
+    "language": "Idioma",
+    "sort": "Ordenar",
+    "sortSeen": "Mais vistas",
+    "sortIncorrect": "Mais erros",
+    "sortAlpha": "A–Z",
+    "emptyWords": "Ainda não há palavras. Conclua uma frase para começar sua coleção.",
+    "emptyLanguage": "Ainda não há palavras para este idioma.",
+    "emptyGrammar": "Ainda não há referência gramatical para este idioma.",
+    "rootCount_one": "{{count}} palavra raiz",
+    "rootCount_other": "{{count}} palavras raiz",
+    "toggleAria": "Mostrar ou ocultar detalhes de {{lemma}}",
+    "seenTimes": "vista {{count}}×",
+    "percentCorrectAria": "{{pct}}% correto",
+    "loadingDefinition": "Carregando definição…",
+    "definitionUnavailable": "Definição indisponível.",
+    "correctCount": "{{count}} corretas",
+    "incorrectCount": "{{count}} incorretas",
+    "noForms": "Ainda não há formas registradas.",
+    "example": "Exemplo",
+    "showForms": "Mostrar formas",
+    "hideForms": "Ocultar formas"
+  },
+  "accessGate": {
+    "blockedTitle": "Acesso bloqueado",
+    "pendingTitle": "Sua conta está aguardando aprovação",
+    "blockedDetail": "O acesso à prática foi desativado para esta conta. Se você acha que isso é um engano, entre em contato com a pessoa que administra este aplicativo.",
+    "pendingDetail": "Obrigado por entrar! A prática é liberada assim que um operador aprovar sua conta. Volte e atualize daqui a pouco. Seu lugar está guardado.",
+    "signedInAs": "Conectado como {{email}}"
+  },
+  "dailyCap": {
+    "atCapTitle": "Esse é o limite de hoje",
+    "nearCapTitle": "Você está chegando ao seu limite diário",
+    "atCapDetail": "Você usou todas as {{cap}} frases avaliadas de hoje. Reinicia à meia-noite UTC.",
+    "remaining_one": "Resta {{count}} de {{cap}} frase avaliada hoje.",
+    "remaining_other": "Restam {{count}} de {{cap}} frases avaliadas hoje."
+  },
+  "categories": {
+    "animals": "Animais e natureza",
+    "arts": "Arte e mídia",
+    "city": "Vida urbana",
+    "clothes": "Roupas",
+    "routine": "Rotina diária",
+    "environment": "Meio ambiente",
+    "family": "Família",
+    "feelings": "Sentimentos",
+    "food": "Comida e restaurantes",
+    "greetings": "Saudações",
+    "health": "Saúde",
+    "hobbies": "Passatempos",
+    "holidays": "Férias",
+    "home": "Casa",
+    "numbers": "Números e tempo",
+    "future": "Planos e futuro",
+    "shopping": "Compras e dinheiro",
+    "sports": "Esportes",
+    "technology": "Tecnologia",
+    "travel": "Viagens",
+    "weather": "Clima",
+    "work": "Trabalho e estudo"
+  }
+}

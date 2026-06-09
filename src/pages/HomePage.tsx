@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Alert, Box, Button, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import PracticeCard from '../components/PracticeCard/PracticeCard'
 import HomeTopBar from '../components/HomeTopBar/HomeTopBar'
 import LevelSelectButton from '../components/HomeTopBar/LevelSelectButton'
@@ -36,6 +37,7 @@ const Stage = styled('div')`
 `
 
 export default function HomePage() {
+  const { t } = useTranslation()
   const { user, isApproved, bootstrapSentence, consumeBootstrap } = useAuth()
   const { pair } = useLanguagePair()
   const { pref: level, setPref: setLevel } = useLevelPreference()
@@ -105,7 +107,7 @@ export default function HomePage() {
               setPendingAnswer(null)
             }}
           >
-            Try again
+            {t('common.tryAgain')}
           </Button>
         </Stack>
       </Stage>

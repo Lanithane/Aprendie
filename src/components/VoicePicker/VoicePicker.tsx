@@ -9,10 +9,11 @@ import {
   Tooltip,
 } from '@mui/material'
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded'
+import { useTranslation } from 'react-i18next'
 import { useSpeech } from '../../hooks/useSpeech'
 import { useSpeechVoice } from '../../hooks/useSpeechVoice'
 import { useLanguagePair } from '../../hooks/useLanguagePair'
-import { languageName, type LanguageCode, type LocaleCode } from '../../../shared/languages'
+import { type LanguageCode, type LocaleCode } from '../../../shared/languages'
 
 interface VoicePickerProps {
   // Override the language/locale to pick voices for. Defaults to the saved pair; the onboarding
@@ -37,17 +38,18 @@ const SAMPLES: Record<string, string> = {
 // from the browser/OS (Web Speech API), so the list varies per device; we only surface voices
 // that speak the active learn language. "Automatic" defers to locale-based selection.
 export default function VoicePicker({ locale, learnLanguage, size = 'small' }: VoicePickerProps) {
+  const { t } = useTranslation()
   const { pair } = useLanguagePair()
   const { voices, speak, supported } = useSpeech()
   const { voiceURI, setVoiceURI } = useSpeechVoice()
 
   const effectiveLocale = locale ?? pair.locale
-  const learnName = languageName(learnLanguage ?? pair.learnLanguage)
+  const learnName = t(`languages.${learnLanguage ?? pair.learnLanguage}`)
 
   if (!supported) {
     return (
       <Typography variant='body2' color='text.secondary'>
-        Your browser doesn’t support speech synthesis, so voices aren’t available here.
+        {t('voicePicker.unsupported')}
       </Typography>
     )
   }
@@ -60,8 +62,7 @@ export default function VoicePicker({ locale, learnLanguage, size = 'small' }: V
   if (available.length === 0) {
     return (
       <Typography variant='body2' color='text.secondary'>
-        No {learnName} voices are installed on this device. Your system’s voice settings control
-        which ones are available.
+        {t('voicePicker.noVoices', { language: learnName })}
       </Typography>
     )
   }
@@ -74,14 +75,16 @@ export default function VoicePicker({ locale, learnLanguage, size = 'small' }: V
   return (
     <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
       <FormControl size={size} sx={{ minWidth: 240, flex: 1 }}>
-        <InputLabel id='voice-picker-label'>{learnName} voice</InputLabel>
+        <InputLabel id='voice-picker-label'>
+          {t('voicePicker.voiceLabel', { language: learnName })}
+        </InputLabel>
         <Select
           labelId='voice-picker-label'
-          label={`${learnName} voice`}
+          label={t('voicePicker.voiceLabel', { language: learnName })}
           value={selectValue}
           onChange={(e) => setVoiceURI(e.target.value || null)}
         >
-          <MenuItem value=''>Automatic</MenuItem>
+          <MenuItem value=''>{t('voicePicker.automatic')}</MenuItem>
           {available.map((v) => (
             <MenuItem key={v.voiceURI} value={v.voiceURI}>
               {v.name} ({v.lang})
@@ -89,11 +92,11 @@ export default function VoicePicker({ locale, learnLanguage, size = 'small' }: V
           ))}
         </Select>
       </FormControl>
-      <Tooltip title='Preview voice'>
+      <Tooltip title={t('voicePicker.preview')}>
         <IconButton
           color='primary'
           onClick={() => speak(sample, effectiveLocale)}
-          aria-label={`Preview the ${learnName} voice`}
+          aria-label={t('voicePicker.previewAria', { language: learnName })}
         >
           <PlayArrowRoundedIcon />
         </IconButton>

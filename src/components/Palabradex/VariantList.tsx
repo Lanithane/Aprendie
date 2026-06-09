@@ -1,5 +1,6 @@
 import { Box, Chip, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import type { VariantStatsDto } from '../../api/palabradexApi'
 import type { LanguageCode } from '../../../shared/languages'
 
@@ -19,10 +20,11 @@ interface VariantListProps {
 
 // The variant grain: every inflected surface of a root with its own seen count.
 export default function VariantList({ variants, learnLanguage }: VariantListProps) {
+  const { t } = useTranslation()
   if (variants.length === 0) {
     return (
       <Typography variant='body2' color='text.secondary'>
-        No recorded forms yet.
+        {t('palabradex.noForms')}
       </Typography>
     )
   }
@@ -39,7 +41,7 @@ export default function VariantList({ variants, learnLanguage }: VariantListProp
           <Chip
             size='small'
             variant='outlined'
-            label={`seen ${v.seenCount}×`}
+            label={t('palabradex.seenTimes', { count: v.seenCount })}
             sx={{ flexShrink: 0 }}
           />
         </VariantRow>

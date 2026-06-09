@@ -10,17 +10,21 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { usePalabradex } from '../../hooks/usePalabradex'
 import { usePalabradexLanguages } from '../../hooks/usePalabradexLanguages'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import RootList from './RootList'
-import { LANGUAGES, type LanguageCode, type LanguagePair } from '../../../shared/languages'
+import { type LanguageCode, type LanguagePair } from '../../../shared/languages'
 import type { LexemeSort } from '../../api/palabradexApi'
 
-const SORT_LABELS: Record<LexemeSort, string> = {
-  seen: 'Most seen',
-  incorrect: 'Most mistakes',
-  alpha: 'A–Z',
+const SORT_KEYS: Record<
+  LexemeSort,
+  'palabradex.sortSeen' | 'palabradex.sortIncorrect' | 'palabradex.sortAlpha'
+> = {
+  seen: 'palabradex.sortSeen',
+  incorrect: 'palabradex.sortIncorrect',
+  alpha: 'palabradex.sortAlpha',
 }
 
 interface WordCollectionProps {
@@ -32,6 +36,7 @@ interface WordCollectionProps {
 // the learner has actually met words in) and a sort toggle. This is the personal data source —
 // deliberately distinct from the language-scoped grammar reference shown in "Language" mode.
 export default function WordCollection({ userId, pair }: WordCollectionProps) {
+  const { t } = useTranslation()
   const { languages, loading: langsLoading } = usePalabradexLanguages(userId)
   const [selectedLang, setSelectedLang] = useState<LanguageCode | null>(null)
   const [sort, setSort] = useState<LexemeSort>('seen')
@@ -52,11 +57,7 @@ export default function WordCollection({ userId, pair }: WordCollectionProps) {
   if (langsLoading) return <LoadingSpinner />
 
   if (languages.length === 0) {
-    return (
-      <Typography color='text.secondary'>
-        No words yet. Finish a sentence to start your collection.
-      </Typography>
-    )
+    return <Typography color='text.secondary'>{t('palabradex.emptyWords')}</Typography>
   }
 
   if (!effectiveLang) return null
@@ -71,13 +72,13 @@ export default function WordCollection({ userId, pair }: WordCollectionProps) {
         sx={{ mt: 1, mb: 2.5 }}
       >
         {languages.map((code) => (
-          <Tab key={code} value={code} label={LANGUAGES[code]?.name ?? code} />
+          <Tab key={code} value={code} label={t(`languages.${code}`)} />
         ))}
       </Tabs>
 
       <Box sx={{ mb: 2.5 }}>
         <Typography variant='caption' color='text.secondary' sx={{ mb: 0.75, display: 'block' }}>
-          Sort
+          {t('palabradex.sort')}
         </Typography>
         <ToggleButtonGroup
           value={sort}
@@ -87,9 +88,9 @@ export default function WordCollection({ userId, pair }: WordCollectionProps) {
             if (v !== null) setSort(v)
           }}
         >
-          {(Object.keys(SORT_LABELS) as LexemeSort[]).map((s) => (
+          {(Object.keys(SORT_KEYS) as LexemeSort[]).map((s) => (
             <ToggleButton key={s} value={s}>
-              {SORT_LABELS[s]}
+              {t(SORT_KEYS[s])}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
@@ -101,7 +102,7 @@ export default function WordCollection({ userId, pair }: WordCollectionProps) {
             {error}
           </Alert>
           <Button color='secondary' size='small' onClick={() => void reload()}>
-            Try again
+            {t('common.tryAgain')}
           </Button>
         </Stack>
       )}
@@ -109,7 +110,7 @@ export default function WordCollection({ userId, pair }: WordCollectionProps) {
       {loading ? (
         <LoadingSpinner />
       ) : entries.length === 0 ? (
-        <Typography color='text.secondary'>No words for this language yet.</Typography>
+        <Typography color='text.secondary'>{t('palabradex.emptyLanguage')}</Typography>
       ) : (
         <Stack spacing={2}>
           <RootList
@@ -118,7 +119,7 @@ export default function WordCollection({ userId, pair }: WordCollectionProps) {
             guessLanguage={pair.guessLanguage}
           />
           <Typography variant='caption' color='text.secondary'>
-            {entries.length} root word{entries.length === 1 ? '' : 's'}
+            {t('palabradex.rootCount', { count: entries.length })}
           </Typography>
         </Stack>
       )}

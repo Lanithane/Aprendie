@@ -1,5 +1,6 @@
 import { styled } from '@mui/material/styles'
 import CheckIcon from '@mui/icons-material/Check'
+import { useTranslation } from 'react-i18next'
 import { THEME_META, THEMES } from '../../theme'
 import { useThemeMode } from '../../ThemeModeProvider'
 
@@ -61,10 +62,11 @@ const Dot = styled('span')`
 `
 
 export default function ThemePicker() {
+  const { t } = useTranslation()
   const { themeId, setThemeId, resolvedMode } = useThemeMode()
 
   return (
-    <Grid role='radiogroup' aria-label='Color theme'>
+    <Grid role='radiogroup' aria-label={t('settings.colorTheme')}>
       {THEME_META.map(({ id, name, swatches }) => {
         const s = THEMES[id][resolvedMode]
         const selected = id === themeId

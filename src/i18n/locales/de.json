@@ -1,0 +1,350 @@
+{
+  "common": {
+    "tryAgain": "Erneut versuchen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "next": "Weiter",
+    "back": "Zurück",
+    "close": "Schließen",
+    "loading": "Wird geladen…",
+    "loadingAria": "Wird geladen",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System",
+    "anyLevel": "Beliebiges Niveau",
+    "dayCount_one": "{{count}} Tag",
+    "dayCount_other": "{{count}} Tage"
+  },
+  "languages": {
+    "en": "Englisch",
+    "es": "Spanisch",
+    "fr": "Französisch",
+    "de": "Deutsch",
+    "it": "Italienisch",
+    "pt": "Portugiesisch"
+  },
+  "languagePicker": {
+    "wantToLearn": "Ich möchte lernen",
+    "region": "Region",
+    "translateInto": "Übersetzen nach",
+    "orTypePlace": "Oder gib einen Ort ein",
+    "placeExample": "z. B. Buenos Aires",
+    "detect": "Erkennen",
+    "detecting": "Wird erkannt…",
+    "regionHelp": "Wählt die beste regionale Variante für deine Lernsprache."
+  },
+  "onboarding": {
+    "welcome": "Willkommen bei Aprendie",
+    "intro": "Sag uns, was du üben möchtest, und wir halten deine ersten Sätze bereit.",
+    "practiceTitle": "Deine Übung",
+    "practiceDesc": "Du kannst all das später in den Einstellungen ändern.",
+    "difficultyLevel": "Schwierigkeitsgrad",
+    "voiceNote": "Auf diesem Gerät gespeichert. Verfügbare Stimmen hängen von den installierten ab.",
+    "start": "Mit dem Üben beginnen"
+  },
+  "nav": {
+    "practice": "Üben",
+    "flashcards": "Karten",
+    "history": "Verlauf",
+    "palabradex": "Palabradex",
+    "translate": "Übersetzen",
+    "settings": "Einstellungen",
+    "admin": "Admin"
+  },
+  "appShell": {
+    "skipToContent": "Zum Inhalt springen",
+    "primaryNavigation": "Hauptnavigation"
+  },
+  "sidebar": {
+    "expand": "Seitenleiste ausklappen",
+    "collapse": "Seitenleiste einklappen",
+    "feedback": "Feedback",
+    "sendFeedback": "Feedback senden",
+    "signOut": "Abmelden",
+    "modeLight": "Heller Modus (zum Wechseln klicken)",
+    "modeDark": "Dunkler Modus (zum Wechseln klicken)",
+    "modeSystem": "Systemmodus (zum Wechseln klicken)"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "appearanceTitle": "Darstellung",
+    "appearanceDesc": "Wähle ein Farbthema und deine Hell-/Dunkel-Einstellung. Jedes Thema passt sich beiden an.",
+    "modeAria": "Heller oder dunkler Modus",
+    "languagesTitle": "Sprachen",
+    "languagesDesc": "Wähle, was du lernst, die regionale Variante und die Sprache, in der du antwortest.",
+    "difficultyTitle": "Schwierigkeitsgrad",
+    "difficultyDesc": "Steuert die Komplexität der Sätze. Du kannst es auch auf der Übungskarte ändern.",
+    "level": "Niveau",
+    "pronunciationTitle": "Aussprache",
+    "pronunciationDesc": "Wähle die Stimme, die Sätze vorliest, und ob neue Sätze von selbst abgespielt werden. Verfügbare Stimmen hängen von deinem Gerät ab.",
+    "streakTitle": "Serie",
+    "streakDesc": "Zählt aufeinanderfolgende Übungstage. Du kannst sie jederzeit ausschalten – kein Druck.",
+    "trackMyStreak": "Meine Serie verfolgen",
+    "streakSummary": "Aktuell: {{current}} · Längste: {{longest}}",
+    "feedbackTitle": "Feedback",
+    "feedbackDesc": "Einen Fehler entdeckt oder eine Idee? Schick sie direkt ans Team.",
+    "sendFeedback": "Feedback senden",
+    "accountTitle": "Konto",
+    "signOut": "Abmelden",
+    "colorTheme": "Farbthema"
+  },
+  "voicePicker": {
+    "unsupported": "Dein Browser unterstützt keine Sprachsynthese, daher sind hier keine Stimmen verfügbar.",
+    "noVoices": "Auf diesem Gerät sind keine {{language}}-Stimmen installiert. Welche verfügbar sind, steuern die Spracheinstellungen deines Systems.",
+    "voiceLabel": "{{language}}-Stimme",
+    "automatic": "Automatisch",
+    "preview": "Stimme testen",
+    "previewAria": "Die {{language}}-Stimme testen"
+  },
+  "autoSpeak": {
+    "toggle": "Jeden neuen Satz automatisch vorlesen",
+    "delay": "Verzögerung vor dem Abspielen: {{seconds}} s",
+    "none": "Keine"
+  },
+  "levels": {
+    "starter": "Einstiegsniveau",
+    "a1": "Anfängerniveau",
+    "a2": "Grundlegendes Niveau",
+    "b1": "Mittelstufe",
+    "b2": "Obere Mittelstufe",
+    "c1": "Fortgeschrittenes Niveau",
+    "c2": "Kompetenzniveau",
+    "starterShort": "Einstieg"
+  },
+  "home": {
+    "levelAny": "Niveau: beliebig"
+  },
+  "streak": {
+    "indicatorAria": "{{count}}-Tage-Serie"
+  },
+  "metrics": {
+    "yourMetrics": "Deine Statistiken",
+    "attempts": "Versuche",
+    "accuracy": "Genauigkeit",
+    "overTime": "Versuche und Genauigkeit im Zeitverlauf",
+    "noData": "Noch keine Daten.",
+    "rangeAll": "Alle",
+    "range1w": "1W",
+    "range1d": "1T"
+  },
+  "contribute": {
+    "cardTitle": "Nutzung & Beitragen",
+    "cardDesc": "Aprendie ist kostenlos, keine Sorge! Hier sind aber ein paar Möglichkeiten, etwas zurückzugeben, falls du magst.",
+    "spentSoFar": "Bisher ausgegeben · ~{{water}} Wasser (geschätzt)",
+    "offsetFootprint": "Wasser-Fußabdruck ausgleichen",
+    "support": "Den Entwickler unterstützen",
+    "usage": "Nutzung",
+    "usageSoFar": "Bisherige Nutzung: {{usd}}, ~{{water}} Wasser.",
+    "reassurance": "Keine Sorge, Aprendie ist kostenlos! Über Spenden freuen wir uns aber.",
+    "waterAmount": "~{{water}} H₂O",
+    "offsetWater": "Wasserverbrauch ausgleichen"
+  },
+  "login": {
+    "sessionExpired": "Deine Sitzung ist nach 30 Tagen Inaktivität abgelaufen. Bitte melde dich erneut an.",
+    "tagline": "Übe das Übersetzen von Sätzen und erhalte sofortige, freundliche Korrekturen.",
+    "signInGoogle": "Mit Google anmelden",
+    "poweredBy": "Unterstützt von Anthropic AI"
+  },
+  "practice": {
+    "shuffle": "Zufällig",
+    "shuffleAll": "Alle Themen mischen",
+    "topic": "Übungsthema",
+    "translateTo": "Übersetzen nach {{language}}…",
+    "answerAria": "Deine Übersetzung auf {{language}}",
+    "submit": "Absenden",
+    "checking": "Wird geprüft"
+  },
+  "correction": {
+    "perfect": "Perfekt!",
+    "checkingAnswer": "Deine Antwort wird geprüft…",
+    "yourAnswer": "Deine Antwort",
+    "correct": "Richtig",
+    "suggested": "Vorschlag",
+    "mistakes": "Fehler",
+    "tip": "Tipp",
+    "next": "Weiter ›",
+    "resultTitles": {
+      "A+": {
+        "success": [
+          "Makellos!",
+          "Perfekt!",
+          "Voll getroffen!",
+          "Pures Gold!",
+          "Besser geht's nicht!",
+          "Meisterhaft!",
+          "Genau richtig!",
+          "Brillant!",
+          "So macht man das."
+        ],
+        "mistake": ["Ganz knapp!", "Fast perfekt!", "Fast geschafft!"]
+      },
+      "A": {
+        "success": ["Ausgezeichnet!", "Gut gemacht!", "Großartige Arbeit!", "Beeindruckend!"],
+        "mistake": ["Ganz knapp!", "Guter Versuch", "Nicht ganz!"]
+      },
+      "B": {
+        "success": ["Schöne Arbeit!", "Gut gemacht!", "Gute Arbeit!", "Weiter so!", "Fast geschafft!"],
+        "mistake": [
+          "Knapp! Das solltest du korrigieren",
+          "Fast geschafft!",
+          "Fast da!",
+          "Du bist auf dem richtigen Weg",
+          "Guter Einsatz!"
+        ]
+      },
+      "C": {
+        "success": ["Guter Einsatz!", "Nicht schlecht!", "Du kriegst es hin!", "Du machst Fortschritte!", "Weiter geht's!"],
+        "mistake": ["Auf dem richtigen Weg", "Bleib dran!", "Fortschritt!", "Übe weiter!"]
+      },
+      "D": {
+        "success": ["Bleib dran!", "Gib nicht auf!", "Halte durch!", "Weiter so!"],
+        "mistake": ["Auf dem richtigen Weg", "Bleib dran!", "Fortschritt!", "Übe weiter!"]
+      },
+      "F": {
+        "success": ["Gib nicht auf!", "Bleib dran!"],
+        "mistake": ["Auf dem richtigen Weg", "Bleib dran!", "Fortschritt!", "Übe weiter!"]
+      }
+    }
+  },
+  "sentence": {
+    "wordAria": "Wörterbuchform und Grammatik von {{word}} anzeigen"
+  },
+  "history": {
+    "title": "Verlauf",
+    "empty": "Noch kein Verlauf. Beende einen Satz, um ihn hier zu sehen.",
+    "emptySelection": "Kein Verlauf für diese Auswahl.",
+    "loadMore": "Mehr laden",
+    "level": "Niveau",
+    "all": "Alle",
+    "sort": "Sortieren",
+    "newest": "Neueste zuerst",
+    "mostMistakes": "Meiste Fehler zuerst",
+    "attemptsShown_one": "{{count}} Versuch angezeigt",
+    "attemptsShown_other": "{{count}} Versuche angezeigt",
+    "attemptsTotal_one": "{{count}} Versuch insgesamt",
+    "attemptsTotal_other": "{{count}} Versuche insgesamt",
+    "toggleDetails": "Versuchsdetails ein-/ausblenden",
+    "sentenceLabel": "Satz"
+  },
+  "grade": {
+    "aria": "Note {{grade}}"
+  },
+  "feedback": {
+    "title": "Feedback senden",
+    "subtitle": "Ideen, Fehler oder einfach ein Hallo! Alles hilft, Aprendie zu formen.",
+    "categoryAria": "Feedback-Kategorie",
+    "catIdea": "Idee",
+    "catBug": "Fehler",
+    "catPraise": "Lob",
+    "catOther": "Sonstiges",
+    "messageLabel": "Deine Nachricht",
+    "emptyError": "Bitte schreibe zuerst eine kurze Nachricht.",
+    "sendError": "Feedback konnte nicht gesendet werden. Versuche es erneut.",
+    "sending": "Wird gesendet…",
+    "send": "Senden",
+    "thanks": "Danke für dein Feedback!"
+  },
+  "flashcards": {
+    "allDecks": "← Alle Stapel",
+    "chooseDeck": "Wähle einen Stapel",
+    "typeMeaning": "Bedeutung eingeben",
+    "check": "Prüfen",
+    "youTyped": "Du hast eingegeben: {{answer}}",
+    "notGenerated": "Noch nicht erstellt",
+    "cardsCount_one": "{{count}} Karte",
+    "cardsCount_other": "{{count}} Karten",
+    "seenProgress": "{{seen}} / {{total}} gesehen",
+    "toReview_one": "{{count}} zu wiederholen",
+    "toReview_other": "{{count}} zu wiederholen",
+    "complete": "Abgeschlossen",
+    "struggling_one": "{{count}} mit Schwierigkeiten",
+    "struggling_other": "{{count}} mit Schwierigkeiten"
+  },
+  "listen": {
+    "playbackSpeed": "Wiedergabegeschwindigkeit",
+    "speedAria": "Wiedergabegeschwindigkeit: {{rate}}×",
+    "stop": "Stopp",
+    "listen": "Anhören",
+    "stopAria": "Vorlesen des Satzes stoppen",
+    "listenAria": "Satz vorlesen",
+    "slow": "Langsam",
+    "fast": "Schnell",
+    "rateAria": "Sprechgeschwindigkeit"
+  },
+  "preparing": {
+    "title": "Deine ersten Sätze werden vorbereitet…",
+    "subtitle": "Das dauert beim ersten Mal nur wenige Sekunden."
+  },
+  "translator": {
+    "translating": "Wird übersetzt…",
+    "swapAria": "Übersetzungsrichtung umkehren (derzeit {{source}} nach {{target}})",
+    "inputAria": "Text auf {{language}}",
+    "inputPlaceholder": "Schreibe etwas auf {{language}}…"
+  },
+  "palabradex": {
+    "wordsTitle": "Wortsammlung",
+    "grammarTitle": "{{language}}-Grammatik",
+    "wordsDesc": "Jedes Stammwort, das dir begegnet ist, mit deiner Trefferquote.",
+    "grammarDesc": "Die Bausteine der Sprache, die du lernst.",
+    "yourWords": "Deine Wörter",
+    "language": "Sprache",
+    "sort": "Sortieren",
+    "sortSeen": "Am häufigsten gesehen",
+    "sortIncorrect": "Meiste Fehler",
+    "sortAlpha": "A–Z",
+    "emptyWords": "Noch keine Wörter. Beende einen Satz, um deine Sammlung zu beginnen.",
+    "emptyLanguage": "Noch keine Wörter für diese Sprache.",
+    "emptyGrammar": "Noch keine Grammatikreferenz für diese Sprache.",
+    "rootCount_one": "{{count}} Stammwort",
+    "rootCount_other": "{{count}} Stammwörter",
+    "toggleAria": "Details zu {{lemma}} ein-/ausblenden",
+    "seenTimes": "{{count}}× gesehen",
+    "percentCorrectAria": "{{pct}} % richtig",
+    "loadingDefinition": "Definition wird geladen…",
+    "definitionUnavailable": "Definition nicht verfügbar.",
+    "correctCount": "{{count}} richtig",
+    "incorrectCount": "{{count}} falsch",
+    "noForms": "Noch keine Formen erfasst.",
+    "example": "Beispiel",
+    "showForms": "Formen anzeigen",
+    "hideForms": "Formen ausblenden"
+  },
+  "accessGate": {
+    "blockedTitle": "Zugang gesperrt",
+    "pendingTitle": "Dein Konto wartet auf Freigabe",
+    "blockedDetail": "Der Zugang zum Üben wurde für dieses Konto deaktiviert. Wenn du glaubst, dass das ein Fehler ist, wende dich an die Person, die diese App betreibt.",
+    "pendingDetail": "Danke fürs Anmelden! Das Üben wird freigeschaltet, sobald ein Betreiber dein Konto freigibt. Komm bald wieder und aktualisiere die Seite. Dein Platz ist gesichert.",
+    "signedInAs": "Angemeldet als {{email}}"
+  },
+  "dailyCap": {
+    "atCapTitle": "Das ist das heutige Limit",
+    "nearCapTitle": "Du näherst dich deinem Tageslimit",
+    "atCapDetail": "Du hast alle {{cap}} bewerteten Sätze von heute verbraucht. Zurückgesetzt um Mitternacht UTC.",
+    "remaining_one": "Noch {{count}} von {{cap}} bewertetem Satz heute übrig.",
+    "remaining_other": "Noch {{count}} von {{cap}} bewerteten Sätzen heute übrig."
+  },
+  "categories": {
+    "animals": "Tiere & Natur",
+    "arts": "Kunst & Medien",
+    "city": "Stadtleben",
+    "clothes": "Kleidung",
+    "routine": "Tagesablauf",
+    "environment": "Umwelt",
+    "family": "Familie",
+    "feelings": "Gefühle",
+    "food": "Essen & Restaurants",
+    "greetings": "Begrüßungen",
+    "health": "Gesundheit",
+    "hobbies": "Hobbys",
+    "holidays": "Urlaub",
+    "home": "Zuhause",
+    "numbers": "Zahlen & Zeit",
+    "future": "Pläne & Zukunft",
+    "shopping": "Einkaufen & Geld",
+    "sports": "Sport",
+    "technology": "Technologie",
+    "travel": "Reisen",
+    "weather": "Wetter",
+    "work": "Arbeit & Studium"
+  }
+}

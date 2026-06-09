@@ -1,6 +1,7 @@
 import { Box, Chip, Collapse, ListItemButton, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { useTranslation } from 'react-i18next'
 import VariantList from './VariantList'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import { usePalabradexEntry } from '../../hooks/usePalabradexEntry'
@@ -44,6 +45,7 @@ export default function RootCard({
   open,
   onToggle,
 }: RootCardProps) {
+  const { t } = useTranslation()
   // Lazy: only fetch variants once this row is expanded (lemma undefined keeps the hook idle).
   const { detail, loading } = usePalabradexEntry(learnLanguage, open ? entry.lemma : undefined)
   // Likewise lazy — the translated meaning loads independently of the variants.
@@ -61,7 +63,7 @@ export default function RootCard({
       <ListItemButton
         onClick={onToggle}
         aria-expanded={open}
-        aria-label={`Toggle ${entry.lemma} details`}
+        aria-label={t('palabradex.toggleAria', { lemma: entry.lemma })}
         sx={{ gap: 1.5, py: 1.25, px: 2, borderRadius: 0 }}
       >
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -83,9 +85,14 @@ export default function RootCard({
           spacing={1}
           sx={{ alignItems: 'center', flexShrink: 0, color: 'text.secondary' }}
         >
-          <Typography variant='caption'>seen {entry.seenCount}×</Typography>
+          <Typography variant='caption'>
+            {t('palabradex.seenTimes', { count: entry.seenCount })}
+          </Typography>
           <AccuracyDot $tone={tone} aria-hidden />
-          <Typography variant='caption' aria-label={`${accuracyPct}% correct`}>
+          <Typography
+            variant='caption'
+            aria-label={t('palabradex.percentCorrectAria', { pct: accuracyPct })}
+          >
             {accuracyPct}%
           </Typography>
         </Stack>
@@ -102,7 +109,7 @@ export default function RootCard({
         <Box sx={{ px: 2, pb: 2, pt: 0.5 }}>
           {definitionLoading ? (
             <Typography variant='body2' color='text.secondary' sx={{ mb: 1.5 }}>
-              Loading definition…
+              {t('palabradex.loadingDefinition')}
             </Typography>
           ) : definition ? (
             <Typography lang={guessLanguage} variant='body2' sx={{ mb: 1.5 }}>
@@ -110,15 +117,15 @@ export default function RootCard({
             </Typography>
           ) : definitionError ? (
             <Typography variant='body2' color='text.secondary' sx={{ mb: 1.5 }}>
-              Definition unavailable.
+              {t('palabradex.definitionUnavailable')}
             </Typography>
           ) : null}
           <Stack direction='row' spacing={2} sx={{ mb: 1.5 }}>
             <Typography variant='caption' color='success.main'>
-              {entry.correctCount} correct
+              {t('palabradex.correctCount', { count: entry.correctCount })}
             </Typography>
             <Typography variant='caption' color='error.main'>
-              {entry.incorrectCount} incorrect
+              {t('palabradex.incorrectCount', { count: entry.incorrectCount })}
             </Typography>
           </Stack>
           {loading ? (

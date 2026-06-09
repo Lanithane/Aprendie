@@ -1,9 +1,11 @@
 import { Alert, Button, Container, Stack, Typography } from '@mui/material'
 import GoogleIcon from '@mui/icons-material/Google'
+import { useTranslation } from 'react-i18next'
 import BrandWordmark from '../components/Brand/BrandWordmark'
 import { useAuth } from '../auth/AuthContext'
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const { sessionExpired } = useAuth()
   return (
     <Container maxWidth='xs' sx={{ pt: { xs: 10, sm: 14 } }}>
@@ -11,12 +13,10 @@ export default function LoginPage() {
         <BrandWordmark size='login' />
         {sessionExpired && (
           <Alert severity='info' sx={{ width: '100%' }}>
-            Your session expired after 30 days of inactivity. Please sign in again.
+            {t('login.sessionExpired')}
           </Alert>
         )}
-        <Typography color='text.secondary'>
-          Practice translating sentences and get instant, friendly corrections.
-        </Typography>
+        <Typography color='text.secondary'>{t('login.tagline')}</Typography>
         <Button
           variant='contained'
           size='large'
@@ -24,10 +24,10 @@ export default function LoginPage() {
           component='a'
           href='/api/auth/google'
         >
-          Sign in with Google
+          {t('login.signInGoogle')}
         </Button>
         <Typography variant='caption' color='text.secondary'>
-          Powered by Anthropic AI
+          {t('login.poweredBy')}
         </Typography>
       </Stack>
     </Container>

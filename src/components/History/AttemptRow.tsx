@@ -9,9 +9,10 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 import GradeChip from '../shared/GradeChip'
 import AttemptDetail from './AttemptDetail'
-import { languageName } from '../../../shared/languages'
+import { dateFnsLocaleFor } from '../../i18n/formatLocale'
 import type { AttemptDto } from '../../api/historyApi'
 
 interface AttemptRowProps {
@@ -37,13 +38,14 @@ export default function AttemptRow({
   inList = false,
   showDivider = false,
 }: AttemptRowProps) {
-  const langLabel = `${languageName(entry.learnLanguage)} ⟶ ${languageName(entry.guessLanguage)}`
+  const { t, i18n } = useTranslation()
+  const langLabel = `${t(`languages.${entry.learnLanguage}`)} ⟶ ${t(`languages.${entry.guessLanguage}`)}`
   return (
     <Box>
       <ListItemButton
         onClick={onToggle}
         aria-expanded={open}
-        aria-label='Toggle attempt details'
+        aria-label={t('history.toggleDetails')}
         sx={{ gap: 1.5, py: 1.25, px: 2, borderRadius: inList ? 0 : 2 }}
       >
         <GradeChip grade={entry.grade} />
@@ -70,7 +72,9 @@ export default function AttemptRow({
           variant='caption'
           sx={{ flexShrink: 0, color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
         >
-          {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
+          {format(new Date(entry.createdAt), 'MMM d, h:mm a', {
+            locale: dateFnsLocaleFor(i18n.language),
+          })}
         </Typography>
         <ExpandMoreIcon
           sx={{

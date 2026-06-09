@@ -10,11 +10,13 @@ import {
   Alert,
   Typography,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { useLanguagePair } from '../../hooks/useLanguagePair'
 import { useLocaleResolver } from '../../hooks/useLocaleResolver'
-import { LANGUAGES, SUPPORTED_LANGUAGE_CODES, localesFor } from '../../../shared/languages'
+import { SUPPORTED_LANGUAGE_CODES, localesFor } from '../../../shared/languages'
 
 export default function LanguagePairPicker() {
+  const { t } = useTranslation()
   const { pair, setLearnLanguage, setGuessLanguage, setLocale } = useLanguagePair()
   const { resolve, resolving, error } = useLocaleResolver()
   const [location, setLocation] = useState('')
@@ -32,16 +34,16 @@ export default function LanguagePairPicker() {
   return (
     <Stack spacing={2}>
       <FormControl fullWidth>
-        <InputLabel id='learn-label'>I want to learn</InputLabel>
+        <InputLabel id='learn-label'>{t('languagePicker.wantToLearn')}</InputLabel>
         <Select
           labelId='learn-label'
           value={pair.learnLanguage}
-          label='I want to learn'
+          label={t('languagePicker.wantToLearn')}
           onChange={(e) => setLearnLanguage(e.target.value)}
         >
           {SUPPORTED_LANGUAGE_CODES.map((code) => (
             <MenuItem key={code} value={code}>
-              {LANGUAGES[code].name}
+              {t(`languages.${code}`)}
             </MenuItem>
           ))}
         </Select>
@@ -49,11 +51,11 @@ export default function LanguagePairPicker() {
 
       {showRegion && (
         <FormControl fullWidth>
-          <InputLabel id='region-label'>Region</InputLabel>
+          <InputLabel id='region-label'>{t('languagePicker.region')}</InputLabel>
           <Select
             labelId='region-label'
             value={pair.locale}
-            label='Region'
+            label={t('languagePicker.region')}
             onChange={(e) => setLocale(e.target.value)}
           >
             {learnLocales.map((l) => (
@@ -71,8 +73,8 @@ export default function LanguagePairPicker() {
             <TextField
               fullWidth
               size='small'
-              label='Or type a place'
-              placeholder='e.g. Buenos Aires'
+              label={t('languagePicker.orTypePlace')}
+              placeholder={t('languagePicker.placeExample')}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               onKeyDown={(e) => {
@@ -87,26 +89,26 @@ export default function LanguagePairPicker() {
               onClick={() => void onDetect()}
               disabled={resolving || !location.trim()}
             >
-              {resolving ? 'Detecting…' : 'Detect'}
+              {resolving ? t('languagePicker.detecting') : t('languagePicker.detect')}
             </Button>
           </Stack>
           <Typography variant='caption' color='text.secondary'>
-            Picks the best regional variant for your learning language.
+            {t('languagePicker.regionHelp')}
           </Typography>
         </Stack>
       )}
 
       <FormControl fullWidth>
-        <InputLabel id='guess-label'>Translate into</InputLabel>
+        <InputLabel id='guess-label'>{t('languagePicker.translateInto')}</InputLabel>
         <Select
           labelId='guess-label'
           value={pair.guessLanguage}
-          label='Translate into'
+          label={t('languagePicker.translateInto')}
           onChange={(e) => setGuessLanguage(e.target.value)}
         >
           {SUPPORTED_LANGUAGE_CODES.filter((c) => c !== pair.learnLanguage).map((code) => (
             <MenuItem key={code} value={code}>
-              {LANGUAGES[code].name}
+              {t(`languages.${code}`)}
             </MenuItem>
           ))}
         </Select>

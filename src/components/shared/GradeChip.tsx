@@ -1,6 +1,7 @@
 import { Box } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
+import { useTranslation } from 'react-i18next'
 
 // The A+ goldenrod, exported so the "perfect" celebration sparkles elsewhere can match the avatar.
 export const PERFECT_GOLD = '#C9980A'
@@ -21,6 +22,7 @@ interface GradeChipProps {
 }
 
 export default function GradeChip({ grade, size = 'small' }: GradeChipProps) {
+  const { t } = useTranslation()
   const theme = useTheme()
   const isPerfect = grade === 'A+'
   const diameter = size === 'medium' ? 48 : 36
@@ -30,7 +32,7 @@ export default function GradeChip({ grade, size = 'small' }: GradeChipProps) {
 
   return (
     <Box
-      aria-label={`Grade ${grade}`}
+      aria-label={t('grade.aria', { grade })}
       sx={{
         width: diameter,
         height: diameter,

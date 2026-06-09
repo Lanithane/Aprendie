@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Typography, Button } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import DeckPicker from '../components/FlashCards/DeckPicker'
 import FlashCard from '../components/FlashCards/FlashCard'
 import { useLanguagePair } from '../hooks/useLanguagePair'
@@ -35,6 +36,7 @@ const SessionHeader = styled('div')`
 `
 
 export default function FlashCardsPage() {
+  const { t } = useTranslation()
   const { pair } = useLanguagePair()
   // Store deck selection with the pair it belongs to; derived activeDeckId goes null if pair changes.
   const [activeDeckState, setActiveDeckState] = useState<{
@@ -63,7 +65,7 @@ export default function FlashCardsPage() {
   if (!activeDeckId) {
     return (
       <PageWrap>
-        <Typography variant='h3'>Flash cards</Typography>
+        <Typography variant='h3'>{t('nav.flashcards')}</Typography>
         <DeckPicker
           decks={decks}
           loading={decksLoading}
@@ -92,7 +94,7 @@ export default function FlashCardsPage() {
             size='small'
             onClick={() => setActiveDeckState(null)}
           >
-            ← All decks
+            {t('flashcards.allDecks')}
           </Button>
           {activeDeck && <Typography variant='h5'>{activeDeck.label}</Typography>}
         </SessionHeader>

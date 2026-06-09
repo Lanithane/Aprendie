@@ -7,6 +7,7 @@ import { DailyUsageProvider } from './usage/DailyUsageContext'
 import { StreakProvider } from './streak/StreakContext'
 import { ThemeModeProvider } from './ThemeModeProvider'
 import { FeedbackProvider } from './components/Feedback/FeedbackProvider'
+import { I18nProvider } from './i18n/I18nProvider'
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
@@ -19,17 +20,19 @@ if (!rootEl) throw new Error('#root not found')
 ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <AuthProvider>
-      <DailyUsageProvider>
-        <StreakProvider>
-          <ThemeModeProvider>
-            <BrowserRouter>
-              <FeedbackProvider>
-                <App />
-              </FeedbackProvider>
-            </BrowserRouter>
-          </ThemeModeProvider>
-        </StreakProvider>
-      </DailyUsageProvider>
+      <I18nProvider>
+        <DailyUsageProvider>
+          <StreakProvider>
+            <ThemeModeProvider>
+              <BrowserRouter>
+                <FeedbackProvider>
+                  <App />
+                </FeedbackProvider>
+              </BrowserRouter>
+            </ThemeModeProvider>
+          </StreakProvider>
+        </DailyUsageProvider>
+      </I18nProvider>
     </AuthProvider>
   </React.StrictMode>
 )

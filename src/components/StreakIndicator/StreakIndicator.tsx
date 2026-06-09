@@ -1,6 +1,7 @@
 import { Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
+import { useTranslation } from 'react-i18next'
 import { useStreak } from '../../streak/StreakContext'
 
 // A deliberately quiet streak indicator: a flame + day count in a pill, tucked into the bottom-left
@@ -44,11 +45,12 @@ const Flame = styled(LocalFireDepartmentIcon, {
 `
 
 export default function StreakIndicator() {
+  const { t } = useTranslation()
   const { streak, advanceNonce } = useStreak()
   if (!streak.enabled || !streak.alive || streak.current < 1) return null
 
   return (
-    <Pill aria-label={`${streak.current}-day streak`}>
+    <Pill aria-label={t('streak.indicatorAria', { count: streak.current })}>
       <Flame key={advanceNonce} lit={streak.activeToday} />
       <Typography component='span' variant='body2' sx={{ fontWeight: 600 }}>
         {streak.current}

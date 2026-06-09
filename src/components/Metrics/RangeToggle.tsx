@@ -1,10 +1,14 @@
 import { ToggleButton, ToggleButtonGroup } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import type { MetricsRange } from '../../api/metricsApi'
 
-const OPTIONS: { value: MetricsRange; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: '1w', label: '1W' },
-  { value: '1d', label: '1D' },
+const OPTIONS: {
+  value: MetricsRange
+  labelKey: 'metrics.rangeAll' | 'metrics.range1w' | 'metrics.range1d'
+}[] = [
+  { value: 'all', labelKey: 'metrics.rangeAll' },
+  { value: '1w', labelKey: 'metrics.range1w' },
+  { value: '1d', labelKey: 'metrics.range1d' },
 ]
 
 // Time-range selector for the metrics line graphs (All / last week / last day).
@@ -15,6 +19,7 @@ export default function RangeToggle({
   value: MetricsRange
   onChange: (range: MetricsRange) => void
 }) {
+  const { t } = useTranslation()
   return (
     <ToggleButtonGroup
       value={value}
@@ -26,7 +31,7 @@ export default function RangeToggle({
     >
       {OPTIONS.map((o) => (
         <ToggleButton key={o.value} value={o.value}>
-          {o.label}
+          {t(o.labelKey)}
         </ToggleButton>
       ))}
     </ToggleButtonGroup>

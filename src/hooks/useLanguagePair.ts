@@ -56,6 +56,14 @@ function systemDefaultPair(): LanguagePair {
   return { ...DEFAULT_PAIR, guessLanguage: detected }
 }
 
+// The known language to paint the UI in before `/api/me` resolves: the cached account pair's
+// guess language if we have one, else the browser-detected default. The single source of truth
+// for the i18n bootstrap (`src/i18n`) and the in-app sync hook (`useUiLanguageSync`), so cold
+// paint and the live language never disagree about how an unauthenticated visitor is detected.
+export function resolveInitialKnownLanguage(): LanguageCode {
+  return (readCache() ?? systemDefaultPair()).guessLanguage
+}
+
 export function useLanguagePair() {
   const { user, refresh } = useAuth()
   // Optimistic override held only while a server write is in flight (mirrors

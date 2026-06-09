@@ -3,6 +3,7 @@ import { Alert, Box, Button, CircularProgress, Stack, TextField, Typography } fr
 import TranslateIcon from '@mui/icons-material/Translate'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import { styled } from '@mui/material/styles'
+import { useTranslation as useUiTranslation } from 'react-i18next'
 import SectionCard from '../shared/SectionCard'
 import { useTranslation } from '../../hooks/useTranslation'
 import { LANGUAGES, type LanguagePair } from '../../../shared/languages'
@@ -30,13 +31,14 @@ interface TranslatorWidgetProps {
 }
 
 export default function TranslatorWidget({ pair }: TranslatorWidgetProps) {
+  const { t } = useUiTranslation()
   const [text, setText] = useState('')
   // Direction toggle. Not persisted — it resets to known → learning on every page mount.
   const [swapped, setSwapped] = useState(false)
   const { result, loading, error, submit, reset } = useTranslation()
 
-  const knownName = LANGUAGES[pair.guessLanguage].name
-  const targetName = LANGUAGES[pair.learnLanguage].name
+  const knownName = t(`languages.${pair.guessLanguage}`)
+  const targetName = t(`languages.${pair.learnLanguage}`)
   const localeLabel =
     LANGUAGES[pair.learnLanguage].locales.find((l) => l.code === pair.locale)?.label ?? pair.locale
 
@@ -76,7 +78,7 @@ export default function TranslatorWidget({ pair }: TranslatorWidgetProps) {
       variant='text'
       color='inherit'
       onClick={handleSwap}
-      aria-label={`Swap translation direction (currently ${sourceLabel} to ${targetLabel})`}
+      aria-label={t('translator.swapAria', { source: sourceLabel, target: targetLabel })}
     >
       {sourceLabel}
       <SwapHorizIcon fontSize='small' sx={{ mx: 0.5, opacity: 0.7 }} />
@@ -86,14 +88,14 @@ export default function TranslatorWidget({ pair }: TranslatorWidgetProps) {
 
   return (
     <Stack spacing={2}>
-      <SectionCard title='Translate' description={description}>
+      <SectionCard title={t('nav.translate')} description={description}>
         <Stack spacing={2}>
           <TextField
             // No floating label: the outline-notch label overlaps the border on iOS Safari, so we
             // follow PracticeCard's pattern (placeholder + aria-label). The source language is
             // already conveyed by the card description and the placeholder.
-            aria-label={`Text in ${sourceLabel}`}
-            placeholder={`Type something in ${sourceLabel}…`}
+            aria-label={t('translator.inputAria', { language: sourceLabel })}
+            placeholder={t('translator.inputPlaceholder', { language: sourceLabel })}
             value={text}
             onChange={(event) => handleChange(event.target.value)}
             multiline
@@ -110,7 +112,7 @@ export default function TranslatorWidget({ pair }: TranslatorWidgetProps) {
                 loading ? <CircularProgress size={18} color='inherit' /> : <TranslateIcon />
               }
             >
-              {loading ? 'Translating…' : 'Translate'}
+              {loading ? t('translator.translating') : t('nav.translate')}
             </Button>
           </Box>
         </Stack>

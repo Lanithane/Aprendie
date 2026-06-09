@@ -1,4 +1,5 @@
 import { Box, FormControlLabel, Slider, Stack, Switch, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { useAutoSpeakPreference } from '../../hooks/useAutoSpeakPreference'
 import { AUTO_SPEAK_DELAY_MIN_MS, AUTO_SPEAK_DELAY_MAX_MS } from '../../../shared/speech'
 
@@ -6,17 +7,18 @@ import { AUTO_SPEAK_DELAY_MIN_MS, AUTO_SPEAK_DELAY_MAX_MS } from '../../../share
 // aloud, plus how long to wait before it plays. The delay only matters while auto-speak is on, so
 // its slider dims and disables when the toggle is off.
 export default function AutoSpeakControls() {
+  const { t } = useTranslation()
   const { autoSpeak, setAutoSpeak, delayMs, setDelayMs } = useAutoSpeakPreference()
 
   return (
     <Stack spacing={1}>
       <FormControlLabel
         control={<Switch checked={autoSpeak} onChange={(e) => setAutoSpeak(e.target.checked)} />}
-        label='Read each new sentence aloud automatically'
+        label={t('autoSpeak.toggle')}
       />
       <Box sx={{ px: 1, opacity: autoSpeak ? 1 : 0.5 }}>
         <Typography variant='caption' color='text.secondary' id='auto-speak-delay-label'>
-          Delay before playing: {(delayMs / 1000).toFixed(1)} s
+          {t('autoSpeak.delay', { seconds: (delayMs / 1000).toFixed(1) })}
         </Typography>
         <Slider
           size='small'
@@ -25,7 +27,7 @@ export default function AutoSpeakControls() {
           max={AUTO_SPEAK_DELAY_MAX_MS}
           step={250}
           marks={[
-            { value: 0, label: 'None' },
+            { value: 0, label: t('autoSpeak.none') },
             { value: 1000, label: '1 s' },
             { value: 2000, label: '2 s' },
             { value: 3000, label: '3 s' },

@@ -6,21 +6,23 @@ import SettingsIcon from '@mui/icons-material/Settings'
 import ShieldIcon from '@mui/icons-material/Shield'
 import BangIcon from './BangIcon'
 
-const SETTINGS_NAV_ITEM = { to: '/settings', label: 'Settings', Icon: SettingsIcon } as const
+// `labelKey` indexes the `nav.*` catalog group — the registry stays data-only and the label is
+// translated where it's rendered (Sidebar, AppShell, the Settings admin button).
+const SETTINGS_NAV_ITEM = { to: '/settings', labelKey: 'nav.settings', Icon: SettingsIcon } as const
 
 export const ADMIN_NAV_ITEM = {
   to: '/admin',
-  label: 'Admin',
+  labelKey: 'nav.admin',
   Icon: ShieldIcon,
 } as const
 
 // Settings always sits last; Admin (when present) is inserted just before it.
 export const NAV_ITEMS = [
-  { to: '/', label: 'Practice', Icon: HomeIcon },
-  { to: '/flashcards', label: 'Flash cards', Icon: StyleIcon },
-  { to: '/history', label: 'History', Icon: HistoryIcon },
-  { to: '/palabradex', label: 'Palabradex', Icon: MenuBookIcon },
-  { to: '/translator', label: 'Translate', Icon: BangIcon },
+  { to: '/', labelKey: 'nav.practice', Icon: HomeIcon },
+  { to: '/flashcards', labelKey: 'nav.flashcards', Icon: StyleIcon },
+  { to: '/history', labelKey: 'nav.history', Icon: HistoryIcon },
+  { to: '/palabradex', labelKey: 'nav.palabradex', Icon: MenuBookIcon },
+  { to: '/translator', labelKey: 'nav.translate', Icon: BangIcon },
   SETTINGS_NAV_ITEM,
 ] as const
 

@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { styled, useTheme } from '@mui/material/styles'
 import { Box, useMediaQuery, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material'
@@ -74,6 +75,7 @@ const MobileNavSurface = styled(Paper)`
 `
 
 export default function AppShell({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const isXs = useMediaQuery(theme.breakpoints.only('xs'))
@@ -104,7 +106,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <ShellRoot>
-      <SkipLink href='#main-content'>Skip to content</SkipLink>
+      <SkipLink href='#main-content'>{t('appShell.skipToContent')}</SkipLink>
       {!isMobile && (
         <Sidebar
           collapsed={collapsed}
@@ -121,11 +123,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </Main>
       {isMobile && !keyboardOpen && (
         <MobileNavSurface elevation={8}>
-          <BottomNavigation showLabels value={activePath} aria-label='Primary navigation'>
-            {mobileNavItems.map(({ to, label, Icon }) => (
+          <BottomNavigation
+            showLabels
+            value={activePath}
+            aria-label={t('appShell.primaryNavigation')}
+          >
+            {mobileNavItems.map(({ to, labelKey, Icon }) => (
               <BottomNavigationAction
                 key={to}
-                label={label}
+                label={t(labelKey)}
                 value={to}
                 icon={<Icon />}
                 component={RouterLink}

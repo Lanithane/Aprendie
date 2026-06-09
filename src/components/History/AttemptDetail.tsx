@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Box, Typography } from '@mui/material'
 import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
+import { dateFnsLocaleFor } from '../../i18n/formatLocale'
 import type { AttemptDto } from '../../api/historyApi'
 
 interface AttemptDetailProps {
@@ -16,11 +18,12 @@ interface AttemptDetailProps {
 // shown only on narrow screens (where the row header hides it). Shared by the
 // user-facing history page and the admin user-history panel so both stay in sync.
 export default function AttemptDetail({ entry, leading }: AttemptDetailProps) {
+  const { t, i18n } = useTranslation()
   return (
     <>
       {leading}
       <Typography variant='caption' color='text.secondary'>
-        Sentence
+        {t('history.sentenceLabel')}
       </Typography>
       <Typography
         lang={entry.learnLanguage}
@@ -29,7 +32,7 @@ export default function AttemptDetail({ entry, leading }: AttemptDetailProps) {
         {entry.promptText}
       </Typography>
       <Typography variant='caption' color='text.secondary'>
-        Your answer
+        {t('correction.yourAnswer')}
       </Typography>
       <Typography
         lang={entry.guessLanguage}
@@ -38,7 +41,7 @@ export default function AttemptDetail({ entry, leading }: AttemptDetailProps) {
         {entry.userAnswer}
       </Typography>
       <Typography variant='caption' color='text.secondary'>
-        Correct
+        {t('correction.correct')}
       </Typography>
       <Typography lang={entry.guessLanguage} sx={{ fontWeight: 400, wordSpacing: '-0.05em' }}>
         {entry.correctedAnswer}
@@ -46,7 +49,7 @@ export default function AttemptDetail({ entry, leading }: AttemptDetailProps) {
       {entry.mistakes.length > 0 && (
         <Box sx={{ mt: 1.5 }}>
           <Typography variant='caption' color='text.secondary'>
-            Mistakes
+            {t('correction.mistakes')}
           </Typography>
           {entry.mistakes.map((m, i) => (
             <Typography key={i} variant='body2' sx={{ mt: 0.5 }}>
@@ -59,7 +62,9 @@ export default function AttemptDetail({ entry, leading }: AttemptDetailProps) {
         variant='caption'
         sx={{ mt: 1.5, display: { xs: 'block', sm: 'none' }, color: 'text.secondary' }}
       >
-        {format(new Date(entry.createdAt), 'MMM d, h:mm a')}
+        {format(new Date(entry.createdAt), 'MMM d, h:mm a', {
+          locale: dateFnsLocaleFor(i18n.language),
+        })}
       </Typography>
     </>
   )

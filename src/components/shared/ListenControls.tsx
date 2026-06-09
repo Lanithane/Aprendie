@@ -3,6 +3,7 @@ import { IconButton, Slider, Stack, Tooltip, Popover, Typography } from '@mui/ma
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded'
 import StopRoundedIcon from '@mui/icons-material/StopRounded'
 import { styled } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import type { LocaleCode } from '../../../shared/languages'
 import { MIN_RATE, MAX_RATE } from '../../hooks/useSpeechRate'
 
@@ -53,28 +54,29 @@ export default function ListenControls({
   rate,
   setRate,
 }: ListenControlsProps) {
+  const { t } = useTranslation()
   const [rateAnchor, setRateAnchor] = useState<HTMLElement | null>(null)
   const rateOpen = Boolean(rateAnchor)
 
   return (
     <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
-      <Tooltip title='Playback speed'>
+      <Tooltip title={t('listen.playbackSpeed')}>
         <RateButton
           type='button'
           onClick={(e) => setRateAnchor(e.currentTarget)}
           aria-haspopup='dialog'
           aria-expanded={rateOpen}
-          aria-label={`Playback speed: ${rate.toFixed(1)}×`}
+          aria-label={t('listen.speedAria', { rate: rate.toFixed(1) })}
         >
           {rate.toFixed(1)}×
         </RateButton>
       </Tooltip>
-      <Tooltip title={speaking ? 'Stop' : 'Listen'}>
+      <Tooltip title={speaking ? t('listen.stop') : t('listen.listen')}>
         <IconButton
           size='small'
           color='primary'
           onClick={() => (speaking ? cancel() : speak(text, locale, rate))}
-          aria-label={speaking ? 'Stop reading the sentence aloud' : 'Read the sentence aloud'}
+          aria-label={speaking ? t('listen.stopAria') : t('listen.listenAria')}
         >
           {speaking ? <StopRoundedIcon /> : <VolumeUpRoundedIcon />}
         </IconButton>
@@ -89,7 +91,7 @@ export default function ListenControls({
         slotProps={{ paper: { sx: { px: 2.25, pt: 1.875, pb: 1.875, width: 260 } } }}
       >
         <Typography variant='caption' color='text.secondary'>
-          Playback speed
+          {t('listen.playbackSpeed')}
         </Typography>
         <Slider
           size='small'
@@ -98,14 +100,14 @@ export default function ListenControls({
           max={MAX_RATE}
           step={0.1}
           marks={[
-            { value: MIN_RATE, label: 'Slow' },
+            { value: MIN_RATE, label: t('listen.slow') },
             { value: 1, label: '1×' },
-            { value: MAX_RATE, label: 'Fast' },
+            { value: MAX_RATE, label: t('listen.fast') },
           ]}
           valueLabelDisplay='auto'
           valueLabelFormat={(v) => `${v.toFixed(1)}×`}
           onChange={(_, v) => setRate(v)}
-          aria-label='Speech rate'
+          aria-label={t('listen.rateAria')}
           sx={{
             '& .MuiSlider-markLabel[data-index="0"]': { transform: 'translateX(0%)' },
             '& .MuiSlider-markLabel[data-index="2"]': { transform: 'translateX(-100%)' },

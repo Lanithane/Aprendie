@@ -1,6 +1,7 @@
 import { Stack, Typography, Button, Box } from '@mui/material'
 import WaterDropOutlinedIcon from '@mui/icons-material/WaterDropOutlined'
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
+import { useTranslation } from 'react-i18next'
 import SectionCard from '../shared/SectionCard'
 import { useShowback } from '../../hooks/useShowback'
 import { OFFSET_URL, SUPPORT_URL, formatUsd, formatWater } from './contribute'
@@ -10,6 +11,7 @@ import { OFFSET_URL, SUPPORT_URL, formatUsd, formatWater } from './contribute'
 // and a support-the-developer link. The two links are config-gated (hidden until their URL is
 // set). Renders nothing until showback has loaded.
 export default function ContributeCard({ userId }: { userId: string | undefined }) {
+  const { t } = useTranslation()
   const { showback } = useShowback(userId)
   if (!showback) return null
 
@@ -17,15 +19,12 @@ export default function ContributeCard({ userId }: { userId: string | undefined 
   const water = formatWater(showback.estimate.waterMl)
 
   return (
-    <SectionCard
-      title='Usage & Contributing'
-      description="Aprendie is free, don't worry! Here are some ways to give back though, if you'd like."
-    >
+    <SectionCard title={t('contribute.cardTitle')} description={t('contribute.cardDesc')}>
       <Stack spacing={2}>
         <Box>
           <Typography variant='h6'>{usd}</Typography>
           <Typography variant='body2' color='text.secondary'>
-            Spent so far · ~{water} water (estimated)
+            {t('contribute.spentSoFar', { water })}
           </Typography>
         </Box>
         <Stack direction='row' spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
@@ -38,7 +37,7 @@ export default function ContributeCard({ userId }: { userId: string | undefined 
               target='_blank'
               rel='noopener noreferrer'
             >
-              Offset water footprint
+              {t('contribute.offsetFootprint')}
             </Button>
           )}
           {SUPPORT_URL && (
@@ -50,7 +49,7 @@ export default function ContributeCard({ userId }: { userId: string | undefined 
               target='_blank'
               rel='noopener noreferrer'
             >
-              Support the developer
+              {t('contribute.support')}
             </Button>
           )}
         </Stack>

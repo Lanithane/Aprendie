@@ -1,6 +1,7 @@
 import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { format, parseISO } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 import {
   Bar,
   CartesianGrid,
@@ -11,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { dateFnsLocaleFor, numberFormatFor } from '../../i18n/formatLocale'
 import type { MetricPoint, MetricsRange } from '../../api/metricsApi'
 
 interface AttemptsAccuracyChartProps {
@@ -30,12 +32,15 @@ export default function AttemptsAccuracyChart({
   height = 200,
 }: AttemptsAccuracyChartProps) {
   const theme = useTheme()
+  const { t, i18n } = useTranslation()
+  const dateLocale = dateFnsLocaleFor(i18n.language)
+  const numberFormat = numberFormatFor(i18n.language)
 
   if (attempts.length === 0) {
     return (
       <Box sx={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography variant='body2' color='text.secondary'>
-          No data yet.
+          {t('metrics.noData')}
         </Typography>
       </Box>
     )
@@ -69,7 +74,7 @@ export default function AttemptsAccuracyChart({
           />
           <XAxis
             dataKey='bucket'
-            tickFormatter={(b: string) => format(parseISO(b), tickFormat)}
+            tickFormatter={(b: string) => format(parseISO(b), tickFormat, { locale: dateLocale })}
             tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             tickLine={false}
             axisLine={false}
@@ -77,7 +82,7 @@ export default function AttemptsAccuracyChart({
           />
           <YAxis
             yAxisId='attempts'
-            tickFormatter={(v: number) => v.toLocaleString()}
+            tickFormatter={(v: number) => numberFormat.format(v)}
             tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             tickLine={false}
             axisLine={false}
@@ -101,16 +106,18 @@ export default function AttemptsAccuracyChart({
               borderRadius: 8,
               color: theme.palette.text.primary,
             }}
-            labelFormatter={(b) => format(parseISO(b as string), tooltipFormat)}
+            labelFormatter={(b) =>
+              format(parseISO(b as string), tooltipFormat, { locale: dateLocale })
+            }
             formatter={(value, name) =>
-              name === 'Accuracy'
+              name === t('metrics.accuracy')
                 ? [`${Math.round(Number(value))}%`, name]
-                : [Number(value).toLocaleString(), name]
+                : [numberFormat.format(Number(value)), name]
             }
           />
           <Bar
             yAxisId='attempts'
-            name='Attempts'
+            name={t('metrics.attempts')}
             dataKey='attempts'
             fill={attemptsColor}
             radius={[4, 4, 0, 0]}
@@ -118,7 +125,7 @@ export default function AttemptsAccuracyChart({
           />
           <Line
             yAxisId='accuracy'
-            name='Accuracy'
+            name={t('metrics.accuracy')}
             type='monotone'
             dataKey='accuracy'
             stroke={accuracyColor}

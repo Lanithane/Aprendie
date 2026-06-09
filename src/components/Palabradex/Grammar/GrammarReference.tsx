@@ -1,4 +1,5 @@
 import { Alert, Button, Stack, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { useGrammar } from '../../../hooks/useGrammar'
 import LoadingSpinner from '../../shared/LoadingSpinner'
 import GrammarPosCard from './GrammarPosCard'
@@ -12,6 +13,7 @@ interface GrammarReferenceProps {
 // own building blocks, distinct from the per-user word collection. Generated on first visit and
 // cached server-side per (learn, guess, locale), so it tracks the learn language chosen in Settings.
 export default function GrammarReference({ pair }: GrammarReferenceProps) {
+  const { t } = useTranslation()
   const { reference, loading, error, reload } = useGrammar(pair)
 
   if (loading) return <LoadingSpinner />
@@ -23,16 +25,14 @@ export default function GrammarReference({ pair }: GrammarReferenceProps) {
           {error}
         </Alert>
         <Button color='secondary' size='small' onClick={() => void reload()}>
-          Try again
+          {t('common.tryAgain')}
         </Button>
       </Stack>
     )
   }
 
   if (!reference || reference.sections.length === 0) {
-    return (
-      <Typography color='text.secondary'>No grammar reference for this language yet.</Typography>
-    )
+    return <Typography color='text.secondary'>{t('palabradex.emptyGrammar')}</Typography>
   }
 
   return (

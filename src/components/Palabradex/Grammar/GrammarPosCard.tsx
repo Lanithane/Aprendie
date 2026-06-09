@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Box, Button, Card, CardContent, Chip, Collapse, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { useTranslation } from 'react-i18next'
 import GrammarDetailTable from './GrammarDetailTable'
 import type { GrammarPosSection } from '../../../api/grammarApi'
 import type { LanguageCode } from '../../../../shared/languages'
@@ -30,6 +31,7 @@ export default function GrammarPosCard({
   learnLanguage,
   guessLanguage,
 }: GrammarPosCardProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const hasDetail = section.detail.length > 0
 
@@ -55,7 +57,7 @@ export default function GrammarPosCard({
 
         <ExampleBlock>
           <Typography variant='overline' color='text.secondary' sx={{ display: 'block' }}>
-            Example
+            {t('palabradex.example')}
           </Typography>
           <Typography lang={learnLanguage} sx={{ fontWeight: 500 }}>
             {section.example.text}
@@ -81,7 +83,7 @@ export default function GrammarPosCard({
               }
               sx={{ mt: 1.5, ml: -0.5 }}
             >
-              {open ? 'Hide forms' : 'Show forms'}
+              {open ? t('palabradex.hideForms') : t('palabradex.showForms')}
             </Button>
             <Collapse in={open} unmountOnExit>
               <Stack spacing={2} sx={{ mt: 1.5 }}>

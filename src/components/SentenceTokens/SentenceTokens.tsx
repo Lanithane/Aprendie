@@ -1,5 +1,6 @@
 import { useMemo, useState, type MouseEvent } from 'react'
 import { styled } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import type { LanguageCode, WordToken } from '../../../shared/languages'
 import type { LevelCode } from '../../../shared/levels'
 import WordPopover from '../WordPopover/WordPopover'
@@ -62,6 +63,7 @@ export default function SentenceTokens({
   sentenceLevel,
   alwaysShowGloss,
 }: SentenceTokensProps) {
+  const { t } = useTranslation()
   const segments = useMemo(() => tokenizeSentence(text, breakdown), [text, breakdown])
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [active, setActive] = useState<WordToken | null>(null)
@@ -91,7 +93,7 @@ export default function SentenceTokens({
         key={key}
         type='button'
         onClick={(e) => open(e, seg.token as WordToken)}
-        aria-label={`Show the dictionary form and grammar of ${seg.text}`}
+        aria-label={t('sentence.wordAria', { word: seg.text })}
       >
         {seg.text}
       </TokenButton>

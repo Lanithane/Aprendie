@@ -2,6 +2,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import { Box, Button, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import StyleIcon from '@mui/icons-material/Style'
+import { useTranslation } from 'react-i18next'
 import LevelSelectButton from './LevelSelectButton'
 import type { LevelPref } from '../../hooks/useLevelPreference'
 
@@ -15,6 +16,7 @@ interface HomeTopBarProps {
 // HomePage) and reaches Flash cards from the sidebar. Flash cards is dropped from the bottom nav
 // across the whole mobile range (see AppShell), which is why it lives here.
 export default function HomeTopBar({ level, onLevelChange }: HomeTopBarProps) {
+  const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   if (!isMobile) return null
@@ -30,7 +32,7 @@ export default function HomeTopBar({ level, onLevelChange }: HomeTopBarProps) {
         size='small'
         startIcon={<StyleIcon fontSize='small' />}
       >
-        Flash cards
+        {t('nav.flashcards')}
       </Button>
     </Box>
   )

@@ -8,7 +8,8 @@ import {
   Divider,
   CircularProgress,
 } from '@mui/material'
-import { languageName, type LanguageCode, type WordToken } from '../../../shared/languages'
+import { useTranslation } from 'react-i18next'
+import { type LanguageCode, type WordToken } from '../../../shared/languages'
 import type { CorrectionPreview } from '../../api/correctionApi'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
 import { DiffLine, PromptHeadline, MistakeRow, Added, Removed } from './correctionStyles'
@@ -34,6 +35,7 @@ export default function StreamingCorrection({
   userAnswer,
   preview,
 }: StreamingCorrectionProps) {
+  const { t } = useTranslation()
   const visibleMistakes = preview.mistakes.filter((m) => m.userPhrase !== m.correctPhrase)
 
   return (
@@ -41,11 +43,11 @@ export default function StreamingCorrection({
       <CardContent>
         <Stack direction='row' spacing={1.5} sx={{ mb: 2, alignItems: 'center' }}>
           <CircularProgress size={22} aria-hidden='true' />
-          <Typography variant='h5'>Checking your answer…</Typography>
+          <Typography variant='h5'>{t('correction.checkingAnswer')}</Typography>
         </Stack>
 
         <Typography variant='overline' color='text.secondary'>
-          {languageName(learnLanguage)}
+          {t(`languages.${learnLanguage}`)}
         </Typography>
         <PromptHeadline>
           <SentenceTokens
@@ -60,14 +62,14 @@ export default function StreamingCorrection({
         <Stack spacing={1}>
           <Box>
             <Typography variant='overline' color='text.secondary'>
-              Your answer
+              {t('correction.yourAnswer')}
             </Typography>
             <DiffLine lang={guessLanguage}>{userAnswer}</DiffLine>
           </Box>
           {preview.correctedAnswer && (
             <Box>
               <Typography variant='overline' color='text.secondary'>
-                Suggested
+                {t('correction.suggested')}
               </Typography>
               <DiffLine lang={guessLanguage}>{preview.correctedAnswer}</DiffLine>
             </Box>
@@ -78,7 +80,7 @@ export default function StreamingCorrection({
           <>
             <Divider sx={{ my: 2 }} />
             <Typography variant='overline' color='text.secondary'>
-              Mistakes
+              {t('correction.mistakes')}
             </Typography>
             <Stack spacing={1.25} sx={{ mt: 1 }}>
               {visibleMistakes.map((m, i) => (

@@ -10,20 +10,21 @@ import {
   Button,
   Alert,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import SectionCard from '../shared/SectionCard'
 import VoicePicker from '../VoicePicker/VoicePicker'
 import PreparingSentences from '../shared/PreparingSentences'
 import { useLanguagePair } from '../../hooks/useLanguagePair'
 import { useLevelPreference } from '../../hooks/useLevelPreference'
 import {
-  LANGUAGES,
   SUPPORTED_LANGUAGE_CODES,
   localesFor,
   defaultLocaleFor,
   type LanguageCode,
   type LocaleCode,
 } from '../../../shared/languages'
-import { LEVELS, levelLabel, type LevelCode } from '../../../shared/levels'
+import { LEVELS, type LevelCode } from '../../../shared/levels'
+import { useLevelLabel } from '../../hooks/useLevelLabel'
 
 interface OnboardingWizardProps {
   error: string | null
@@ -36,6 +37,8 @@ interface OnboardingWizardProps {
 }
 
 export default function OnboardingWizard({ error, preparing, onComplete }: OnboardingWizardProps) {
+  const { t } = useTranslation()
+  const levelLabel = useLevelLabel()
   // Seed from the current (cache/default) pair + level so existing accounts see their last choice
   // pre-selected and brand-new ones get a sensible default.
   const { pair } = useLanguagePair()
@@ -69,28 +72,25 @@ export default function OnboardingWizard({ error, preparing, onComplete }: Onboa
   return (
     <Box sx={{ width: '100%', maxWidth: 460, mx: 'auto' }}>
       <Stack spacing={1} sx={{ mb: 3, textAlign: 'center' }}>
-        <Typography variant='h4'>Welcome to Aprendie</Typography>
+        <Typography variant='h4'>{t('onboarding.welcome')}</Typography>
         <Typography variant='body1' color='text.secondary'>
-          Tell us what you want to practice and we’ll have your first sentences ready.
+          {t('onboarding.intro')}
         </Typography>
       </Stack>
 
-      <SectionCard
-        title='Your practice'
-        description='You can change any of this later in Settings.'
-      >
+      <SectionCard title={t('onboarding.practiceTitle')} description={t('onboarding.practiceDesc')}>
         <Stack spacing={2}>
           <FormControl fullWidth>
-            <InputLabel id='onboard-learn-label'>I want to learn</InputLabel>
+            <InputLabel id='onboard-learn-label'>{t('languagePicker.wantToLearn')}</InputLabel>
             <Select
               labelId='onboard-learn-label'
               value={learn}
-              label='I want to learn'
+              label={t('languagePicker.wantToLearn')}
               onChange={(e) => onLearnChange(e.target.value)}
             >
               {SUPPORTED_LANGUAGE_CODES.map((code) => (
                 <MenuItem key={code} value={code}>
-                  {LANGUAGES[code].name}
+                  {t(`languages.${code}`)}
                 </MenuItem>
               ))}
             </Select>
@@ -98,11 +98,11 @@ export default function OnboardingWizard({ error, preparing, onComplete }: Onboa
 
           {showRegion && (
             <FormControl fullWidth>
-              <InputLabel id='onboard-region-label'>Region</InputLabel>
+              <InputLabel id='onboard-region-label'>{t('languagePicker.region')}</InputLabel>
               <Select
                 labelId='onboard-region-label'
                 value={locale}
-                label='Region'
+                label={t('languagePicker.region')}
                 onChange={(e) => setLocale(e.target.value)}
               >
                 {learnLocales.map((l) => (
@@ -115,30 +115,30 @@ export default function OnboardingWizard({ error, preparing, onComplete }: Onboa
           )}
 
           <FormControl fullWidth>
-            <InputLabel id='onboard-guess-label'>Translate into</InputLabel>
+            <InputLabel id='onboard-guess-label'>{t('languagePicker.translateInto')}</InputLabel>
             <Select
               labelId='onboard-guess-label'
               value={guess}
-              label='Translate into'
+              label={t('languagePicker.translateInto')}
               onChange={(e) => setGuess(e.target.value)}
             >
               {SUPPORTED_LANGUAGE_CODES.filter((c) => c !== learn).map((code) => (
                 <MenuItem key={code} value={code}>
-                  {LANGUAGES[code].name}
+                  {t(`languages.${code}`)}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
           <FormControl fullWidth>
-            <InputLabel id='onboard-level-label'>Difficulty level</InputLabel>
+            <InputLabel id='onboard-level-label'>{t('onboarding.difficultyLevel')}</InputLabel>
             <Select
               labelId='onboard-level-label'
               value={level ?? ''}
-              label='Difficulty level'
+              label={t('onboarding.difficultyLevel')}
               onChange={(e) => setLevel(e.target.value || null)}
             >
-              <MenuItem value=''>Any level</MenuItem>
+              <MenuItem value=''>{t('common.anyLevel')}</MenuItem>
               {LEVELS.map((l) => (
                 <MenuItem key={l.code} value={l.code}>
                   {levelLabel(l.code)}
@@ -158,7 +158,7 @@ export default function OnboardingWizard({ error, preparing, onComplete }: Onboa
               color='text.secondary'
               sx={{ display: 'block', mt: 0.75 }}
             >
-              Saved on this device. Available voices depend on what’s installed.
+              {t('onboarding.voiceNote')}
             </Typography>
           </Box>
 
@@ -172,7 +172,7 @@ export default function OnboardingWizard({ error, preparing, onComplete }: Onboa
               onComplete({ learnLanguage: learn, guessLanguage: guess, locale }, level)
             }
           >
-            Start practicing
+            {t('onboarding.start')}
           </Button>
         </Stack>
       </SectionCard>

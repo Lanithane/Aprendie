@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import {
   Drawer,
@@ -99,10 +100,23 @@ const navSx = (rail: boolean) => ({
   '& .MuiListItemIcon-root': { minWidth: rail ? 0 : 40, justifyContent: 'center' },
 })
 
-const MODE_META: Record<ThemeMode, { label: string; Icon: typeof LightModeIcon; short: string }> = {
-  light: { label: 'Light mode (click to cycle)', Icon: LightModeIcon, short: 'Light' },
-  dark: { label: 'Dark mode (click to cycle)', Icon: DarkModeIcon, short: 'Dark' },
-  system: { label: 'System mode (click to cycle)', Icon: SettingsBrightnessIcon, short: 'System' },
+// Catalog keys (not literal copy) so the rail's mode control localizes. `labelKey` is the long
+// "click to cycle" tooltip; `shortKey` the under-icon caption.
+const MODE_META: Record<
+  ThemeMode,
+  {
+    labelKey: 'sidebar.modeLight' | 'sidebar.modeDark' | 'sidebar.modeSystem'
+    Icon: typeof LightModeIcon
+    shortKey: 'common.light' | 'common.dark' | 'common.system'
+  }
+> = {
+  light: { labelKey: 'sidebar.modeLight', Icon: LightModeIcon, shortKey: 'common.light' },
+  dark: { labelKey: 'sidebar.modeDark', Icon: DarkModeIcon, shortKey: 'common.dark' },
+  system: {
+    labelKey: 'sidebar.modeSystem',
+    Icon: SettingsBrightnessIcon,
+    shortKey: 'common.system',
+  },
 }
 
 export default function Sidebar({
@@ -111,6 +125,7 @@ export default function Sidebar({
   widthExpanded,
   widthCollapsed,
 }: SidebarProps) {
+  const { t } = useTranslation()
   const { user, isAdmin } = useAuth()
   const { mode, cycleMode } = useThemeMode()
   const { openFeedback } = useFeedback()
@@ -127,7 +142,7 @@ export default function Sidebar({
   const width = collapsed ? widthCollapsed : widthExpanded
   const showLabels = !collapsed
   const ModeIcon = MODE_META[mode].Icon
-  const modeLabel = MODE_META[mode].label
+  const modeLabel = t(MODE_META[mode].labelKey)
 
   return (
     <StyledDrawer variant='permanent' open $width={width} $reserveSpace>
@@ -135,16 +150,16 @@ export default function Sidebar({
         $left={width}
         $top={toggleTop}
         onClick={onToggleCollapsed}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
       >
         {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
       </EdgeToggle>
       <HeaderRow>{showLabels && <BrandWordmark size='sidebar' />}</HeaderRow>
       <Divider />
       <List>
-        {navItems.map(({ to, label, Icon }) => (
+        {navItems.map(({ to, labelKey, Icon }) => (
           <ListItem key={to} disablePadding>
-            <Tooltip title={!showLabels ? label : ''} placement='right'>
+            <Tooltip title={!showLabels ? t(labelKey) : ''} placement='right'>
               <ListItemButton
                 sx={navSx(!showLabels)}
                 component={RouterLink}
@@ -154,7 +169,7 @@ export default function Sidebar({
                 <ListItemIcon>
                   <Icon />
                 </ListItemIcon>
-                {showLabels && <ListItemText primary={label} />}
+                {showLabels && <ListItemText primary={t(labelKey)} />}
               </ListItemButton>
             </Tooltip>
           </ListItem>
@@ -166,16 +181,16 @@ export default function Sidebar({
         <Divider ref={bottomDividerRef} />
         <List>
           <ListItem disablePadding>
-            <Tooltip title={!showLabels ? 'Send feedback' : ''} placement='right'>
+            <Tooltip title={!showLabels ? t('sidebar.sendFeedback') : ''} placement='right'>
               <ListItemButton
                 sx={navSx(!showLabels)}
                 onClick={openFeedback}
-                aria-label='Send feedback'
+                aria-label={t('sidebar.sendFeedback')}
               >
                 <ListItemIcon>
                   <FeedbackOutlinedIcon />
                 </ListItemIcon>
-                {showLabels && <ListItemText primary='Feedback' />}
+                {showLabels && <ListItemText primary={t('sidebar.feedback')} />}
               </ListItemButton>
             </Tooltip>
           </ListItem>
@@ -185,13 +200,13 @@ export default function Sidebar({
                 <ListItemIcon>
                   <ModeIcon />
                 </ListItemIcon>
-                {showLabels && <ListItemText primary={MODE_META[mode].short} />}
+                {showLabels && <ListItemText primary={t(MODE_META[mode].shortKey)} />}
               </ListItemButton>
             </Tooltip>
           </ListItem>
           {user && (
             <ListItem disablePadding>
-              <Tooltip title={!showLabels ? 'Sign out' : ''} placement='right'>
+              <Tooltip title={!showLabels ? t('sidebar.signOut') : ''} placement='right'>
                 <ListItemButton
                   sx={navSx(!showLabels)}
                   component='a'
@@ -201,7 +216,7 @@ export default function Sidebar({
                   <ListItemIcon>
                     <LogoutIcon />
                   </ListItemIcon>
-                  {showLabels && <ListItemText primary='Sign out' />}
+                  {showLabels && <ListItemText primary={t('sidebar.signOut')} />}
                 </ListItemButton>
               </Tooltip>
             </ListItem>

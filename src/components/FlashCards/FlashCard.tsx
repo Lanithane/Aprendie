@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Box, Button, CircularProgress, Typography, TextField, Alert } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import GradeChip from '../shared/GradeChip'
 import StreakIndicator from '../StreakIndicator/StreakIndicator'
 import { scoreToGrade } from '../../../shared/grades'
@@ -95,6 +96,7 @@ export default function FlashCard({
   onSubmit,
   onNext,
 }: FlashCardProps) {
+  const { t } = useTranslation()
   const [answer, setAnswer] = useState('')
   const { speak, cancel, speaking, supported: speechSupported } = useSpeech()
   const { rate, setRate } = useSpeechRate()
@@ -163,8 +165,8 @@ export default function FlashCard({
             // No floating label: the outline-notch label overlaps the field border on iOS Safari, so
             // we follow the app's working pattern (PracticeCard / Translator) — placeholder +
             // aria-label instead.
-            placeholder='Type the meaning'
-            aria-label='Type the meaning'
+            placeholder={t('flashcards.typeMeaning')}
+            aria-label={t('flashcards.typeMeaning')}
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -186,7 +188,7 @@ export default function FlashCard({
               disabled={grading || !answer.trim()}
               sx={{ ml: 'auto', borderRadius: '999px', minWidth: 140 }}
             >
-              {grading ? <CircularProgress size={22} color='inherit' /> : 'Check'}
+              {grading ? <CircularProgress size={22} color='inherit' /> : t('flashcards.check')}
             </Button>
           </Box>
         </>
@@ -199,7 +201,7 @@ export default function FlashCard({
               </Typography>
               {!grade.isCorrect && (
                 <Typography variant='body2' color='text.secondary'>
-                  You typed: {answer}
+                  {t('flashcards.youTyped', { answer })}
                 </Typography>
               )}
             </div>
@@ -230,7 +232,7 @@ export default function FlashCard({
             onClick={onNext}
             sx={{ alignSelf: 'flex-end', borderRadius: '999px', minWidth: 140 }}
           >
-            Next
+            {t('common.next')}
           </Button>
         </>
       )}

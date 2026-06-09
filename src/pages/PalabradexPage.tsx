@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguagePair } from '../hooks/useLanguagePair'
 import WordCollection from '../components/Palabradex/WordCollection'
 import GrammarReference from '../components/Palabradex/Grammar/GrammarReference'
-import { languageName } from '../../shared/languages'
 
 // Two modes of the Palabradex: "Your words" (the per-user root collection) and "Language" (the
 // language's own grammar reference). Different data sources — the page just owns the mode switch
@@ -12,6 +12,7 @@ import { languageName } from '../../shared/languages'
 type PalabradexMode = 'words' | 'language'
 
 export default function PalabradexPage() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { pair } = useLanguagePair()
   const [mode, setMode] = useState<PalabradexMode>('words')
@@ -23,12 +24,12 @@ export default function PalabradexPage() {
   return (
     <Box>
       <Typography variant='h3' sx={{ mb: 0.5 }}>
-        {grammar ? `${languageName(pair.learnLanguage)} grammar` : 'Word collection'}
+        {grammar
+          ? t('palabradex.grammarTitle', { language: t(`languages.${pair.learnLanguage}`) })
+          : t('palabradex.wordsTitle')}
       </Typography>
       <Typography color='text.secondary' variant='body2' sx={{ mb: 2 }}>
-        {grammar
-          ? 'The building blocks of the language you’re learning.'
-          : 'Every root word you’ve met, with how often you got it right.'}
+        {grammar ? t('palabradex.grammarDesc') : t('palabradex.wordsDesc')}
       </Typography>
 
       <ToggleButtonGroup
@@ -40,8 +41,8 @@ export default function PalabradexPage() {
         }}
         sx={{ mb: 2.5 }}
       >
-        <ToggleButton value='words'>Your words</ToggleButton>
-        <ToggleButton value='language'>Language</ToggleButton>
+        <ToggleButton value='words'>{t('palabradex.yourWords')}</ToggleButton>
+        <ToggleButton value='language'>{t('palabradex.language')}</ToggleButton>
       </ToggleButtonGroup>
 
       {grammar ? <GrammarReference pair={pair} /> : <WordCollection userId={user.id} pair={pair} />}

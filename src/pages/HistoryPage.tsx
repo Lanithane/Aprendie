@@ -12,6 +12,7 @@ import {
   ToggleButtonGroup,
   ToggleButton,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguagePair } from '../hooks/useLanguagePair'
 import { useHistory } from '../hooks/useHistory'
@@ -28,16 +29,19 @@ function pairKey(p: LanguagePair) {
   return `${p.learnLanguage}|${p.locale}`
 }
 
-function pairTabLabel(p: LanguagePair): string {
+// `langName` is the catalog-localized learn-language name; the regional `locale.label` stays from
+// the registry (place names aren't localized in this pass).
+function pairTabLabel(p: LanguagePair, langName: string): string {
   const lang = LANGUAGES[p.learnLanguage]
   if (lang && lang.locales.length > 1) {
     const locale = lang.locales.find((l) => l.code === p.locale)
-    return `${lang.name} · ${locale?.label ?? p.locale}`
+    return `${langName} · ${locale?.label ?? p.locale}`
   }
-  return lang?.name ?? p.learnLanguage
+  return langName
 }
 
 export default function HistoryPage() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { pair: activePair } = useLanguagePair()
   const [selectedPairKey, setSelectedPairKey] = useState<string | null>(null)
@@ -63,28 +67,26 @@ export default function HistoryPage() {
     { level: selectedLevel, sort }
   )
 
-  const attemptCountLabel = `${items.length} attempt${items.length === 1 ? '' : 's'} ${
-    hasMore ? 'shown' : 'total'
-  }`
+  const attemptCountLabel = t(hasMore ? 'history.attemptsShown' : 'history.attemptsTotal', {
+    count: items.length,
+  })
 
   if (!user) return null
 
   return (
     <Box>
       <Typography variant='h3' sx={{ mb: 2 }}>
-        History
+        {t('history.title')}
       </Typography>
 
       <Box sx={{ mb: 3 }}>
-        <UserMetrics source={{ kind: 'me' }} title='Your metrics' />
+        <UserMetrics source={{ kind: 'me' }} />
       </Box>
 
       {pairsLoading && <LoadingSpinner />}
 
       {!pairsLoading && pairs.length === 0 && (
-        <Typography color='text.secondary'>
-          No history yet. Finish a sentence to see it here.
-        </Typography>
+        <Typography color='text.secondary'>{t('history.empty')}</Typography>
       )}
 
       {!pairsLoading && pairs.length > 0 && effectivePair && (
@@ -100,7 +102,11 @@ export default function HistoryPage() {
             sx={{ mt: 2, mb: 2.5 }}
           >
             {pairs.map((p) => (
-              <Tab key={pairKey(p)} value={pairKey(p)} label={pairTabLabel(p)} />
+              <Tab
+                key={pairKey(p)}
+                value={pairKey(p)}
+                label={pairTabLabel(p, t(`languages.${p.learnLanguage}`))}
+              />
             ))}
           </Tabs>
 
@@ -123,7 +129,7 @@ export default function HistoryPage() {
                 {error}
               </Alert>
               <Button color='secondary' size='small' onClick={() => void reload()}>
-                Try again
+                {t('common.tryAgain')}
               </Button>
             </Stack>
           )}
@@ -133,7 +139,7 @@ export default function HistoryPage() {
           ) : (
             <Stack spacing={2}>
               {items.length === 0 && (
-                <Typography color='text.secondary'>No history for this selection.</Typography>
+                <Typography color='text.secondary'>{t('history.emptySelection')}</Typography>
               )}
               {items.length > 0 && (
                 <Paper variant='outlined' sx={{ borderRadius: 2, overflow: 'hidden' }}>
@@ -158,7 +164,7 @@ export default function HistoryPage() {
                   disabled={loadingMore}
                   sx={{ alignSelf: 'center' }}
                 >
-                  {loadingMore ? 'Loading…' : 'Load more'}
+                  {loadingMore ? t('common.loading') : t('history.loadMore')}
                 </Button>
               )}
               {items.length > 0 && !loading && (
@@ -182,11 +188,12 @@ interface HistoryFiltersProps {
 }
 
 function HistoryFilters({ selectedLevel, sort, onLevelChange, onSortChange }: HistoryFiltersProps) {
+  const { t } = useTranslation()
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, mb: 2.5 }}>
       <Box>
         <Typography variant='caption' color='text.secondary' sx={{ mb: 0.75, display: 'block' }}>
-          Level
+          {t('history.level')}
         </Typography>
         <Box sx={{ overflowX: 'auto' }}>
           <ToggleButtonGroup
@@ -197,10 +204,10 @@ function HistoryFilters({ selectedLevel, sort, onLevelChange, onSortChange }: Hi
               if (v !== null) onLevelChange(v === 'all' ? null : (v as LevelCode))
             }}
           >
-            <ToggleButton value='all'>All</ToggleButton>
+            <ToggleButton value='all'>{t('history.all')}</ToggleButton>
             {LEVELS.map((l) => (
               <ToggleButton key={l.code} value={l.code}>
-                {l.cefr ?? l.name.split(' ')[0]}
+                {l.cefr ?? t('levels.starterShort')}
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
@@ -208,7 +215,7 @@ function HistoryFilters({ selectedLevel, sort, onLevelChange, onSortChange }: Hi
       </Box>
       <Box>
         <Typography variant='caption' color='text.secondary' sx={{ mb: 0.75, display: 'block' }}>
-          Sort
+          {t('history.sort')}
         </Typography>
         <ToggleButtonGroup
           value={sort}
@@ -218,8 +225,8 @@ function HistoryFilters({ selectedLevel, sort, onLevelChange, onSortChange }: Hi
             if (v !== null) onSortChange(v)
           }}
         >
-          <ToggleButton value='newest'>Newest first</ToggleButton>
-          <ToggleButton value='worst'>Most mistakes first</ToggleButton>
+          <ToggleButton value='newest'>{t('history.newest')}</ToggleButton>
+          <ToggleButton value='worst'>{t('history.mostMistakes')}</ToggleButton>
         </ToggleButtonGroup>
       </Box>
     </Box>

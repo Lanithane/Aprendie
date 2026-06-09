@@ -4,12 +4,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import { diffWordsWithSpace } from 'diff'
-import {
-  languageName,
-  type LanguageCode,
-  type LocaleCode,
-  type WordToken,
-} from '../../../shared/languages'
+import { useTranslation } from 'react-i18next'
+import { type LanguageCode, type LocaleCode, type WordToken } from '../../../shared/languages'
 import { scoreToGrade, type Grade } from '../../../shared/grades'
 import type { CorrectionMistakeDto } from '../../api/correctionApi'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
@@ -19,7 +15,7 @@ import GradeChip, { PERFECT_GOLD } from '../shared/GradeChip'
 import ListenControls from '../shared/ListenControls'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
 import { DiffLine, PromptHeadline, MistakeRow, Added, Removed } from './correctionStyles'
-import { RESULT_TITLES, pickTitle } from './resultTitles'
+import { pickTitle } from './resultTitles'
 
 // Normalize curly quotes to ASCII so a typographic apostrophe (e.g. Claude's "I\u2019m") does not
 // diff against the user's straight-quote "I'm". Written as \u escapes, not literal smart-quote
@@ -87,6 +83,7 @@ export default function CorrectionDisplay({
   notes,
   onNext,
 }: CorrectionDisplayProps) {
+  const { t } = useTranslation()
   // Land focus on "Next" when the result appears, so submitting with Enter flows
   // straight into advancing to the next sentence with Enter.
   const nextRef = useAutoFocus<HTMLButtonElement>()
@@ -102,10 +99,11 @@ export default function CorrectionDisplay({
   )
   const displayGrade: Grade = (grade as Grade | undefined) ?? scoreToGrade(score)
   // An exact match gets the dedicated "Perfect!" celebration; otherwise pick a varied headline for
-  // this grade and outcome.
+  // this grade and outcome. The pools come from the catalog so they localize with the UI.
+  const resultTitles = t('correction.resultTitles', { returnObjects: true })
   const headline = isExactMatch
-    ? 'Perfect!'
-    : pickTitle(RESULT_TITLES[displayGrade][isCorrect ? 'success' : 'mistake'], userAnswer)
+    ? t('correction.perfect')
+    : pickTitle(resultTitles[displayGrade][isCorrect ? 'success' : 'mistake'], userAnswer)
 
   return (
     <Card aria-live='polite'>
@@ -133,7 +131,7 @@ export default function CorrectionDisplay({
 
         <Stack direction='row' sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant='overline' color='text.secondary'>
-            {languageName(learnLanguage)}
+            {t(`languages.${learnLanguage}`)}
           </Typography>
           {speechSupported && (
             <ListenControls
@@ -171,7 +169,7 @@ export default function CorrectionDisplay({
           <Stack spacing={1}>
             <Box>
               <Typography variant='overline' color='text.secondary'>
-                Your answer
+                {t('correction.yourAnswer')}
               </Typography>
               <DiffLine lang={guessLanguage}>
                 {parts.map((p, i) => {
@@ -183,7 +181,7 @@ export default function CorrectionDisplay({
             </Box>
             <Box>
               <Typography variant='overline' color='text.secondary'>
-                Correct
+                {t('correction.correct')}
               </Typography>
               <DiffLine lang={guessLanguage}>
                 {parts.map((p, i) => {
@@ -200,7 +198,7 @@ export default function CorrectionDisplay({
           <>
             <Divider sx={{ my: 2 }} />
             <Typography variant='overline' color='text.secondary'>
-              Mistakes
+              {t('correction.mistakes')}
             </Typography>
             <Stack spacing={1.25} sx={{ mt: 1 }}>
               {visibleMistakes.map((m, i) => (
@@ -230,7 +228,7 @@ export default function CorrectionDisplay({
           <>
             <Divider sx={{ my: 2 }} />
             <Typography variant='overline' color='text.secondary'>
-              Tip
+              {t('correction.tip')}
             </Typography>
             <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
               {notes}
@@ -240,7 +238,7 @@ export default function CorrectionDisplay({
 
         <Stack direction='row' sx={{ mt: 3, justifyContent: 'flex-end' }}>
           <Button ref={nextRef} color='primary' onClick={onNext} size='large'>
-            Next ›
+            {t('correction.next')}
           </Button>
         </Stack>
       </CardContent>

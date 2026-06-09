@@ -1,5 +1,7 @@
 import { Typography, CircularProgress, Alert, LinearProgress } from '@mui/material'
 import { styled, useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import type { DeckDto } from '../../api/flashcardApi'
 
 interface DeckPickerProps {
@@ -59,15 +61,16 @@ const ProgressMeta = styled('div')`
   align-items: center;
 `
 
-function deckStatusLabel(deck: DeckDto): string {
+function deckStatusLabel(deck: DeckDto, t: TFunction): string {
   const { seen, total, struggling } = deck.progress
-  if (total === 0) return 'Not yet generated'
-  if (seen === 0) return `${total} cards`
-  if (seen < total) return `${seen} / ${total} seen`
-  return struggling > 0 ? `${struggling} to review` : 'Complete'
+  if (total === 0) return t('flashcards.notGenerated')
+  if (seen === 0) return t('flashcards.cardsCount', { count: total })
+  if (seen < total) return t('flashcards.seenProgress', { seen, total })
+  return struggling > 0 ? t('flashcards.toReview', { count: struggling }) : t('flashcards.complete')
 }
 
 export default function DeckPicker({ decks, loading, error, onSelect }: DeckPickerProps) {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   if (loading) {
@@ -85,7 +88,7 @@ export default function DeckPicker({ decks, loading, error, onSelect }: DeckPick
   return (
     <div style={{ width: '100%' }}>
       <Typography variant='h5' gutterBottom>
-        Choose a deck
+        {t('flashcards.chooseDeck')}
       </Typography>
       <Grid>
         {decks.map((deck) => {
@@ -105,11 +108,11 @@ export default function DeckPicker({ decks, loading, error, onSelect }: DeckPick
               <ProgressRow>
                 <ProgressMeta>
                   <Typography variant='caption' color='text.secondary'>
-                    {deckStatusLabel(deck)}
+                    {deckStatusLabel(deck, t)}
                   </Typography>
                   {hasStruggling && (
                     <Typography variant='caption' color='error.main'>
-                      {struggling} struggling
+                      {t('flashcards.struggling', { count: struggling })}
                     </Typography>
                   )}
                 </ProgressMeta>

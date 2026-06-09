@@ -14,6 +14,7 @@ import {
 } from '@mui/material'
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined'
 import ShieldIcon from '@mui/icons-material/Shield'
+import { useTranslation } from 'react-i18next'
 import { Link as RouterLink } from 'react-router-dom'
 import { ADMIN_NAV_ITEM } from '../components/AppShell/navigation'
 import SectionCard from '../components/shared/SectionCard'
@@ -29,9 +30,12 @@ import { useLevelPreference } from '../hooks/useLevelPreference'
 import { useStreakPreference } from '../hooks/useStreakPreference'
 import { useStreak } from '../streak/StreakContext'
 import { useThemeMode, type ThemeMode } from '../ThemeModeProvider'
-import { LEVELS, levelLabel } from '../../shared/levels'
+import { useLevelLabel } from '../hooks/useLevelLabel'
+import { LEVELS } from '../../shared/levels'
 
 export default function SettingsPage() {
+  const { t } = useTranslation()
+  const levelLabel = useLevelLabel()
   const { user, isAdmin } = useAuth()
   const { pref, setPref } = useLevelPreference()
   const { enabled: streakEnabled, setEnabled: setStreakEnabled } = useStreakPreference()
@@ -42,7 +46,7 @@ export default function SettingsPage() {
   return (
     <Box>
       <Typography variant='h3' sx={{ mb: 2 }}>
-        Settings
+        {t('settings.title')}
       </Typography>
       <Stack spacing={2}>
         {isAdmin && (
@@ -54,12 +58,12 @@ export default function SettingsPage() {
             to={ADMIN_NAV_ITEM.to}
             sx={{ alignSelf: 'flex-start' }}
           >
-            {ADMIN_NAV_ITEM.label}
+            {t('nav.admin')}
           </Button>
         )}
         <SectionCard
-          title='Appearance'
-          description='Pick a color theme and your light/dark preference. Every theme adapts to both.'
+          title={t('settings.appearanceTitle')}
+          description={t('settings.appearanceDesc')}
         >
           <Stack spacing={2}>
             <ToggleButtonGroup
@@ -67,36 +71,33 @@ export default function SettingsPage() {
               exclusive
               size='small'
               onChange={(_, v: ThemeMode | null) => v && setMode(v)}
-              aria-label='Light or dark mode'
+              aria-label={t('settings.modeAria')}
             >
-              <ToggleButton value='light'>Light</ToggleButton>
-              <ToggleButton value='system'>System</ToggleButton>
-              <ToggleButton value='dark'>Dark</ToggleButton>
+              <ToggleButton value='light'>{t('common.light')}</ToggleButton>
+              <ToggleButton value='system'>{t('common.system')}</ToggleButton>
+              <ToggleButton value='dark'>{t('common.dark')}</ToggleButton>
             </ToggleButtonGroup>
             <ThemePicker />
           </Stack>
         </SectionCard>
 
-        <SectionCard
-          title='Languages'
-          description='Pick what to learn, its regional variant, and the language you answer in.'
-        >
+        <SectionCard title={t('settings.languagesTitle')} description={t('settings.languagesDesc')}>
           <LanguagePairPicker />
         </SectionCard>
 
         <SectionCard
-          title='Difficulty level'
-          description='Controls the complexity of sentences. You can also change this on the practice card.'
+          title={t('settings.difficultyTitle')}
+          description={t('settings.difficultyDesc')}
         >
           <FormControl size='small' sx={{ minWidth: 240 }}>
-            <InputLabel id='settings-level-label'>Level</InputLabel>
+            <InputLabel id='settings-level-label'>{t('settings.level')}</InputLabel>
             <Select
               labelId='settings-level-label'
-              label='Level'
+              label={t('settings.level')}
               value={pref ?? ''}
               onChange={(e) => setPref(e.target.value || null)}
             >
-              <MenuItem value=''>Any level</MenuItem>
+              <MenuItem value=''>{t('common.anyLevel')}</MenuItem>
               {LEVELS.map((l) => (
                 <MenuItem key={l.code} value={l.code}>
                   {levelLabel(l.code)}
@@ -107,8 +108,8 @@ export default function SettingsPage() {
         </SectionCard>
 
         <SectionCard
-          title='Pronunciation'
-          description='Choose the voice used to read sentences aloud, and whether new sentences play on their own. Available voices depend on your device.'
+          title={t('settings.pronunciationTitle')}
+          description={t('settings.pronunciationDesc')}
         >
           <Stack spacing={2}>
             <VoicePicker />
@@ -116,10 +117,7 @@ export default function SettingsPage() {
           </Stack>
         </SectionCard>
 
-        <SectionCard
-          title='Streak'
-          description='Count consecutive days you practice. Turn it off any time — no pressure.'
-        >
+        <SectionCard title={t('settings.streakTitle')} description={t('settings.streakDesc')}>
           <Stack spacing={1}>
             <FormControlLabel
               control={
@@ -128,12 +126,14 @@ export default function SettingsPage() {
                   onChange={(e) => setStreakEnabled(e.target.checked)}
                 />
               }
-              label='Track my streak'
+              label={t('settings.trackMyStreak')}
             />
             {streakEnabled && (streak.current > 0 || streak.longest > 0) && (
               <Typography variant='body2' color='text.secondary'>
-                Current: {streak.current} {streak.current === 1 ? 'day' : 'days'} · Longest:{' '}
-                {streak.longest} {streak.longest === 1 ? 'day' : 'days'}
+                {t('settings.streakSummary', {
+                  current: t('common.dayCount', { count: streak.current }),
+                  longest: t('common.dayCount', { count: streak.longest }),
+                })}
               </Typography>
             )}
           </Stack>
@@ -141,16 +141,13 @@ export default function SettingsPage() {
 
         <ContributeCard userId={user?.id} />
 
-        <SectionCard
-          title='Feedback'
-          description='Spot a bug or have an idea? Send it straight to the team.'
-        >
+        <SectionCard title={t('settings.feedbackTitle')} description={t('settings.feedbackDesc')}>
           <Button variant='contained' startIcon={<FeedbackOutlinedIcon />} onClick={openFeedback}>
-            Send feedback
+            {t('settings.sendFeedback')}
           </Button>
         </SectionCard>
 
-        <SectionCard title='Account' description={user?.email}>
+        <SectionCard title={t('settings.accountTitle')} description={user?.email}>
           <Box sx={{ mt: 2 }}>
             <Button
               color='secondary'
@@ -158,7 +155,7 @@ export default function SettingsPage() {
               href='/api/auth/logout'
               onClick={clearSessionMarker}
             >
-              Sign out
+              {t('settings.signOut')}
             </Button>
           </Box>
         </SectionCard>

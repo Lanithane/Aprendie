@@ -1,7 +1,9 @@
 import { useState, type MouseEvent } from 'react'
 import { Button, Menu, MenuItem, Divider } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { LEVELS, levelLabel } from '../../../shared/levels'
+import { useTranslation } from 'react-i18next'
+import { LEVELS } from '../../../shared/levels'
+import { useLevelLabel } from '../../hooks/useLevelLabel'
 import type { LevelPref } from '../../hooks/useLevelPreference'
 
 interface LevelSelectButtonProps {
@@ -14,6 +16,8 @@ interface LevelSelectButtonProps {
 // just above the practice card (see HomeTopBar / HomePage). Filled (not outlined) so it stays
 // legible on the tinted page — a pale secondary outline washed out against the light canvas.
 export default function LevelSelectButton({ level, onLevelChange }: LevelSelectButtonProps) {
+  const { t } = useTranslation()
+  const levelLabel = useLevelLabel()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const open = Boolean(anchorEl)
 
@@ -35,16 +39,16 @@ export default function LevelSelectButton({ level, onLevelChange }: LevelSelectB
         aria-haspopup='menu'
         aria-expanded={open}
       >
-        {level ? levelLabel(level) : 'Level: any'}
+        {level ? levelLabel(level) : t('home.levelAny')}
       </Button>
       <Menu anchorEl={anchorEl} open={open} onClose={closeMenu}>
         <MenuItem selected={level === null} onClick={() => pick(null)}>
-          Any level
+          {t('common.anyLevel')}
         </MenuItem>
         <Divider />
         {LEVELS.map((l) => (
           <MenuItem key={l.code} selected={level === l.code} onClick={() => pick(l.code)}>
-            {l.cefr ? `${l.name} (${l.cefr})` : l.name}
+            {levelLabel(l.code)}
           </MenuItem>
         ))}
       </Menu>

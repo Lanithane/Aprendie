@@ -18,18 +18,15 @@ import {
 } from '@mui/material'
 import { styled, useTheme } from '@mui/material/styles'
 import ShuffleIcon from '@mui/icons-material/Shuffle'
-import {
-  languageName,
-  type LanguageCode,
-  type LocaleCode,
-  type WordToken,
-} from '../../../shared/languages'
+import { useTranslation } from 'react-i18next'
+import { type LanguageCode, type LocaleCode, type WordToken } from '../../../shared/languages'
 import { type LevelCode } from '../../../shared/levels'
 import { CATEGORIES, categoryById, categoryByDomain } from '../../../shared/categories'
 import type { CategoryPref } from '../../hooks/useCategoryPreference'
 import SentenceTokens from '../SentenceTokens/SentenceTokens'
 import StreakIndicator from '../StreakIndicator/StreakIndicator'
 import ListenControls from '../shared/ListenControls'
+import { useCategoryLabel } from '../../hooks/useCategoryLabel'
 import { useAutoFocus } from '../../hooks/useAutoFocus'
 import { useSpeech } from '../../hooks/useSpeech'
 import { useSpeechRate } from '../../hooks/useSpeechRate'
@@ -79,6 +76,8 @@ export default function PracticeCard({
   submitting,
   disabled,
 }: PracticeCardProps) {
+  const { t } = useTranslation()
+  const categoryLabel = useCategoryLabel()
   const [guess, setGuess] = useState('')
   // Refocus the answer field each time a new sentence loads, so the flow stays keyboard-driven.
   const inputRef = useAutoFocus<HTMLInputElement>(promptText)
@@ -117,23 +116,26 @@ export default function PracticeCard({
     closeCategoryMenu()
   }
 
-  const guessName = languageName(guessLanguage)
+  const guessName = t(`languages.${guessLanguage}`)
   // The chip shows the pinned topic when set, otherwise the current sentence's own topic; falling
   // back to "Shuffle" only before any sentence has a known category.
   const pinnedCategory = category ? categoryById(category) : undefined
   const sentenceCategory = sentenceTheme ? categoryByDomain(sentenceTheme) : undefined
-  const categoryChipLabel = pinnedCategory?.label ?? sentenceCategory?.label ?? 'Shuffle'
+  const activeCategoryId = pinnedCategory?.id ?? sentenceCategory?.id
+  const categoryChipLabel = activeCategoryId
+    ? categoryLabel(activeCategoryId)
+    : t('practice.shuffle')
 
   // The same option rows render inside the desktop popover and the mobile bottom sheet.
   const categoryOptions = (
     <>
       <MenuItem selected={category === null} onClick={() => pickCategory(null)}>
-        Shuffle all topics
+        {t('practice.shuffleAll')}
       </MenuItem>
       <Divider />
       {CATEGORIES.map((c) => (
         <MenuItem key={c.id} selected={category === c.id} onClick={() => pickCategory(c.id)}>
-          {c.label}
+          {categoryLabel(c.id)}
         </MenuItem>
       ))}
     </>
@@ -214,7 +216,7 @@ export default function PracticeCard({
                 fontWeight: 'bolder',
               }}
             >
-              Practice topic
+              {t('practice.topic')}
             </Typography>
             <MenuList sx={{ overflowY: 'auto', pb: 1 }}>{categoryOptions}</MenuList>
           </Drawer>
@@ -247,7 +249,7 @@ export default function PracticeCard({
           fullWidth
           multiline
           maxRows={3}
-          placeholder={`Translate to ${guessName}…`}
+          placeholder={t('practice.translateTo', { language: guessName })}
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
           onKeyDown={(e) => {
@@ -257,7 +259,7 @@ export default function PracticeCard({
             }
           }}
           disabled={disabled || submitting}
-          aria-label={`Your ${guessName} translation`}
+          aria-label={t('practice.answerAria', { language: guessName })}
         />
         <Stack direction='row' sx={{ mt: 2, alignItems: 'center' }}>
           {/* Streak pill tucked bottom-left, its left edge flush with the answer field — mirroring
@@ -275,13 +277,13 @@ export default function PracticeCard({
             {/* Hold the resting "Submit" width with a hidden copy and center the spinner over it,
                 so the button doesn't resize when it flips into the loading state. */}
             <Box component='span' sx={{ visibility: submitting ? 'hidden' : 'visible' }}>
-              Submit
+              {t('practice.submit')}
             </Box>
             {submitting && (
               <CircularProgress
                 size={18}
                 color='inherit'
-                aria-label='Checking'
+                aria-label={t('practice.checking')}
                 sx={{ position: 'absolute', top: '50%', left: '50%', mt: '-9px', ml: '-9px' }}
               />
             )}

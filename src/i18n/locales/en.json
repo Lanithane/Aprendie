@@ -1,0 +1,350 @@
+{
+  "common": {
+    "tryAgain": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "next": "Next",
+    "back": "Back",
+    "close": "Close",
+    "loading": "Loading…",
+    "loadingAria": "Loading",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "anyLevel": "Any level",
+    "dayCount_one": "{{count}} day",
+    "dayCount_other": "{{count}} days"
+  },
+  "languages": {
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German",
+    "it": "Italian",
+    "pt": "Portuguese"
+  },
+  "languagePicker": {
+    "wantToLearn": "I want to learn",
+    "region": "Region",
+    "translateInto": "Translate into",
+    "orTypePlace": "Or type a place",
+    "placeExample": "e.g. Buenos Aires",
+    "detect": "Detect",
+    "detecting": "Detecting…",
+    "regionHelp": "Picks the best regional variant for your learning language."
+  },
+  "onboarding": {
+    "welcome": "Welcome to Aprendie",
+    "intro": "Tell us what you want to practice and we’ll have your first sentences ready.",
+    "practiceTitle": "Your practice",
+    "practiceDesc": "You can change any of this later in Settings.",
+    "difficultyLevel": "Difficulty level",
+    "voiceNote": "Saved on this device. Available voices depend on what’s installed.",
+    "start": "Start practicing"
+  },
+  "nav": {
+    "practice": "Practice",
+    "flashcards": "Flash cards",
+    "history": "History",
+    "palabradex": "Palabradex",
+    "translate": "Translate",
+    "settings": "Settings",
+    "admin": "Admin"
+  },
+  "appShell": {
+    "skipToContent": "Skip to content",
+    "primaryNavigation": "Primary navigation"
+  },
+  "sidebar": {
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "feedback": "Feedback",
+    "sendFeedback": "Send feedback",
+    "signOut": "Sign out",
+    "modeLight": "Light mode (click to cycle)",
+    "modeDark": "Dark mode (click to cycle)",
+    "modeSystem": "System mode (click to cycle)"
+  },
+  "settings": {
+    "title": "Settings",
+    "appearanceTitle": "Appearance",
+    "appearanceDesc": "Pick a color theme and your light/dark preference. Every theme adapts to both.",
+    "modeAria": "Light or dark mode",
+    "languagesTitle": "Languages",
+    "languagesDesc": "Pick what to learn, its regional variant, and the language you answer in.",
+    "difficultyTitle": "Difficulty level",
+    "difficultyDesc": "Controls the complexity of sentences. You can also change this on the practice card.",
+    "level": "Level",
+    "pronunciationTitle": "Pronunciation",
+    "pronunciationDesc": "Choose the voice used to read sentences aloud, and whether new sentences play on their own. Available voices depend on your device.",
+    "streakTitle": "Streak",
+    "streakDesc": "Count consecutive days you practice. Turn it off any time — no pressure.",
+    "trackMyStreak": "Track my streak",
+    "streakSummary": "Current: {{current}} · Longest: {{longest}}",
+    "feedbackTitle": "Feedback",
+    "feedbackDesc": "Spot a bug or have an idea? Send it straight to the team.",
+    "sendFeedback": "Send feedback",
+    "accountTitle": "Account",
+    "signOut": "Sign out",
+    "colorTheme": "Color theme"
+  },
+  "voicePicker": {
+    "unsupported": "Your browser doesn’t support speech synthesis, so voices aren’t available here.",
+    "noVoices": "No {{language}} voices are installed on this device. Your system’s voice settings control which ones are available.",
+    "voiceLabel": "{{language}} voice",
+    "automatic": "Automatic",
+    "preview": "Preview voice",
+    "previewAria": "Preview the {{language}} voice"
+  },
+  "autoSpeak": {
+    "toggle": "Read each new sentence aloud automatically",
+    "delay": "Delay before playing: {{seconds}} s",
+    "none": "None"
+  },
+  "levels": {
+    "starter": "Starter Level",
+    "a1": "Beginner Level",
+    "a2": "Elementary Level",
+    "b1": "Intermediate Level",
+    "b2": "Upper Intermediate Level",
+    "c1": "Advanced Level",
+    "c2": "Proficiency Level",
+    "starterShort": "Starter"
+  },
+  "home": {
+    "levelAny": "Level: any"
+  },
+  "streak": {
+    "indicatorAria": "{{count}}-day streak"
+  },
+  "metrics": {
+    "yourMetrics": "Your metrics",
+    "attempts": "Attempts",
+    "accuracy": "Accuracy",
+    "overTime": "Attempts & accuracy over time",
+    "noData": "No data yet.",
+    "rangeAll": "All",
+    "range1w": "1W",
+    "range1d": "1D"
+  },
+  "contribute": {
+    "cardTitle": "Usage & Contributing",
+    "cardDesc": "Aprendie is free, don't worry! Here are some ways to give back though, if you'd like.",
+    "spentSoFar": "Spent so far · ~{{water}} water (estimated)",
+    "offsetFootprint": "Offset water footprint",
+    "support": "Support the developer",
+    "usage": "Usage",
+    "usageSoFar": "Usage so far: {{usd}}, ~{{water}} water.",
+    "reassurance": "Don't worry, Aprendie is free! We appreciate any donations, though.",
+    "waterAmount": "~{{water}} H₂O",
+    "offsetWater": "Offset water usage"
+  },
+  "login": {
+    "sessionExpired": "Your session expired after 30 days of inactivity. Please sign in again.",
+    "tagline": "Practice translating sentences and get instant, friendly corrections.",
+    "signInGoogle": "Sign in with Google",
+    "poweredBy": "Powered by Anthropic AI"
+  },
+  "practice": {
+    "shuffle": "Shuffle",
+    "shuffleAll": "Shuffle all topics",
+    "topic": "Practice topic",
+    "translateTo": "Translate to {{language}}…",
+    "answerAria": "Your {{language}} translation",
+    "submit": "Submit",
+    "checking": "Checking"
+  },
+  "correction": {
+    "perfect": "Perfect!",
+    "checkingAnswer": "Checking your answer…",
+    "yourAnswer": "Your answer",
+    "correct": "Correct",
+    "suggested": "Suggested",
+    "mistakes": "Mistakes",
+    "tip": "Tip",
+    "next": "Next ›",
+    "resultTitles": {
+      "A+": {
+        "success": [
+          "Flawless!",
+          "Perfect!",
+          "Nailed it!",
+          "Pure gold!",
+          "Couldn't be better!",
+          "Masterful!",
+          "Spot on!",
+          "Brilliant!",
+          "This is the way."
+        ],
+        "mistake": ["So close!", "Nearly perfect!", "Almost there!"]
+      },
+      "A": {
+        "success": ["Excellent!", "Well done!", "Great work!", "Impressive!"],
+        "mistake": ["So close!", "Great try", "Not quite!"]
+      },
+      "B": {
+        "success": ["Nice work!", "Well done!", "Good job!", "Keep it up!", "Almost there!"],
+        "mistake": [
+          "Close! Here's what to fix",
+          "Almost there!",
+          "Nearly there!",
+          "You're on the right track",
+          "Good effort!"
+        ]
+      },
+      "C": {
+        "success": ["Good effort!", "Not bad!", "You're getting it!", "Making progress!", "Keep going!"],
+        "mistake": ["On the right track", "Keep at it!", "Progress!", "Keep practicing!"]
+      },
+      "D": {
+        "success": ["Keep at it!", "Don't give up!", "Hang in there!", "Keep pushing!"],
+        "mistake": ["On the right track", "Keep at it!", "Progress!", "Keep practicing!"]
+      },
+      "F": {
+        "success": ["Don't give up!", "Keep at it!"],
+        "mistake": ["On the right track", "Keep at it!", "Progress!", "Keep practicing!"]
+      }
+    }
+  },
+  "sentence": {
+    "wordAria": "Show the dictionary form and grammar of {{word}}"
+  },
+  "history": {
+    "title": "History",
+    "empty": "No history yet. Finish a sentence to see it here.",
+    "emptySelection": "No history for this selection.",
+    "loadMore": "Load more",
+    "level": "Level",
+    "all": "All",
+    "sort": "Sort",
+    "newest": "Newest first",
+    "mostMistakes": "Most mistakes first",
+    "attemptsShown_one": "{{count}} attempt shown",
+    "attemptsShown_other": "{{count}} attempts shown",
+    "attemptsTotal_one": "{{count}} attempt total",
+    "attemptsTotal_other": "{{count}} attempts total",
+    "toggleDetails": "Toggle attempt details",
+    "sentenceLabel": "Sentence"
+  },
+  "grade": {
+    "aria": "Grade {{grade}}"
+  },
+  "feedback": {
+    "title": "Send feedback",
+    "subtitle": "Ideas, bugs, or just a hello! It all helps shape Aprendie.",
+    "categoryAria": "Feedback category",
+    "catIdea": "Idea",
+    "catBug": "Bug",
+    "catPraise": "Praise",
+    "catOther": "Other",
+    "messageLabel": "Your message",
+    "emptyError": "Please write a short message first.",
+    "sendError": "Could not send feedback. Try again.",
+    "sending": "Sending…",
+    "send": "Send",
+    "thanks": "Thanks for the feedback!"
+  },
+  "flashcards": {
+    "allDecks": "← All decks",
+    "chooseDeck": "Choose a deck",
+    "typeMeaning": "Type the meaning",
+    "check": "Check",
+    "youTyped": "You typed: {{answer}}",
+    "notGenerated": "Not yet generated",
+    "cardsCount_one": "{{count}} card",
+    "cardsCount_other": "{{count}} cards",
+    "seenProgress": "{{seen}} / {{total}} seen",
+    "toReview_one": "{{count}} to review",
+    "toReview_other": "{{count}} to review",
+    "complete": "Complete",
+    "struggling_one": "{{count}} struggling",
+    "struggling_other": "{{count}} struggling"
+  },
+  "listen": {
+    "playbackSpeed": "Playback speed",
+    "speedAria": "Playback speed: {{rate}}×",
+    "stop": "Stop",
+    "listen": "Listen",
+    "stopAria": "Stop reading the sentence aloud",
+    "listenAria": "Read the sentence aloud",
+    "slow": "Slow",
+    "fast": "Fast",
+    "rateAria": "Speech rate"
+  },
+  "preparing": {
+    "title": "Preparing your first few sentences…",
+    "subtitle": "This only takes a few seconds the first time."
+  },
+  "translator": {
+    "translating": "Translating…",
+    "swapAria": "Swap translation direction (currently {{source}} to {{target}})",
+    "inputAria": "Text in {{language}}",
+    "inputPlaceholder": "Type something in {{language}}…"
+  },
+  "palabradex": {
+    "wordsTitle": "Word collection",
+    "grammarTitle": "{{language}} grammar",
+    "wordsDesc": "Every root word you’ve met, with how often you got it right.",
+    "grammarDesc": "The building blocks of the language you’re learning.",
+    "yourWords": "Your words",
+    "language": "Language",
+    "sort": "Sort",
+    "sortSeen": "Most seen",
+    "sortIncorrect": "Most mistakes",
+    "sortAlpha": "A–Z",
+    "emptyWords": "No words yet. Finish a sentence to start your collection.",
+    "emptyLanguage": "No words for this language yet.",
+    "emptyGrammar": "No grammar reference for this language yet.",
+    "rootCount_one": "{{count}} root word",
+    "rootCount_other": "{{count}} root words",
+    "toggleAria": "Toggle {{lemma}} details",
+    "seenTimes": "seen {{count}}×",
+    "percentCorrectAria": "{{pct}}% correct",
+    "loadingDefinition": "Loading definition…",
+    "definitionUnavailable": "Definition unavailable.",
+    "correctCount": "{{count}} correct",
+    "incorrectCount": "{{count}} incorrect",
+    "noForms": "No recorded forms yet.",
+    "example": "Example",
+    "showForms": "Show forms",
+    "hideForms": "Hide forms"
+  },
+  "accessGate": {
+    "blockedTitle": "Access blocked",
+    "pendingTitle": "Your account is awaiting approval",
+    "blockedDetail": "Access to practice has been turned off for this account. If you think this is a mistake, reach out to the person who runs this app.",
+    "pendingDetail": "Thanks for signing in! Practice opens up once an operator approves your account. Come back and refresh in a little while. Your place is saved.",
+    "signedInAs": "Signed in as {{email}}"
+  },
+  "dailyCap": {
+    "atCapTitle": "That's today's limit",
+    "nearCapTitle": "Nearing your daily limit",
+    "atCapDetail": "You've used all {{cap}} of today's graded sentences. It resets at midnight UTC.",
+    "remaining_one": "{{count}} of {{cap}} graded sentence left today.",
+    "remaining_other": "{{count}} of {{cap}} graded sentences left today."
+  },
+  "categories": {
+    "animals": "Animals & Nature",
+    "arts": "Arts & Media",
+    "city": "City Life",
+    "clothes": "Clothes",
+    "routine": "Daily Routine",
+    "environment": "Environment",
+    "family": "Family",
+    "feelings": "Feelings",
+    "food": "Food & Dining",
+    "greetings": "Greetings",
+    "health": "Health",
+    "hobbies": "Hobbies",
+    "holidays": "Holidays",
+    "home": "Home",
+    "numbers": "Numbers & Time",
+    "future": "Plans & Future",
+    "shopping": "Shopping & Money",
+    "sports": "Sports",
+    "technology": "Technology",
+    "travel": "Travel",
+    "weather": "Weather",
+    "work": "Work & Study"
+  }
+}

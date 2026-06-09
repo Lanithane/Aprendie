@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Alert, Box, Stack, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import SectionCard from '../shared/SectionCard'
 import LoadingSpinner from '../shared/LoadingSpinner'
 import MetricStat from './MetricStat'
 import RangeToggle from './RangeToggle'
 import AttemptsAccuracyChart from './AttemptsAccuracyChart'
+import { numberFormatFor } from '../../i18n/formatLocale'
 import { useUserMetrics, type UserMetricsSource } from '../../hooks/useUserMetrics'
 import type { MetricsRange } from '../../api/metricsApi'
 
@@ -13,16 +15,17 @@ import type { MetricsRange } from '../../api/metricsApi'
 // range.
 export default function UserMetrics({
   source,
-  title = 'Your metrics',
+  title,
 }: {
   source: UserMetricsSource
   title?: string
 }) {
+  const { t, i18n } = useTranslation()
   const [range, setRange] = useState<MetricsRange>('all')
   const { data, loading, error } = useUserMetrics(source, range)
 
   return (
-    <SectionCard title={title} collapsible>
+    <SectionCard title={title ?? t('metrics.yourMetrics')} collapsible>
       {error && (
         <Alert severity='error' sx={{ mb: 2 }}>
           {error}
@@ -33,8 +36,14 @@ export default function UserMetrics({
       ) : data ? (
         <Stack spacing={3}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-            <MetricStat label='Attempts' value={data.totals.attempts.toLocaleString()} />
-            <MetricStat label='Accuracy' value={`${Math.round(data.totals.accuracy * 100)}%`} />
+            <MetricStat
+              label={t('metrics.attempts')}
+              value={numberFormatFor(i18n.language).format(data.totals.attempts)}
+            />
+            <MetricStat
+              label={t('metrics.accuracy')}
+              value={`${Math.round(data.totals.accuracy * 100)}%`}
+            />
           </Box>
           <Box>
             <Box
@@ -47,7 +56,7 @@ export default function UserMetrics({
               }}
             >
               <Typography variant='subtitle2' color='text.secondary'>
-                Attempts &amp; accuracy over time
+                {t('metrics.overTime')}
               </Typography>
               <RangeToggle value={range} onChange={setRange} />
             </Box>
