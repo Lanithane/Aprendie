@@ -28,9 +28,11 @@ export default function PalabradexPage() {
           ? t('palabradex.grammarTitle', { language: t(`languages.${pair.learnLanguage}`) })
           : t('palabradex.wordsTitle')}
       </Typography>
-      <Typography color='text.secondary' variant='body2' sx={{ mb: 2 }}>
-        {grammar ? t('palabradex.grammarDesc') : t('palabradex.wordsDesc')}
-      </Typography>
+      {grammar && (
+        <Typography color='text.secondary' variant='body2' sx={{ mb: 2 }}>
+          {t('palabradex.grammarDesc')}
+        </Typography>
+      )}
 
       <ToggleButtonGroup
         value={mode}

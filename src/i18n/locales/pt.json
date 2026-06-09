@@ -285,7 +285,6 @@
   "palabradex": {
     "wordsTitle": "Coleção de palavras",
     "grammarTitle": "Gramática de {{language}}",
-    "wordsDesc": "Cada palavra raiz que você encontrou, com a frequência de acertos.",
     "grammarDesc": "Os blocos de construção do idioma que você está aprendendo.",
     "yourWords": "Suas palavras",
     "language": "Idioma",

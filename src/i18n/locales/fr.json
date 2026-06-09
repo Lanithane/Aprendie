@@ -285,7 +285,6 @@
   "palabradex": {
     "wordsTitle": "Collection de mots",
     "grammarTitle": "Grammaire : {{language}}",
-    "wordsDesc": "Chaque mot-racine que vous avez rencontré, avec votre taux de réussite.",
     "grammarDesc": "Les briques de base de la langue que vous apprenez.",
     "yourWords": "Vos mots",
     "language": "Langue",

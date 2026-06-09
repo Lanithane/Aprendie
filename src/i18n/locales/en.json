@@ -285,7 +285,6 @@
   "palabradex": {
     "wordsTitle": "Word collection",
     "grammarTitle": "{{language}} grammar",
-    "wordsDesc": "Every root word you’ve met, with how often you got it right.",
     "grammarDesc": "The building blocks of the language you’re learning.",
     "yourWords": "Your words",
     "language": "Language",

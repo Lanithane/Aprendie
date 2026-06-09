@@ -285,7 +285,6 @@
   "palabradex": {
     "wordsTitle": "Raccolta di parole",
     "grammarTitle": "Grammatica {{language}}",
-    "wordsDesc": "Ogni parola radice che hai incontrato, con quante volte l'hai indovinata.",
     "grammarDesc": "I mattoni della lingua che stai imparando.",
     "yourWords": "Le tue parole",
     "language": "Lingua",
