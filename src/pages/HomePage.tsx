@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import { Alert, Box, Button, Stack } from '@mui/material'
+import { Alert, Button, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import PracticeCard from '../components/PracticeCard/PracticeCard'
-import HomeTopBar from '../components/HomeTopBar/HomeTopBar'
-import LevelSelectButton from '../components/HomeTopBar/LevelSelectButton'
 import CorrectionDisplay from '../components/CorrectionDisplay/CorrectionDisplay'
 import StreamingCorrection from '../components/CorrectionDisplay/StreamingCorrection'
 import AccessGate from '../components/AccessGate/AccessGate'
@@ -30,7 +28,6 @@ import { useDelayedFlag } from '../hooks/useDelayedFlag'
 // stays above the keyboard and nothing scrolls.
 const Stage = styled('div')`
   width: 100%;
-  padding-block: ${({ theme }) => theme.spacing(2)};
   ${({ theme }) => theme.breakpoints.down('md')} {
     padding-bottom: calc(${({ theme }) => theme.spacing(2)} + env(safe-area-inset-bottom));
   }
@@ -40,7 +37,7 @@ export default function HomePage() {
   const { t } = useTranslation()
   const { user, isApproved, bootstrapSentence, consumeBootstrap } = useAuth()
   const { pair } = useLanguagePair()
-  const { pref: level, setPref: setLevel } = useLevelPreference()
+  const { pref: level } = useLevelPreference()
   const { pref: category, setPref: setCategory } = useCategoryPreference()
   const { needsOnboarding, error: onboardingError, preparing, complete } = useOnboarding()
   const {
@@ -161,31 +158,23 @@ export default function HomePage() {
   if (loading || !sentence) return showLoader ? <LoadingSpinner /> : null
 
   return (
-    <>
-      <HomeTopBar level={level} onLevelChange={setLevel} />
-      <Stage>
-        {/* md+: the level selector floats with the card, just above it and left-aligned. Below md
-            it lives in the page-top bar instead (HomeTopBar). */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, mb: 1 }}>
-          <LevelSelectButton level={level} onLevelChange={setLevel} />
-        </Box>
-        <PracticeCard
-          promptText={sentence.promptText}
-          wordBreakdown={sentence.wordBreakdown}
-          learnLanguage={sentence.learnLanguage}
-          guessLanguage={sentence.guessLanguage}
-          locale={sentence.locale}
-          sentenceLevel={sentence.level}
-          category={category}
-          sentenceTheme={sentence.theme}
-          onCategoryChange={setCategory}
-          onSubmit={(userAnswer) => {
-            setPendingAnswer(userAnswer)
-            void submit(sentence.id, userAnswer)
-          }}
-          submitting={submitting}
-        />
-      </Stage>
-    </>
+    <Stage>
+      <PracticeCard
+        promptText={sentence.promptText}
+        wordBreakdown={sentence.wordBreakdown}
+        learnLanguage={sentence.learnLanguage}
+        guessLanguage={sentence.guessLanguage}
+        locale={sentence.locale}
+        sentenceLevel={sentence.level}
+        category={category}
+        sentenceTheme={sentence.theme}
+        onCategoryChange={setCategory}
+        onSubmit={(userAnswer) => {
+          setPendingAnswer(userAnswer)
+          void submit(sentence.id, userAnswer)
+        }}
+        submitting={submitting}
+      />
+    </Stage>
   )
 }
