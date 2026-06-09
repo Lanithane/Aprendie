@@ -12,11 +12,9 @@ import {
   Switch,
   FormControlLabel,
 } from '@mui/material'
+import LogoutIcon from '@mui/icons-material/Logout'
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined'
-import ShieldIcon from '@mui/icons-material/Shield'
 import { useTranslation } from 'react-i18next'
-import { Link as RouterLink } from 'react-router-dom'
-import { ADMIN_NAV_ITEM } from '../components/AppShell/navigation'
 import SectionCard from '../components/shared/SectionCard'
 import ContributeCard from '../components/Contribute/ContributeCard'
 import { useFeedback } from '../components/Feedback/FeedbackProvider'
@@ -36,7 +34,7 @@ import { LEVELS } from '../../shared/levels'
 export default function SettingsPage() {
   const { t } = useTranslation()
   const levelLabel = useLevelLabel()
-  const { user, isAdmin } = useAuth()
+  const { user } = useAuth()
   const { pref, setPref } = useLevelPreference()
   const { enabled: streakEnabled, setEnabled: setStreakEnabled } = useStreakPreference()
   const { streak } = useStreak()
@@ -49,38 +47,6 @@ export default function SettingsPage() {
         {t('settings.title')}
       </Typography>
       <Stack spacing={2}>
-        {isAdmin && (
-          <Button
-            variant='contained'
-            color='primary'
-            startIcon={<ShieldIcon />}
-            component={RouterLink}
-            to={ADMIN_NAV_ITEM.to}
-            sx={{ alignSelf: 'flex-start' }}
-          >
-            {t('nav.admin')}
-          </Button>
-        )}
-        <SectionCard
-          title={t('settings.appearanceTitle')}
-          description={t('settings.appearanceDesc')}
-        >
-          <Stack spacing={2}>
-            <ToggleButtonGroup
-              value={mode}
-              exclusive
-              size='small'
-              onChange={(_, v: ThemeMode | null) => v && setMode(v)}
-              aria-label={t('settings.modeAria')}
-            >
-              <ToggleButton value='light'>{t('common.light')}</ToggleButton>
-              <ToggleButton value='system'>{t('common.system')}</ToggleButton>
-              <ToggleButton value='dark'>{t('common.dark')}</ToggleButton>
-            </ToggleButtonGroup>
-            <ThemePicker />
-          </Stack>
-        </SectionCard>
-
         <SectionCard title={t('settings.languagesTitle')} description={t('settings.languagesDesc')}>
           <LanguagePairPicker />
         </SectionCard>
@@ -117,6 +83,26 @@ export default function SettingsPage() {
           </Stack>
         </SectionCard>
 
+        <SectionCard
+          title={t('settings.appearanceTitle')}
+          description={t('settings.appearanceDesc')}
+        >
+          <Stack spacing={2}>
+            <ToggleButtonGroup
+              value={mode}
+              exclusive
+              size='small'
+              onChange={(_, v: ThemeMode | null) => v && setMode(v)}
+              aria-label={t('settings.modeAria')}
+            >
+              <ToggleButton value='light'>{t('common.light')}</ToggleButton>
+              <ToggleButton value='system'>{t('common.system')}</ToggleButton>
+              <ToggleButton value='dark'>{t('common.dark')}</ToggleButton>
+            </ToggleButtonGroup>
+            <ThemePicker />
+          </Stack>
+        </SectionCard>
+
         <SectionCard title={t('settings.streakTitle')} description={t('settings.streakDesc')}>
           <Stack spacing={1}>
             <FormControlLabel
@@ -150,7 +136,9 @@ export default function SettingsPage() {
         <SectionCard title={t('settings.accountTitle')} description={user?.email}>
           <Box sx={{ mt: 2 }}>
             <Button
-              color='secondary'
+              color='error'
+              variant='outlined'
+              startIcon={<LogoutIcon />}
               component='a'
               href='/api/auth/logout'
               onClick={clearSessionMarker}

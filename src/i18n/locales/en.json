@@ -49,7 +49,8 @@
     "palabradex": "Palabradex",
     "translate": "Translate",
     "settings": "Settings",
-    "admin": "Admin"
+    "admin": "Admin",
+    "more": "More"
   },
   "appShell": {
     "skipToContent": "Skip to content",

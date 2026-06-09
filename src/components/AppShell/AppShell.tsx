@@ -1,18 +1,23 @@
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { styled, useTheme } from '@mui/material/styles'
 import { Box, useMediaQuery, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material'
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { useAuth } from '../../auth/AuthContext'
 import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed'
 import { useScrollToTop } from '../../hooks/useScrollToTop'
 import { useKeyboardOpen } from '../../hooks/useKeyboardOpen'
 import Sidebar from '../Sidebar/Sidebar'
 import DailyCapBanner from '../DailyCapBanner/DailyCapBanner'
-import { ADMIN_NAV_ITEM, buildNavItems, isActiveRoute } from './navigation'
+import MoreDrawer from '../MoreDrawer/MoreDrawer'
+import { PRIMARY_NAV_ITEMS, buildNavItems, isActiveRoute, isMoreRoute } from './navigation'
 
 const SIDEBAR_WIDTH = 240
 const SIDEBAR_COLLAPSED_WIDTH = 64
+
+// Sentinel value used as BottomNavigation `value` when the More drawer is active.
+const MORE_VALUE = '__more__'
 
 const ShellRoot = styled(Box)`
   display: flex;
@@ -78,30 +83,19 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-  const isXs = useMediaQuery(theme.breakpoints.only('xs'))
-  // While the soft keyboard is up the fixed bottom nav is hidden behind it anyway, and on iOS its
-  // `position: fixed` anchoring fights the keyboard and jitters the page scroll as you type — so we
-  // drop it from the layout entirely until the keyboard closes. It's out of flow, so this reflows
-  // nothing.
   const keyboardOpen = useKeyboardOpen()
   const { isAdmin } = useAuth()
   const loc = useLocation()
-  // Reset to the top of the page on every navigation — React Router otherwise
-  // keeps the previous view's scroll offset.
   useScrollToTop()
-  // Desktop sidebar defaults to the collapsed rail; users expand it on demand. The choice is
-  // persisted to localStorage so it survives reloads.
   const { collapsed, toggleCollapsed } = useSidebarCollapsed()
+  const [moreOpen, setMoreOpen] = useState(false)
+
   const navItems = buildNavItems(isAdmin)
-  // Flash cards is dropped from the bottom bar across the whole mobile range — it gets a pill
-  // shortcut on the home screen (HomeTopBar) instead. Admin additionally drops on the narrowest
-  // phones (xs), where six items won't fit; admins reach it from Settings there.
-  const mobileNavItems = navItems.filter(
-    ({ to }) => to !== '/flashcards' && !(isXs && to === ADMIN_NAV_ITEM.to)
-  )
+  const activeMoreRoute = isMoreRoute(loc.pathname, isAdmin)
   const activePath = navItems.find(({ to }) => isActiveRoute(loc.pathname, to))?.to ?? false
-  // The near-cap banner belongs to the spend surfaces — sentence practice and flash cards, which
-  // share the one daily cap. Elsewhere (history, settings, admin) there's nothing to warn about.
+  // Bottom nav shows primary items plus the More button.
+  const bottomNavValue = activeMoreRoute ? MORE_VALUE : activePath || false
+
   const isPracticeRoute = loc.pathname === '/' || loc.pathname === '/flashcards'
 
   return (
@@ -122,24 +116,33 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </Content>
       </Main>
       {isMobile && !keyboardOpen && (
-        <MobileNavSurface elevation={8}>
-          <BottomNavigation
-            showLabels
-            value={activePath}
-            aria-label={t('appShell.primaryNavigation')}
-          >
-            {mobileNavItems.map(({ to, labelKey, Icon }) => (
+        <>
+          <MobileNavSurface elevation={8}>
+            <BottomNavigation
+              value={bottomNavValue}
+              aria-label={t('appShell.primaryNavigation')}
+              sx={{ '& .MuiBottomNavigationAction-label': { display: 'none' } }}
+            >
+              {PRIMARY_NAV_ITEMS.map(({ to, labelKey, Icon }) => (
+                <BottomNavigationAction
+                  key={to}
+                  aria-label={t(labelKey)}
+                  value={to}
+                  icon={<Icon />}
+                  component={RouterLink}
+                  to={to}
+                />
+              ))}
               <BottomNavigationAction
-                key={to}
-                label={t(labelKey)}
-                value={to}
-                icon={<Icon />}
-                component={RouterLink}
-                to={to}
+                aria-label={t('nav.more')}
+                value={MORE_VALUE}
+                icon={<MoreHorizIcon />}
+                onClick={() => setMoreOpen(true)}
               />
-            ))}
-          </BottomNavigation>
-        </MobileNavSurface>
+            </BottomNavigation>
+          </MobileNavSurface>
+          <MoreDrawer open={moreOpen} onClose={() => setMoreOpen(false)} />
+        </>
       )}
     </ShellRoot>
   )

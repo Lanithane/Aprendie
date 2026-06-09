@@ -49,7 +49,8 @@
     "palabradex": "Palabradex",
     "translate": "Traducir",
     "settings": "Ajustes",
-    "admin": "Admin"
+    "admin": "Admin",
+    "more": "Más"
   },
   "appShell": {
     "skipToContent": "Saltar al contenido",
