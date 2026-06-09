@@ -64,36 +64,47 @@ export default function WordCollection({ userId, pair }: WordCollectionProps) {
 
   return (
     <>
-      <Tabs
-        value={effectiveLang}
-        onChange={(_, v: LanguageCode) => setSelectedLang(v)}
-        variant='scrollable'
-        scrollButtons='auto'
-        sx={{ mt: 1, mb: 2.5 }}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'auto auto' },
+          justifyContent: { sm: 'space-between' },
+          alignItems: 'flex-end',
+          gap: 2,
+          mt: 1,
+          mb: 2.5,
+        }}
       >
-        {languages.map((code) => (
-          <Tab key={code} value={code} label={t(`languages.${code}`)} />
-        ))}
-      </Tabs>
-
-      <Box sx={{ mb: 2.5 }}>
-        <Typography variant='caption' color='text.secondary' sx={{ mb: 0.75, display: 'block' }}>
-          {t('palabradex.sort')}
-        </Typography>
-        <ToggleButtonGroup
-          value={sort}
-          exclusive
-          size='small'
-          onChange={(_, v: LexemeSort | null) => {
-            if (v !== null) setSort(v)
-          }}
+        <Tabs
+          value={effectiveLang}
+          onChange={(_, v: LanguageCode) => setSelectedLang(v)}
+          variant='scrollable'
+          scrollButtons='auto'
         >
-          {(Object.keys(SORT_KEYS) as LexemeSort[]).map((s) => (
-            <ToggleButton key={s} value={s}>
-              {t(SORT_KEYS[s])}
-            </ToggleButton>
+          {languages.map((code) => (
+            <Tab key={code} value={code} label={t(`languages.${code}`)} />
           ))}
-        </ToggleButtonGroup>
+        </Tabs>
+
+        <Box>
+          <Typography variant='caption' color='text.secondary' sx={{ mb: 0.75, display: 'block' }}>
+            {t('palabradex.sort')}
+          </Typography>
+          <ToggleButtonGroup
+            value={sort}
+            exclusive
+            size='small'
+            onChange={(_, v: LexemeSort | null) => {
+              if (v !== null) setSort(v)
+            }}
+          >
+            {(Object.keys(SORT_KEYS) as LexemeSort[]).map((s) => (
+              <ToggleButton key={s} value={s}>
+                {t(SORT_KEYS[s])}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </Box>
       </Box>
 
       {error && (

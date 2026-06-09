@@ -190,7 +190,9 @@ interface HistoryFiltersProps {
 function HistoryFilters({ selectedLevel, sort, onLevelChange, onSortChange }: HistoryFiltersProps) {
   const { t } = useTranslation()
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, mb: 2.5 }}>
+    <Box
+      sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, mb: 2.5, justifyContent: 'space-between' }}
+    >
       <Box>
         <Typography variant='caption' color='text.secondary' sx={{ mb: 0.75, display: 'block' }}>
           {t('history.level')}
