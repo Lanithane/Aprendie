@@ -24,15 +24,8 @@ export default function PalabradexPage() {
   return (
     <Box>
       <Typography variant='h3' sx={{ mb: 0.5 }}>
-        {grammar
-          ? t('palabradex.grammarTitle', { language: t(`languages.${pair.learnLanguage}`) })
-          : t('palabradex.wordsTitle')}
+        Palabradex
       </Typography>
-      {grammar && (
-        <Typography color='text.secondary' variant='body2' sx={{ mb: 2 }}>
-          {t('palabradex.grammarDesc')}
-        </Typography>
-      )}
 
       <ToggleButtonGroup
         value={mode}

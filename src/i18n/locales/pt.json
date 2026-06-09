@@ -297,9 +297,6 @@
     "inputPlaceholder": "Digite algo em {{language}}…"
   },
   "palabradex": {
-    "wordsTitle": "Coleção de palavras",
-    "grammarTitle": "Gramática de {{language}}",
-    "grammarDesc": "Os blocos de construção do idioma que você está aprendendo.",
     "yourWords": "Suas palavras",
     "language": "Idioma",
     "sort": "Ordenar",

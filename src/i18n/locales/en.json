@@ -291,9 +291,6 @@
     "inputPlaceholder": "Type something in {{language}}…"
   },
   "palabradex": {
-    "wordsTitle": "Word collection",
-    "grammarTitle": "{{language}} grammar",
-    "grammarDesc": "The building blocks of the language you’re learning.",
     "yourWords": "Your words",
     "language": "Language",
     "sort": "Sort",

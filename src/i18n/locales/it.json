@@ -306,9 +306,6 @@
     "inputPlaceholder": "Scrivi qualcosa in {{language}}…"
   },
   "palabradex": {
-    "wordsTitle": "Raccolta di parole",
-    "grammarTitle": "Grammatica {{language}}",
-    "grammarDesc": "I mattoni della lingua che stai imparando.",
     "yourWords": "Le tue parole",
     "language": "Lingua",
     "sort": "Ordina",

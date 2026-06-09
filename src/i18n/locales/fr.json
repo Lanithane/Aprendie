@@ -297,9 +297,6 @@
     "inputPlaceholder": "Saisissez quelque chose en {{language}}…"
   },
   "palabradex": {
-    "wordsTitle": "Collection de mots",
-    "grammarTitle": "Grammaire : {{language}}",
-    "grammarDesc": "Les briques de base de la langue que vous apprenez.",
     "yourWords": "Vos mots",
     "language": "Langue",
     "sort": "Trier",

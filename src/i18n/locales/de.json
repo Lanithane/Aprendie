@@ -297,9 +297,6 @@
     "inputPlaceholder": "Schreibe etwas auf {{language}}…"
   },
   "palabradex": {
-    "wordsTitle": "Wortsammlung",
-    "grammarTitle": "{{language}}-Grammatik",
-    "grammarDesc": "Die Bausteine der Sprache, die du lernst.",
     "yourWords": "Deine Wörter",
     "language": "Sprache",
     "sort": "Sortieren",
