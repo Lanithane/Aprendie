@@ -14,7 +14,6 @@ const PageWrap = styled('div')`
   flex-direction: column;
   align-items: flex-start;
   gap: ${({ theme }) => theme.spacing(3)};
-  padding-block: ${({ theme }) => theme.spacing(2)};
 `
 
 // Header + card share one centered, card-width column so the title's left edge lines up with the
